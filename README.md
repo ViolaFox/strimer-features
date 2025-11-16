@@ -6,6 +6,6 @@
 
 Старый кот читающий сообщения - https://violafox.github.io/strimer-features/speacer-cat
 
-Старый кот читающий сообщения - https://violafox.github.io/strimer-features/gif-speacer-cat
+Новый кот читающий сообщения - https://violafox.github.io/strimer-features/gif-speacer-cat
 
 Таймер - https://violafox.github.io/strimer-features/timer
