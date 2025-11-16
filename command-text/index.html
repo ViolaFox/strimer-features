@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Градиентный печатающийся текст OBS</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+      }
+
+      #text {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 60px;
+        font-weight: bold;
+        white-space: pre-wrap;
+        opacity: 0;
+        transition: opacity 2s ease;
+        background: linear-gradient(
+          135deg,
+          #cc00ff,
+          #00ffff,
+          #ffcc00,
+          #ff2631,
+          #cc00ff
+        );
+        background-size: 400%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientMove 15s linear infinite;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+      }
+
+      @keyframes gradientMove {
+        0% {
+          background-position: 0% 0%;
+        }
+        100% {
+          background-position: 400% 400%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="text"></div>
+
+    <script>
+      const message = "!погладить !pc !heart !обнимашки";
+      const textElement = document.getElementById("text");
+
+      const appearInterval = 7 * 60 * 1000; // 7 минут
+      const typingSpeed = 60; // скорость печати
+      const visibleDuration = 60 * 1000; // 1 минута видимости
+
+      function typeText(onComplete) {
+        let i = 0;
+        textElement.textContent = "";
+        textElement.style.opacity = 1;
+
+        function type() {
+          if (i < message.length) {
+            textElement.textContent += message.charAt(i);
+            i++;
+            setTimeout(type, typingSpeed);
+          } else if (onComplete) {
+            onComplete();
+          }
+        }
+        type();
+      }
+
+      function cycle() {
+        typeText(() => {
+          setTimeout(() => {
+            textElement.style.opacity = 0;
+            setTimeout(cycle, appearInterval);
+          }, visibleDuration);
+        });
+      }
+
+      // первый показ сразу
+      cycle();
+    </script>
+  </body>
+</html>

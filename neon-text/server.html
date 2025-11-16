@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Тест WebSocket MiniChat</title>
+    <style>
+      body {
+        background: #111;
+        color: #0f0;
+        font-family: monospace;
+        padding: 20px;
+      }
+      #log {
+        white-space: pre-wrap;
+        background: #000;
+        border: 1px solid #0f0;
+        padding: 10px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Подключение к MiniChat WebSocket</h2>
+    <label>
+      Адрес (ws://...):
+      <input id="wsUrl" type="text" value="ws://127.0.0.1:8000" size="40" />
+    </label>
+    <button onclick="connect()">Подключиться</button>
+
+    <h3>Лог:</h3>
+    <div id="log"></div>
+
+    <script>
+      let socket;
+
+      function log(msg) {
+        const logDiv = document.getElementById("log");
+        logDiv.innerText += msg + "\n";
+        logDiv.scrollTop = logDiv.scrollHeight;
+      }
+
+      function connect() {
+        const url = document.getElementById("wsUrl").value;
+        socket = new WebSocket(url);
+
+        socket.onopen = () => log("[✅] Подключено к " + url);
+        socket.onmessage = (event) => log("[📩] " + event.data);
+        socket.onerror = (err) => log("[❌] Ошибка: " + err.message);
+        socket.onclose = () => log("[⚠] Соединение закрыто");
+      }
+    </script>
+  </body>
+</html>

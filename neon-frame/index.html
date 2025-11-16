@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Neon Gradient Border (OBS overlay)</title>
+    <style>
+      :root {
+        --thickness: 6px; /* толщина рамки */
+        --duration: 3000ms;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: transparent;
+      }
+
+      .neon-wrap {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        display: flex;
+        align-items: stretch;
+        justify-content: stretch;
+        z-index: 9999;
+      }
+
+      .neon-border {
+        margin: var(--thickness);
+        border-radius: 18px;
+        width: calc(100% - calc(var(--thickness) * 2));
+        height: calc(100% - calc(var(--thickness) * 2));
+        position: relative;
+        opacity: 0;
+        transform: scale(0.98);
+        transition: opacity 180ms ease,
+          transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1);
+      }
+
+      /* Сияющая градиентная рамка */
+      .neon-border.active::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 18px;
+        padding: var(--thickness);
+        background: linear-gradient(
+            90deg,
+            #ff0000,
+            #ff00ff,
+            #0000ff,
+            #00ffff,
+            #00ff00,
+            #ffff00,
+            #ff0000
+          )
+          border-box;
+
+        -webkit-mask: linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8),
+          0 0 40px rgba(255, 255, 255, 0.6), 0 0 60px rgba(255, 255, 255, 0.4);
+        opacity: 1;
+      }
+
+      .neon-border.active {
+        opacity: 1;
+        transform: scale(1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="neon-wrap" aria-hidden="true">
+      <div class="neon-border" id="neonBorder"></div>
+    </div>
+
+    <script>
+      const border = document.getElementById("neonBorder");
+      let timer = null;
+      const defaultVisibleMs = 16000;
+
+      function showNeon({ duration } = {}) {
+        const ms = typeof duration === "number" ? duration : defaultVisibleMs;
+        border.classList.remove("active");
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => border.classList.add("active"))
+        );
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          border.classList.remove("active");
+          timer = null;
+        }, ms);
+      }
+
+      // Подключаемся к локальному WebSocket MiniChat / Streamer.bot
+      const ws = new WebSocket("ws://localhost:4848/Chat"); // замени порт на тот, что даёт MiniChat
+
+      ws.onmessage = (ev) => {
+        try {
+          const data = JSON.parse(ev.data);
+
+          if (data.Type === "Message" && data.Data) {
+            let text = "";
+
+            if (Array.isArray(data.Data.MessageKit)) {
+              for (const item of data.Data.MessageKit) {
+                if (item.Type === "Text" && item.Data && item.Data.Text) {
+                  text += item.Data.Text + " ";
+                }
+              }
+            }
+
+            if (text.trim().length > 0) {
+              showNeon();
+            }
+          }
+        } catch (e) {
+          // Игнорируем ошибки
+        }
+      };
+    </script>
+  </body>
+</html>

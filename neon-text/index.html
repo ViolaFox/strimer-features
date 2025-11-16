@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Очередь уведомлений MiniChat</title>
+    <style>
+      body {
+        background: transparent;
+        margin: 0;
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        flex-direction: column;
+      }
+      svg {
+        width: 1200px;
+        height: 200px;
+        pointer-events: none;
+      }
+      .text {
+        font-family: "Arial Black", sans-serif;
+        font-size: 80px;
+        font-weight: bold;
+        fill: transparent;
+        stroke: url(#gradient);
+        stroke-width: 3px;
+        stroke-dasharray: 500;
+        paint-order: stroke fill;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+      .glow {
+        animation: neonGlow 20s linear infinite;
+      }
+      @keyframes neonGlow {
+        0% {
+          stroke-dashoffset: 0;
+        }
+        100% {
+          stroke-dashoffset: -500;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <svg viewBox="0 0 800 200">
+        <defs>
+          <linearGradient id="gradient" gradientTransform="rotate(90)">
+            <stop offset="0%" stop-color="#ff00ff" />
+            <stop offset="50%" stop-color="#00ffff" />
+            <stop offset="100%" stop-color="#ff00ff" />
+          </linearGradient>
+        </defs>
+        <text
+          id="alertText"
+          x="50%"
+          y="50%"
+          dominant-baseline="middle"
+          text-anchor="middle"
+          class="text"
+        ></text>
+      </svg>
+    </div>
+
+    <script>
+      const alertText = document.getElementById("alertText");
+      const queue = [];
+      let showing = false;
+
+      // функция для показа уведомления
+      function showNext() {
+        if (queue.length === 0) {
+          showing = false;
+          return;
+        }
+        showing = true;
+        const message = queue.shift();
+        alertText.textContent = message;
+        alertText.classList.add("glow");
+        alertText.style.opacity = "1";
+
+        setTimeout(() => {
+          alertText.style.opacity = "0";
+
+          alertText.addEventListener("transitionend", function handler() {
+            alertText.classList.remove("glow");
+            alertText.textContent = "";
+            alertText.removeEventListener("transitionend", handler);
+            setTimeout(showNext, 200); // короткая пауза между уведомлениями
+          });
+        }, 5000); // показываем 5 секунд
+      }
+
+      // добавление уведомления в очередь
+      function showAlert(message) {
+        queue.push(message);
+        if (!showing) showNext();
+      }
+
+      // Подключение к WebSocket MiniChat
+      const socket = new WebSocket("ws://localhost:4848/Chat");
+      socket.onopen = () => console.log("✅ Connected to MiniChat");
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.Type === "Live" && data.Data?.Type === "Follow") {
+            const user = data.Data.UserName || "Новый зритель";
+            showAlert(`${user} follow!`);
+          }
+        } catch (e) {
+          console.error("Ошибка парсинга:", e);
+        }
+      };
+    </script>
+  </body>
+</html>

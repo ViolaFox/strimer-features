@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Неоновый таймер без мерцания</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+        height: 100%;
+      }
+      svg {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      text {
+        font-family: "Orbitron", sans-serif;
+        font-size: 220px;
+        fill: none;
+        stroke: url(#neon);
+        stroke-width: 6;
+        filter: drop-shadow(0 0 25px #00ffff);
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <svg viewBox="0 0 800 400">
+      <defs>
+        <linearGradient
+          id="neon"
+          gradientUnits="userSpaceOnUse"
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="0%"
+        >
+          <stop offset="0%" stop-color="#00ffff" />
+          <stop offset="50%" stop-color="#ff00ff" />
+          <stop offset="100%" stop-color="#00ffff" />
+          <animateTransform
+            attributeName="gradientTransform"
+            type="translate"
+            from="-800 0"
+            to="800 0"
+            dur="10s"
+            repeatCount="indefinite"
+          />
+        </linearGradient>
+      </defs>
+      <text
+        id="timer"
+        x="50%"
+        y="55%"
+        text-anchor="middle"
+        dominant-baseline="middle"
+      >
+        05:00
+      </text>
+    </svg>
+
+    <script>
+      let total = 5 * 60;
+      const timerText = document.getElementById("timer");
+
+      function updateTimer() {
+        const minutes = Math.floor(total / 60);
+        const seconds = total % 60;
+        timerText.textContent = `${String(minutes).padStart(2, "0")}:${String(
+          seconds
+        ).padStart(2, "0")}`;
+        if (total > 0) total--;
+      }
+      setInterval(updateTimer, 1000);
+    </script>
+  </body>
+</html>

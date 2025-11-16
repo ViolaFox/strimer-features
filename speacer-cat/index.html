@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Котик читает MiniChat</title>
+    <style>
+      body {
+        font-family: "Oswald", sans-serif;
+        background: transparent;
+        overflow: hidden;
+      }
+      .cat {
+        position: relative;
+        width: 200px;
+        height: 300px;
+        margin: 30px auto 20px;
+      }
+      .body {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        width: 130px;
+        height: 160px;
+        background: radial-gradient(ellipse at center, #111 60%, #000 100%);
+        border-radius: 60% 60% 30% 30%;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        transform: translateX(-50%);
+      }
+      .spot {
+        position: absolute;
+        background: #525252;
+        border-radius: 50% / 60%;
+        opacity: 0.7;
+        box-shadow: inset 0 0 6px #111;
+      }
+      .spot1 {
+        width: 40px;
+        height: 25px;
+        top: 25px;
+        left: 15px;
+        transform: rotate(-15deg);
+      }
+      .spot2 {
+        width: 30px;
+        height: 18px;
+        top: 70px;
+        left: 70px;
+        transform: rotate(10deg);
+      }
+      .spot3 {
+        width: 50px;
+        height: 30px;
+        top: 110px;
+        left: 40px;
+        transform: rotate(-10deg);
+      }
+      .tail {
+        position: absolute;
+        rotate: 199deg;
+        bottom: -24px;
+        right: 39px;
+        width: 20px;
+        height: 100px;
+        background: #000;
+        border-radius: 20px;
+        transform-origin: top center;
+        animation: wag 2s infinite ease-in-out;
+        box-shadow: inset 0 0 6px #111;
+      }
+      @keyframes wag {
+        0%,
+        100% {
+          transform: rotate(10deg);
+        }
+        50% {
+          transform: rotate(-10deg);
+        }
+      }
+      .head {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 130px;
+        height: 130px;
+        background: radial-gradient(circle at center, #111, #000);
+        border-radius: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
+      }
+      .ear {
+        position: absolute;
+        width: 0;
+        height: 0;
+        top: -30px;
+        border-left: 25px solid transparent;
+        border-right: 25px solid transparent;
+        border-bottom: 50px solid #000;
+        box-shadow: inset 0 0 5px #111;
+        z-index: -1;
+      }
+      .ear.left {
+        left: 5px;
+        transform: rotate(-20deg);
+      }
+      .ear.right {
+        right: 5px;
+        transform: rotate(20deg);
+      }
+      .eye {
+        position: absolute;
+        top: 50px;
+        width: 30px;
+        height: 30px;
+        background: white;
+        border-radius: 50%;
+        overflow: hidden;
+        box-shadow: 0 0 6px #000;
+      }
+      .eye.left {
+        left: 30px;
+      }
+      .eye.right {
+        right: 30px;
+      }
+      .eyelid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #111;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 10;
+      }
+      .pupil {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 10px;
+        height: 10px;
+        background: black;
+        border-radius: 50%;
+        transition: 0.1s;
+      }
+      .paw {
+        position: absolute;
+        width: 30px;
+        height: 20px;
+        background: #111;
+        border-radius: 50%;
+        bottom: 0;
+        box-shadow: inset 0 0 5px #000;
+      }
+      .paw.front-left {
+        left: 20px;
+        bottom: 33px;
+      }
+      .paw.front-right {
+        right: 20px;
+        bottom: 33px;
+      }
+      .paw.back-left {
+        left: 70px;
+        bottom: 20px;
+      }
+      .paw.back-right {
+        right: 70px;
+        bottom: 20px;
+      }
+      .speech {
+        position: absolute;
+        top: 310px;
+        left: 50%;
+        width: 300px;
+        transform: translateX(-50%);
+        color: rgb(255, 255, 255);
+        font-size: 20px;
+        text-align: center;
+        max-width: 300px;
+        white-space: normal;
+        word-wrap: break-word;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+          1px 1px 0 #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cat" id="cat">
+      <div class="tail"></div>
+      <div class="body">
+        <div class="spot spot1"></div>
+        <div class="spot spot2"></div>
+        <div class="spot spot3"></div>
+      </div>
+      <div class="head">
+        <div class="ear left"></div>
+        <div class="ear right"></div>
+        <div class="eye left">
+          <div class="eyelid"></div>
+          <div class="pupil" id="pupilLeft"></div>
+        </div>
+        <div class="eye right">
+          <div class="eyelid"></div>
+          <div class="pupil" id="pupilRight"></div>
+        </div>
+      </div>
+      <div class="paw front-left"></div>
+      <div class="paw front-right"></div>
+      <div class="paw back-left"></div>
+      <div class="paw back-right"></div>
+    </div>
+    <div class="speech" id="speech">Жду сообщений...</div>
+
+    <script>
+      const pupilLeft = document.getElementById("pupilLeft");
+      const pupilRight = document.getElementById("pupilRight");
+      const speechDiv = document.getElementById("speech");
+
+      // подключаемся к локальному MiniChat WS
+      const ws = new WebSocket("ws://localhost:4848/Chat"); // замени порт, если другой
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.Type === "Message" && data.Data) {
+            const user = data.Data.UserName || "Гость";
+            let text = "";
+
+            if (Array.isArray(data.Data.MessageKit)) {
+              for (const item of data.Data.MessageKit) {
+                if (item.Type === "Text" && item.Data?.Text) {
+                  text += item.Data.Text + " ";
+                }
+              }
+            }
+
+            if (text.trim().length > 0) {
+              const combined = `${user}: ${text.trim()}`;
+              speechDiv.textContent = combined;
+
+              setTimeout(() => {
+                if (speechDiv.textContent === combined) {
+                  speechDiv.textContent = "Жду сообщений...";
+                }
+              }, 15000);
+            }
+          }
+        } catch (e) {
+          console.error("Ошибка обработки WS:", e);
+        }
+      };
+
+      function blink() {
+        const eyelids = document.querySelectorAll(".eyelid");
+        eyelids.forEach((el) => (el.style.opacity = "1"));
+        setTimeout(() => {
+          eyelids.forEach((el) => (el.style.opacity = "0"));
+        }, 200);
+      }
+
+      setInterval(() => {
+        blink();
+      }, 3000 + Math.random() * 4000);
+
+      document.addEventListener("mousemove", (e) => {
+        const rect = document.getElementById("cat").getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 3;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        const angle = Math.atan2(dy, dx);
+        const offset = 6;
+        const ox = Math.cos(angle) * offset;
+        const oy = Math.sin(angle) * offset;
+        pupilLeft.style.transform = `translate(${ox}px, ${oy}px)`;
+        pupilRight.style.transform = `translate(${ox}px, ${oy}px)`;
+      });
+    </script>
+  </body>
+</html>
