@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Котик читает MiniChat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Tektur", sans-serif;
+        background: transparent;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      div {
+        box-sizing: border-box;
+      }
+
+      .cat {
+        margin-top: 30px;
+        position: relative;
+        width: 200px;
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        transition: width 0.3s ease;
+      }
+      .cat.walking {
+        width: 355px;
+      }
+      .cat img {
+        width: auto;
+        max-height: 100%;
+        object-fit: contain;
+      }
+
+      .speech {
+        margin-top: -10px;
+        color: #ffffff;
+        font-size: 20px;
+        text-align: center;
+        max-width: 400px;
+        word-wrap: break-word;
+        white-space: normal;
+        text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #00ffff,
+          0 0 40px #00ffff, 0 0 80px #00ffff;
+        opacity: 1;
+        transition: opacity 0.5s ease;
+      }
+      .fade {
+        opacity: 0;
+      }
+      .fade.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cat" id="cat">
+      <img id="catImage" src="cat-sit.gif" alt="Котик" />
+    </div>
+    <div class="speech" id="speech">Жду сообщений...</div>
+
+    <script>
+      const catDiv = document.getElementById("cat");
+      const speechDiv = document.getElementById("speech");
+      const catImage = document.getElementById("catImage");
+      let animationDuration = 16000;
+      let messageTimeout = null;
+      let typingTimeout = null;
+
+      const trovoAnimationType = "words"; // "words" или "fade"
+
+      function typeText(element, text, speed = 120) {
+        if (typingTimeout) clearTimeout(typingTimeout);
+        element.textContent = "";
+        const chars = Array.from(text);
+        let i = 0;
+        function typeNext() {
+          if (i < chars.length) {
+            element.textContent += chars[i];
+            i++;
+            typingTimeout = setTimeout(typeNext, speed);
+          }
+        }
+        typeNext();
+      }
+
+      function typeWords(element, text, speed = 300) {
+        if (typingTimeout) clearTimeout(typingTimeout);
+        element.textContent = "";
+        const words = text.split(" ");
+        let i = 0;
+        function nextWord() {
+          if (i < words.length) {
+            element.textContent += (i === 0 ? "" : " ") + words[i];
+            i++;
+            typingTimeout = setTimeout(nextWord, speed);
+          }
+        }
+        nextWord();
+      }
+
+      function fadeInText(element, text) {
+        if (typingTimeout) clearTimeout(typingTimeout);
+        element.classList.remove("show");
+        element.textContent = text;
+        element.classList.add("fade");
+        setTimeout(() => element.classList.add("show"), 50);
+      }
+
+      typeText(speechDiv, "Жду сообщений...");
+
+      const ws = new WebSocket("ws://localhost:4848/Chat");
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.Type === "Message" && data.Data) {
+            const service = data.Data.Service || "";
+            const user = data.Data.Meta?.Login || data.Data.UserName || "Гость";
+            let text = "";
+
+            if (Array.isArray(data.Data.MessageKit)) {
+              for (const item of data.Data.MessageKit) {
+                if (item.Type === "Text" && item.Data?.Text) {
+                  text +=
+                    item.Data.Text.replace(/[\u200B-\u200D\uFEFF]/g, "") + " ";
+                }
+              }
+            }
+
+            if (text.trim().length > 0) {
+              const combined = `${user}: ${text.trim()}`;
+
+              // сброс старой анимации перед новой
+              if (typingTimeout) clearTimeout(typingTimeout);
+
+              // Выбор анимации
+              if (service === "Trovo") {
+                if (trovoAnimationType === "words")
+                  typeWords(speechDiv, combined);
+                else fadeInText(speechDiv, combined);
+              } else {
+                typeText(speechDiv, combined);
+              }
+
+              if (!catDiv.classList.contains("walking")) {
+                catDiv.classList.add("walking");
+                catImage.src = "cat-walk.gif";
+              }
+
+              if (messageTimeout) clearTimeout(messageTimeout);
+              messageTimeout = setTimeout(() => {
+                if (service === "Trovo")
+                  speechDiv.textContent = "Жду сообщений...";
+                else typeText(speechDiv, "Жду сообщений...");
+                catImage.src = "cat-sit.gif";
+                catDiv.classList.remove("walking");
+              }, animationDuration);
+            }
+          }
+        } catch (e) {
+          console.error("Ошибка обработки WS:", e);
+        }
+      };
+
+      function setAnimationDuration(ms) {
+        animationDuration = ms;
+      }
+    </script>
+  </body>
+</html>
