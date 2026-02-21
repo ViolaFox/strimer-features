@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Sign Overlay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* Change this color to update the entire sign */
+        --neon-color: #04f3bf;
+
+        /* Background color (set to transparent for overlays) */
+        --bg-color: transparent;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        background: var(--bg-color);
+
+        /* Flexbox for centering */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        overflow: hidden;
+      }
+
+      /* Ambient glow effect behind the text */
+      .ambient {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        /* Radial glow matching the neon color */
+        background: radial-gradient(
+          ellipse at 50% 50%,
+          rgba(1, 132, 150, 0.24) 0%,
+          transparent 60%
+        );
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .neon-script {
+        position: relative;
+        z-index: 2;
+        font-family: "Russo One", sans-serif;
+
+        font-size: 8vw; /* Responsive size based on viewport width */
+        white-space: nowrap; /* Prevents text wrapping */
+        display: inline-block;
+        max-width: 100%;
+
+        color: var(--neon-color);
+        text-align: center;
+
+        text-shadow:
+          0 0 5px var(--neon-color),
+          0 0 15px var(--neon-color),
+          0 0 30px var(--neon-color),
+          0 0 60px var(--neon-color);
+
+        animation: glowBreath 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes glowBreath {
+        0% {
+          text-shadow:
+            0 0 5px var(--neon-color),
+            0 0 15px var(--neon-color),
+            0 0 30px var(--neon-color);
+          opacity: 0.9;
+        }
+        100% {
+          text-shadow:
+            0 0 10px var(--neon-color),
+            0 0 25px var(--neon-color),
+            0 0 50px var(--neon-color),
+            0 0 100px var(--neon-color);
+          opacity: 1;
+        }
+      }
+
+      /* Hover state for interaction */
+      .neon-script:hover {
+        animation: none;
+        text-shadow:
+          0 0 10px var(--neon-color),
+          0 0 20px var(--neon-color),
+          0 0 40px var(--neon-color),
+          0 0 80px var(--neon-color);
+      }
+
+      /* Accessibility: Stop animation if user prefers */
+      @media (prefers-reduced-motion: reduce) {
+        .neon-script,
+        .ambient {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Ambient glow background element -->
+    <div class="ambient"></div>
+
+    <!-- Edit the text here -->
+    <div class="neon-script">Поддержи Follow</div>
+  </body>
+</html>

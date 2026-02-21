@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MiniChat GIF Controller</title>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+      }
+
+      img {
+        width: 500px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        transition: opacity 1s ease;
+        pointer-events: none;
+      }
+
+      img.fade-in {
+        opacity: 1;
+      }
+      img.fade-out {
+        opacity: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <img id="liveChat" src="live-chat.gif" />
+    <img id="silentChat" src="silent-chat.gif" />
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        /* ========= НАСТРОЙКИ ========= */
+
+        const BOT_NAME = "niahkingame";
+
+        const HIDE_DURATION = 17000;
+
+        const LIVECHAT_BASE = 50000;
+        const LIVECHAT_PER_MESSAGE = 10000;
+        const LIVECHAT_MAX = 120000;
+
+        const SILENT_DELAY = 600000; // 10 минут тишины (у тебя тестовое)
+        const SILENT_DURATION = 60000; // 1 минута (у тебя тестовое)
+
+        /* ========= ЭЛЕМЕНТЫ ========= */
+
+        const liveChat = document.getElementById("liveChat");
+        const silentChat = document.getElementById("silentChat");
+
+        /* ========= СОСТОЯНИЕ ========= */
+
+        let messageCount = 0;
+        let liveChatActive = false;
+
+        let hideTimer = null;
+        let liveChatTimer = null;
+        let silentDelayTimer = null;
+        let silentDurationTimer = null;
+
+        /* ========= FADE ========= */
+
+        function fadeIn(el) {
+          el.classList.remove("fade-out");
+          el.classList.add("fade-in");
+        }
+
+        function fadeOut(el) {
+          el.classList.remove("fade-in");
+          el.classList.add("fade-out");
+        }
+
+        function hideAll() {
+          fadeOut(liveChat);
+          fadeOut(silentChat);
+        }
+
+        /* ========= SILENT CHAT ========= */
+
+        function scheduleSilentChat() {
+          clearTimeout(silentDelayTimer);
+
+          silentDelayTimer = setTimeout(() => {
+            if (liveChatActive) return;
+
+            fadeIn(silentChat);
+
+            clearTimeout(silentDurationTimer);
+            silentDurationTimer = setTimeout(() => {
+              fadeOut(silentChat);
+              scheduleSilentChat(); // 🔁 снова ждём тишину
+            }, SILENT_DURATION);
+          }, SILENT_DELAY);
+        }
+
+        /* ========= LIVE CHAT ========= */
+
+        function showLiveChat() {
+          liveChatActive = true;
+          hideAll();
+
+          setTimeout(() => {
+            fadeIn(liveChat);
+          }, 500);
+
+          let duration = LIVECHAT_BASE + messageCount * LIVECHAT_PER_MESSAGE;
+          if (duration > LIVECHAT_MAX) duration = LIVECHAT_MAX;
+
+          clearTimeout(liveChatTimer);
+          liveChatTimer = setTimeout(() => {
+            fadeOut(liveChat);
+            liveChatActive = false;
+            messageCount = 0;
+            scheduleSilentChat(); // ⏳ после liveChat ждём тишину
+          }, duration);
+        }
+
+        /* ========= АКТИВНОСТЬ ========= */
+
+        function onUserActivity() {
+          messageCount++;
+
+          clearTimeout(hideTimer);
+          clearTimeout(silentDelayTimer);
+          clearTimeout(silentDurationTimer);
+
+          hideAll();
+
+          hideTimer = setTimeout(showLiveChat, HIDE_DURATION);
+        }
+
+        /* ========= MINICHAT ========= */
+
+        const ws = new WebSocket("ws://localhost:4848/Chat");
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.Type !== "Message" || !data.Data) return;
+
+            const user = (
+              data.Data.Meta?.Login ||
+              data.Data.UserName ||
+              "guest"
+            ).toLowerCase();
+
+            if (user === BOT_NAME) return;
+
+            onUserActivity();
+          } catch (e) {
+            console.error("WS error:", e);
+          }
+        };
+
+        /* ========= START ========= */
+
+        scheduleSilentChat(); // стартуем ожидание тишины
+      });
+    </script>
+  </body>
+</html>

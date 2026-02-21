@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <body
+    style="margin: 0; padding: 0; overflow: hidden; background: transparent"
+  >
+    <div id="zone"></div>
+
+    <script>
+      const zone = document.getElementById("zone");
+      zone.style.position = "relative";
+      zone.style.width = "100vw";
+      zone.style.height = "100vh";
+
+      const images = ["box/1.png", "box/2.png", "box/3.png"];
+      const boxSize = 80;
+      const spacing = 10;
+
+      // нижний ряд будет максимально широким
+      const maxColumns = 6;
+      let placed = [];
+
+      window.addGift = function () {
+        const pos = chooseSpot();
+        if (!pos) return;
+
+        const img = document.createElement("img");
+        img.src = images[Math.floor(Math.random() * images.length)];
+        img.style.position = "absolute";
+        img.style.width = boxSize + "px";
+        img.style.height = boxSize + "px";
+        img.style.left = pos.x + "px";
+        img.style.top = pos.y + "px";
+        zone.appendChild(img);
+      };
+
+      function chooseSpot() {
+        const baseWidth = zone.clientWidth;
+        const baseHeight = zone.clientHeight;
+
+        for (let r = 0; r < maxColumns; r++) {
+          // ряды снизу вверх
+          const count = maxColumns - r; // верхние ряды уже
+          const totalWidth = count * boxSize + (count - 1) * spacing;
+          const startX = (baseWidth - totalWidth) * 0.5;
+
+          for (let i = 0; i < count; i++) {
+            const key = r + "_" + i;
+            if (placed.includes(key)) continue;
+
+            const x = startX + i * (boxSize + spacing);
+            const y = baseHeight - boxSize - r * (boxSize + spacing);
+
+            placed.push(key);
+            return { x: x, y: y };
+          }
+        }
+        return null;
+      }
+    </script>
+  </body>
+</html>

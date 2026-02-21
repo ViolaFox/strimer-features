@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Котик + AxelChat</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        font-family: "Tektur", sans-serif;
+        background: transparent;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .cat {
+        margin-top: 30px;
+        width: 200px;
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        transition: width 0.3s ease;
+      }
+      .cat.walking {
+        width: 355px;
+      }
+      .cat img {
+        width: auto;
+        max-height: 100%;
+        object-fit: contain;
+      }
+      .speech {
+        margin-top: -10px;
+        color: white;
+        font-size: 20px;
+        text-align: center;
+        max-width: 420px;
+        word-wrap: break-word;
+        text-shadow:
+          0 0 5px #00ffff,
+          0 0 10px #00ffff,
+          0 0 20px #00ffff,
+          0 0 40px #00ffff,
+          0 0 80px #00ffff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="cat" id="cat">
+      <img id="catImage" src="cat-sit.gif" alt="Котик" />
+    </div>
+
+    <div class="speech" id="speech">Жду сообщений...</div>
+
+    <script>
+      const AXELCHAT_WS = "ws://127.0.0.1:8356";
+      const ANIMATION_DURATION = 14000;
+      const TYPE_SPEED = 90;
+
+      const catDiv = document.getElementById("cat");
+      const speechDiv = document.getElementById("speech");
+      const catImage = document.getElementById("catImage");
+
+      let messageTimeout = null;
+      let typingTimeout = null;
+      let ws;
+
+      function typeText(el, text) {
+        if (typingTimeout) clearTimeout(typingTimeout);
+        el.textContent = "";
+        const chars = Array.from(text);
+        let i = 0;
+        function next() {
+          if (i < chars.length) {
+            el.textContent += chars[i++];
+            typingTimeout = setTimeout(next, TYPE_SPEED);
+          }
+        }
+        next();
+      }
+
+      function showCatMessage(user, text) {
+        const combined = `${user}: ${text}`;
+        typeText(speechDiv, combined);
+
+        if (!catDiv.classList.contains("walking")) {
+          catDiv.classList.add("walking");
+          catImage.src = "cat-walk.gif";
+        }
+
+        if (messageTimeout) clearTimeout(messageTimeout);
+        messageTimeout = setTimeout(() => {
+          typeText(speechDiv, "Жду сообщений...");
+          catImage.src = "cat-sit.gif";
+          catDiv.classList.remove("walking");
+        }, ANIMATION_DURATION);
+      }
+
+      function parseAxelChatMessage(data) {
+        if (!data || !data.data || !Array.isArray(data.data.messages))
+          return null;
+        const msg = data.data.messages[0];
+        if (!msg) return null;
+
+        const textParts = [];
+        for (const part of msg.contents) {
+          if (part.type === "text" && part.data?.text) {
+            textParts.push(part.data.text);
+          }
+        }
+        const text = textParts.join(" ").trim();
+        const user = msg.author?.name || "Гость";
+
+        return { user, text };
+      }
+
+      function connectWS() {
+        ws = new WebSocket(AXELCHAT_WS);
+
+        ws.onopen = () => {
+          console.log("[AxelChat] WS connected");
+
+          const hello = {
+            type: "HELLO",
+            data: {
+              client: {
+                name: "CatClient",
+                version: "1.0",
+                type: "MAIN_WEBSOCKETCLIENT",
+              },
+              info: {
+                name: "Cat Display",
+                type: "GENERIC",
+              },
+            },
+          };
+          ws.send(JSON.stringify(hello));
+        };
+
+        ws.onclose = () => {
+          console.warn("[AxelChat] WS disconnected, reconnecting...");
+          setTimeout(connectWS, 3000);
+        };
+
+        ws.onerror = (err) => {
+          console.error("[AxelChat] WS error", err);
+        };
+
+        ws.onmessage = (evt) => {
+          let msg;
+          try {
+            msg = JSON.parse(evt.data);
+          } catch {
+            return;
+          }
+          if (msg.type === "NEW_MESSAGES_RECEIVED") {
+            const parsed = parseAxelChatMessage(msg);
+            if (parsed) showCatMessage(parsed.user, parsed.text);
+          }
+        };
+      }
+
+      connectWS();
+    </script>
+  </body>
+</html>

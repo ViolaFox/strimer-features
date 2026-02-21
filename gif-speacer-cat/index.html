@@ -131,9 +131,14 @@
             if (Array.isArray(data.Data.MessageKit)) {
               for (const item of data.Data.MessageKit) {
                 if (item.Type === "Text" && item.Data?.Text) {
-                  text +=
-                    item.Data.Text.replace(/[\u200B-\u200D\uFEFF]/g, "") + " ";
+                  text += item.Data.Text.replace(/[\u200B-\u200D\uFEFF]/g, "");
                 }
+
+                if (item.Type === "URL" && item.Data?.Text) {
+                  text += item.Data.Text;
+                }
+
+                text += " ";
               }
             }
 

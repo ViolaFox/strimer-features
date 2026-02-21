@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Neon OBS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+
+  <body>
+    <main id="text"></main>
+
+    <div class="container">
+      <svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <filter id="blur-small" x="-30%" y="-50%" width="160%" height="200%">
+            <feGaussianBlur stdDeviation="4" />
+          </filter>
+
+          <filter id="blur-big" x="-30%" y="-50%" width="160%" height="200%">
+            <feGaussianBlur stdDeviation="18" />
+          </filter>
+        </defs>
+
+        <symbol id="s-text">
+          <text
+            id="base-text"
+            text-anchor="middle"
+            x="50%"
+            y="55%"
+            dominant-baseline="middle"
+          ></text>
+        </symbol>
+
+        <g id="glow-big" filter="url(#blur-big)">
+          <use href="#s-text" class="glow2"></use>
+        </g>
+
+        <g id="glow-small" filter="url(#blur-small)">
+          <use href="#s-text" class="glow1"></use>
+        </g>
+
+        <use href="#s-text" class="main-text"></use>
+      </svg>
+    </div>
+
+    <script>
+      /* Получаем текст из CSS */
+      const content = window.getComputedStyle(
+        document.getElementById("text"),
+        "::before",
+      ).content;
+
+      document.getElementById("base-text").textContent = content.replace(
+        /^"(.*)"$/,
+        "$1",
+      );
+
+      /* МЯГКОЕ МЕРЦАНИЕ */
+      const big = document.getElementById("glow-big");
+      const small = document.getElementById("glow-small");
+
+      setInterval(() => {
+        // лёгкое "дыхание"
+        const base = 0.85 + Math.random() * 0.15;
+
+        big.style.opacity = base;
+        small.style.opacity = base + 0.1;
+
+        // очень редкий сбой
+        if (Math.random() < 0.015) {
+          big.style.opacity = 0.3;
+          small.style.opacity = 0.4;
+
+          setTimeout(() => {
+            big.style.opacity = 1;
+            small.style.opacity = 1;
+          }, 120);
+        }
+      }, 600);
+    </script>
+  </body>
+</html>

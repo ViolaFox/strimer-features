@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MiniChat Silent Smoke</title>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+      }
+
+      img {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1s ease;
+      }
+
+      #smokeGif {
+        width: 500px;
+        z-index: 2; /* дым сверху */
+      }
+
+      #textPng {
+        width: 400px;
+        z-index: 1; /* текст снизу */
+      }
+
+      .fade-in {
+        opacity: 1;
+      }
+      .fade-out {
+        opacity: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <img id="smokeGif" src="smoke.gif" />
+    <img id="textPng" src="text.png" />
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        /* ===== НАСТРОЙКИ (ВСЕ РАЗДЕЛЕНЫ) ===== */
+
+        const BOT_NAME = "niahkingame";
+
+        const SILENT_DELAY = 600000; // ожидание тишины
+        const SMOKE_SHOW_TIME = 1100; // сколько держится дым
+        const TEXT_APPEAR_DELAY = 900; // через сколько появляется текст
+        const TEXT_SHOW_TIME = 5000; // сколько держится текст
+
+        /* ===== ЭЛЕМЕНТЫ ===== */
+
+        const smokeGif = document.getElementById("smokeGif");
+        const textPng = document.getElementById("textPng");
+
+        /* ===== ТАЙМЕРЫ ===== */
+
+        let silentTimer = null;
+        let smokeHideTimer = null;
+        let textShowTimer = null;
+        let textHideTimer = null;
+
+        /* ===== HELPERS ===== */
+
+        function restartGif(img) {
+          const src = img.src;
+          img.src = "";
+          img.src = src;
+        }
+
+        function fadeIn(el) {
+          el.classList.remove("fade-out");
+          el.classList.add("fade-in");
+        }
+
+        function fadeOut(el) {
+          el.classList.remove("fade-in");
+          el.classList.add("fade-out");
+        }
+
+        function clearAllTimers() {
+          clearTimeout(silentTimer);
+          clearTimeout(smokeHideTimer);
+          clearTimeout(textShowTimer);
+          clearTimeout(textHideTimer);
+        }
+
+        function hideAll() {
+          fadeOut(smokeGif);
+          fadeOut(textPng);
+        }
+
+        /* ===== ОСНОВНОЙ ЭФФЕКТ ===== */
+
+        function playSilentEffect() {
+          hideAll();
+
+          // 🔥 старт дыма
+          restartGif(smokeGif);
+          fadeIn(smokeGif);
+
+          // ⏱ скрываем дым строго по времени
+          smokeHideTimer = setTimeout(() => {
+            fadeOut(smokeGif);
+          }, SMOKE_SHOW_TIME);
+
+          // 📝 показываем текст независимо
+          textShowTimer = setTimeout(() => {
+            fadeIn(textPng);
+          }, TEXT_APPEAR_DELAY);
+
+          // ⏱ скрываем текст отдельно
+          textHideTimer = setTimeout(() => {
+            fadeOut(textPng);
+            startSilentTimer(); // 🔁 снова ждём тишину
+          }, TEXT_APPEAR_DELAY + TEXT_SHOW_TIME);
+        }
+
+        function startSilentTimer() {
+          clearTimeout(silentTimer);
+          silentTimer = setTimeout(playSilentEffect, SILENT_DELAY);
+        }
+
+        /* ===== СБРОС ПО АКТИВНОСТИ ===== */
+
+        function onUserMessage() {
+          clearAllTimers();
+          hideAll();
+          startSilentTimer();
+        }
+
+        /* ===== MINICHAT ===== */
+
+        const ws = new WebSocket("ws://localhost:4848/Chat");
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.Type !== "Message" || !data.Data) return;
+
+            const user = (
+              data.Data.Meta?.Login ||
+              data.Data.UserName ||
+              "guest"
+            ).toLowerCase();
+
+            if (user === BOT_NAME) return;
+
+            onUserMessage();
+          } catch (e) {
+            console.error("WS error:", e);
+          }
+        };
+
+        /* ===== START ===== */
+
+        startSilentTimer();
+      });
+    </script>
+  </body>
+</html>

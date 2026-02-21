@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        background: transparent;
+        overflow: hidden;
+        font-family: Arial;
+      }
+      #box {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 15px;
+        font-size: 26px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="box"></div>
+
+    <script>
+      let queue = [];
+      let playing = false;
+
+      function addDonate(name, amount) {
+        queue.push({ name, amount });
+        playNext();
+      }
+
+      function playNext() {
+        if (playing || queue.length === 0) return;
+        playing = true;
+
+        const d = queue.shift();
+        const box = document.getElementById("box");
+        box.innerHTML = `💖 <b>${d.name}</b><br>${d.amount}₽`;
+        box.style.display = "block";
+
+        setTimeout(() => {
+          box.style.display = "none";
+          playing = false;
+          setTimeout(playNext, 500);
+        }, 4000);
+      }
+
+      // ⬇️ ПРИЁМ ДОНАТА ИЗ URL
+      const p = new URLSearchParams(window.location.search);
+      if (p.get("name") && p.get("amount")) {
+        addDonate(p.get("name"), p.get("amount"));
+      }
+    </script>
+  </body>
+</html>
