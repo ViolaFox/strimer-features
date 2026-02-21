@@ -8,4 +8,6 @@
 
 Новый кот читающий сообщения - https://violafox.github.io/strimer-features/gif-speacer-cat
 
+Новый кот читающий сообщения - https://violafox.github.io/strimer-features/gif-speacer-cat-alex/
+
 Таймер - https://violafox.github.io/strimer-features/timer
