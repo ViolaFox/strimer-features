@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OBS Printed Text</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0e0c0b;
+        --fg: #e8e0d4;
+        --muted: #6b6560;
+        --accent: #d4a054;
+        --border: rgba(212, 160, 84, 0.2);
+        --ok: #6dbe6d;
+        --err: #d46a54;
+      }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        width: 100vw;
+        height: 100vh;
+        background: transparent;
+        overflow: hidden;
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--fg);
+      }
+
+      /* ── Overlay ── */
+      #ov {
+        position: absolute;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.4;
+        font-weight: 700;
+        color: #fff;
+        pointer-events: none;
+      }
+      #oc {
+        display: inline-block;
+        animation: bk 0.75s step-end infinite;
+      }
+      @keyframes bk {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      #sl {
+        position: fixed;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background: var(--accent);
+        box-shadow:
+          0 0 14px var(--accent),
+          0 0 28px rgba(212, 160, 84, 0.4);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 50;
+      }
+
+      /* ── Config page ── */
+      #cp {
+        display: none;
+        width: 100vw;
+        height: 100vh;
+        background: var(--bg);
+        overflow: hidden;
+      }
+      #cp.on {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .hdr {
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+      .hdr h1 {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .badge {
+        font-size: 9px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: rgba(212, 160, 84, 0.15);
+        color: var(--accent);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .hdr-host {
+        font-size: 10px;
+        color: var(--muted);
+        margin-left: auto;
+      }
+
+      .body {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+      }
+
+      /* Left: controls */
+      .ctrl {
+        width: 310px;
+        flex-shrink: 0;
+        overflow-y: auto;
+        padding: 14px 16px;
+        border-right: 1px solid var(--border);
+      }
+      .ctrl::-webkit-scrollbar {
+        width: 3px;
+      }
+      .ctrl::-webkit-scrollbar-thumb {
+        background: var(--muted);
+        border-radius: 2px;
+      }
+
+      .st {
+        font-size: 9px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin: 14px 0 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+      }
+      .st:first-child {
+        margin-top: 0;
+      }
+
+      .cg {
+        margin-bottom: 9px;
+      }
+      .cl {
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+        display: block;
+      }
+      .cr {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      input[type="text"],
+      textarea,
+      select {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 10px;
+        color: var(--fg);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      input[type="text"]:focus,
+      textarea:focus,
+      select:focus {
+        border-color: var(--accent);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 60px;
+        line-height: 1.5;
+      }
+      select {
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .sw {
+        position: relative;
+      }
+      .sw::after {
+        content: "\f107";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        pointer-events: none;
+        font-size: 11px;
+      }
+      #fs {
+        padding-right: 28px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        box-shadow: 0 0 6px rgba(212, 160, 84, 0.4);
+      }
+      input[type="color"] {
+        -webkit-appearance: none;
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+        background: transparent;
+        padding: 2px;
+        flex-shrink: 0;
+      }
+      input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      input[type="color"]::-webkit-color-swatch {
+        border: none;
+        border-radius: 4px;
+      }
+
+      .rv {
+        font-size: 11px;
+        color: var(--accent);
+        min-width: 34px;
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .tw {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .tg {
+        position: relative;
+        width: 36px;
+        height: 19px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.25s;
+        flex-shrink: 0;
+      }
+      .tg.on {
+        background: var(--accent);
+      }
+      .tg::after {
+        content: "";
+        position: absolute;
+        top: 2.5px;
+        left: 2.5px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.25s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+      .tg.on::after {
+        transform: translateX(17px);
+      }
+
+      .pg {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3px;
+        width: 78px;
+      }
+      .pb {
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .pb:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .pb.on {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .ag {
+        display: flex;
+        gap: 3px;
+      }
+      .ab {
+        flex: 1;
+        height: 26px;
+        border-radius: 5px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+      }
+      .ab:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--fg);
+      }
+      .ab.on {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #1a1410;
+      }
+
+      .gsg {
+        margin-top: 6px;
+      }
+
+      .fst {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 3px;
+        min-height: 14px;
+      }
+      .fst.ok {
+        color: var(--ok);
+      }
+      .fst.err {
+        color: var(--err);
+      }
+      .fpv {
+        margin-top: 4px;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        font-size: 15px;
+        color: var(--fg);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: 26px;
+        transition: font-family 0.15s;
+      }
+      .bsc {
+        padding: 6px 10px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--fg);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .bsc:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--accent);
+      }
+
+      /* Right: preview */
+      .prv {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 14px;
+        gap: 10px;
+        min-width: 0;
+      }
+      .prv-lbl {
+        font-size: 9px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .prv-stage {
+        flex: 1;
+        position: relative;
+        background:
+          repeating-conic-gradient(
+              rgba(255, 255, 255, 0.03) 0% 25%,
+              transparent 0% 50%
+            )
+            0 0/20px 20px,
+          #0a0908;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      #pt {
+        position: absolute;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.4;
+        font-weight: 700;
+        color: #fff;
+        pointer-events: none;
+      }
+      #psl {
+        position: absolute;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background: var(--accent);
+        box-shadow: 0 0 14px var(--accent);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 50;
+      }
+
+      .inst {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.7;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 6px;
+        border: 1px solid var(--border);
+      }
+      .inst strong {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .inst code {
+        color: var(--accent);
+        font-size: 10px;
+      }
+
+      /* Bottom: URL bar */
+      .ftr {
+        border-top: 1px solid var(--border);
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .ftr label {
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+      .ubox {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 12px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--fg);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        user-select: all;
+      }
+      .btn {
+        padding: 7px 14px;
+        border: none;
+        border-radius: 6px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn1 {
+        background: var(--accent);
+        color: #1a1410;
+      }
+      .btn1:hover {
+        background: #e0b06a;
+        transform: translateY(-1px);
+      }
+      .btn1.copied {
+        background: var(--ok);
+      }
+      .btn2 {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--fg);
+        border: 1px solid var(--border);
+      }
+      .btn2:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--accent);
+      }
+
+      /* Workflow steps */
+      .steps {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .step {
+        flex: 1;
+        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        text-align: center;
+      }
+      .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #1a1410;
+        font-size: 10px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .step-txt {
+        font-size: 9px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #oc {
+          animation: none;
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ov"></div>
+    <div id="sl"></div>
+
+    <div id="cp">
+      <div class="hdr">
+        <i class="fas fa-print" style="color: var(--accent)"></i>
+        <h1>Printed Text</h1>
+        <span class="badge">OBS Overlay</span>
+        <span class="hdr-host" id="host-info"></span>
+      </div>
+
+      <div class="body">
+        <div class="ctrl">
+          <div class="st">Font</div>
+          <div class="cg">
+            <label class="cl">Font Family</label>
+            <div class="cr">
+              <div class="sw" style="flex: 1"><select id="fs"></select></div>
+              <button class="bsc" id="bscan">
+                <i class="fas fa-search"></i> Scan
+              </button>
+            </div>
+            <div class="fst" id="fst"></div>
+            <div class="fpv" id="fpv">The quick brown fox</div>
+          </div>
+
+          <div class="st">Content</div>
+          <div class="cg">
+            <label class="cl">Text (one line per entry)</label>
+            <textarea id="ti">
+Welcome to the stream
+Today we're doing something special
+Let's get started</textarea
+            >
+          </div>
+
+          <div class="st">Effect</div>
+          <div class="cg">
+            <label class="cl">Mode</label>
+            <div class="sw">
+              <select id="md">
+                <option value="typewriter">Typewriter</option>
+                <option value="dotmatrix">Dot Matrix Printer</option>
+                <option value="fade">Fade In</option>
+              </select>
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Speed</label>
+            <div class="cr">
+              <input type="range" id="sp" min="10" max="200" value="55" /><span
+                class="rv"
+                id="sp-v"
+                >55ms</span
+              >
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Pause Between Lines</label>
+            <div class="cr">
+              <input
+                type="range"
+                id="lp"
+                min="100"
+                max="4000"
+                value="700"
+                step="50"
+              /><span class="rv" id="lp-v">0.7s</span>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Loop</label>
+              <div class="tg" id="tg-loop"></div>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Sound</label>
+              <div class="tg" id="tg-snd"></div>
+            </div>
+          </div>
+
+          <div class="st">Style</div>
+          <div class="cg">
+            <label class="cl">Size</label>
+            <div class="cr">
+              <input type="range" id="sz" min="14" max="128" value="42" /><span
+                class="rv"
+                id="sz-v"
+                >42px</span
+              >
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Line Height</label>
+            <div class="cr">
+              <input
+                type="range"
+                id="lh"
+                min="100"
+                max="260"
+                value="140"
+                step="5"
+              /><span class="rv" id="lh-v">1.4</span>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Bold</label>
+              <div class="tg on" id="tg-b"></div>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Italic</label>
+              <div class="tg" id="tg-i"></div>
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Color</label>
+            <div class="cr"><input type="color" id="tc" value="#ffffff" /></div>
+          </div>
+          <div class="cg">
+            <label class="cl">Align</label>
+            <div class="ag">
+              <button class="ab on" data-a="left">L</button
+              ><button class="ab" data-a="center">C</button
+              ><button class="ab" data-a="right">R</button>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Glow</label>
+              <div class="tg" id="tg-gl"></div>
+            </div>
+            <div class="gsg" id="gs-gl" style="display: none">
+              <div class="cr" style="margin-top: 4px">
+                <input type="color" id="gc" value="#d4a054" /><input
+                  type="range"
+                  id="gi"
+                  min="2"
+                  max="40"
+                  value="12"
+                  style="flex: 1"
+                /><span class="rv" id="gi-v">12px</span>
+              </div>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Stroke</label>
+              <div class="tg" id="tg-st"></div>
+            </div>
+            <div class="gsg" id="gs-st" style="display: none">
+              <div class="cr" style="margin-top: 4px">
+                <input type="color" id="sc" value="#000000" /><input
+                  type="range"
+                  id="sw"
+                  min="1"
+                  max="8"
+                  value="2"
+                  style="flex: 1"
+                /><span class="rv" id="sw-v">2px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="st">Cursor</div>
+          <div class="cg">
+            <label class="cl">Style</label>
+            <div class="sw">
+              <select id="cs">
+                <option value="block">Block</option>
+                <option value="line">Line</option>
+                <option value="underscore">Underscore</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Color</label>
+            <div class="cr"><input type="color" id="cc" value="#d4a054" /></div>
+          </div>
+
+          <div class="st">Layout</div>
+          <div class="cg">
+            <label class="cl">Position</label>
+            <div class="pg">
+              <div class="pb" data-p="tl"></div>
+              <div class="pb" data-p="tc"></div>
+              <div class="pb" data-p="tr"></div>
+              <div class="pb" data-p="ml"></div>
+              <div class="pb" data-p="mc"></div>
+              <div class="pb" data-p="mr"></div>
+              <div class="pb on" data-p="bl"></div>
+              <div class="pb" data-p="bc"></div>
+              <div class="pb" data-p="br"></div>
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Margin</label>
+            <div class="cr">
+              <input type="range" id="mg" min="8" max="160" value="40" /><span
+                class="rv"
+                id="mg-v"
+                >40px</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="prv">
+          <span class="prv-lbl"
+            >Preview (opens in same browser — NOT in OBS)</span
+          >
+          <div class="prv-stage" id="pstage">
+            <div id="pt"></div>
+            <div id="psl"></div>
+          </div>
+
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-txt">Adjust settings here</div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-txt">Click Preview to test</div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-txt">Copy URL below</div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-txt">Paste into OBS Browser Source</div>
+            </div>
+          </div>
+
+          <div class="inst">
+            <strong>How to use with OBS:</strong><br />
+            1. Adjust all settings on this page<br />
+            2. Click <strong>Preview</strong> to test the effect<br />
+            3. Click <strong>Copy URL</strong> — the URL encodes all your
+            settings<br />
+            4. In OBS: add <strong>Browser Source</strong> → paste the URL into
+            the "URL" field<br />
+            5. Set width/height to your stream resolution (e.g. 1920x1080)<br />
+            6. To update: change settings → copy new URL → in OBS right-click
+            the source → <strong>Properties</strong> → paste new URL → OK<br /><br />
+            <strong>GitHub Pages:</strong> Push this file to a repo, enable
+            Pages, then use the GitHub URL. Font scanning works even better over
+            HTTPS.<br /><br />
+            <strong>Why no live sync?</strong> OBS uses its own Chromium,
+            separate from your browser. BroadcastChannel, localStorage events,
+            and SharedWorker cannot cross browser instances. The URL method is
+            the only serverless option.
+          </div>
+        </div>
+      </div>
+
+      <div class="ftr">
+        <label>OBS URL</label>
+        <div class="ubox" id="ubox"></div>
+        <button class="btn btn2" id="bprev">
+          <i class="fas fa-eye"></i> Preview
+        </button>
+        <button class="btn btn2" id="btest">
+          <i class="fas fa-external-link-alt"></i> Test Tab
+        </button>
+        <button class="btn btn1" id="bcopy">
+          <i class="fas fa-copy"></i> Copy URL
+        </button>
+      </div>
+    </div>
+
+    <script>
+      /* ================================================================
+   OBS Printed Text — Config page generates URL, OBS loads it.
+   No server needed. GitHub Pages works perfectly.
+=============================================================== */
+
+      const IS_CFG =
+        location.hash === "#config" || location.search.includes("config");
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      /* ── State ── */
+      const D = {
+        font: "IBM Plex Mono",
+        mode: "typewriter",
+        text: "Welcome to the stream\nToday we're doing something special\nLet's get started",
+        speed: 55,
+        size: 42,
+        lh: 140,
+        color: "#ffffff",
+        bold: true,
+        italic: false,
+        align: "left",
+        glow: false,
+        gc: "#d4a054",
+        gi: 12,
+        stroke: false,
+        sc: "#000000",
+        sw: 2,
+        cursor: "block",
+        cc: "#d4a054",
+        pos: "bl",
+        margin: 40,
+        sound: false,
+        loop: false,
+        pause: 700,
+      };
+      let S = { ...D };
+      let playing = false,
+        timer = null,
+        audioCtx = null;
+
+      /* ── Hash encode/decode ── */
+      function toHash() {
+        const lines = S.text
+          .split("\n")
+          .map((l) => encodeURIComponent(l))
+          .join("|");
+        return (
+          "#md=" +
+          S.mode +
+          "&t=" +
+          lines +
+          "&f=" +
+          encodeURIComponent(S.font) +
+          "&sp=" +
+          S.speed +
+          "&sz=" +
+          S.size +
+          "&lh=" +
+          S.lh +
+          "&c=" +
+          encodeURIComponent(S.color) +
+          "&b=" +
+          (S.bold ? 1 : 0) +
+          "&i=" +
+          (S.italic ? 1 : 0) +
+          "&a=" +
+          S.align +
+          "&gl=" +
+          (S.glow ? 1 : 0) +
+          "&gc=" +
+          encodeURIComponent(S.gc) +
+          "&gi=" +
+          S.gi +
+          "&st=" +
+          (S.stroke ? 1 : 0) +
+          "&sc=" +
+          encodeURIComponent(S.sc) +
+          "&sw=" +
+          S.sw +
+          "&cs=" +
+          S.cursor +
+          "&cc=" +
+          encodeURIComponent(S.cc) +
+          "&p=" +
+          S.pos +
+          "&m=" +
+          S.margin +
+          "&sn=" +
+          (S.sound ? 1 : 0) +
+          "&lo=" +
+          (S.loop ? 1 : 0) +
+          "&lp=" +
+          S.pause
+        );
+      }
+      function parseHash() {
+        const h = location.hash.slice(1);
+        if (!h || h === "config") return;
+        const p = new URLSearchParams(h);
+        const g = (k) => p.get(k);
+        if (g("f")) S.font = g("f");
+        if (g("md")) S.mode = g("md");
+        if (g("t")) S.text = g("t").replace(/\|/g, "\n");
+        if (g("sp")) S.speed = +g("sp");
+        if (g("sz")) S.size = +g("sz");
+        if (g("lh")) S.lh = +g("lh");
+        if (g("c")) S.color = g("c");
+        S.bold = g("b") === "1";
+        S.italic = g("i") === "1";
+        if (g("a")) S.align = g("a");
+        S.glow = g("gl") === "1";
+        if (g("gc")) S.gc = g("gc");
+        if (g("gi")) S.gi = +g("gi");
+        S.stroke = g("st") === "1";
+        if (g("sc")) S.sc = g("sc");
+        if (g("sw")) S.sw = +g("sw");
+        if (g("cs")) S.cursor = g("cs");
+        if (g("cc")) S.cc = g("cc");
+        if (g("p")) S.pos = g("p");
+        if (g("m")) S.margin = +g("m");
+        S.sound = g("sn") === "1";
+        S.loop = g("lo") === "1";
+        if (g("lp")) S.pause = +g("lp");
+      }
+      function fullURL() {
+        return location.href.split("#")[0].split("?")[0] + toHash();
+      }
+
+      /* ── Cursor HTML ── */
+      function curH(id) {
+        const c = S.cc,
+          eid = id || "oc";
+        switch (S.cursor) {
+          case "block":
+            return `<span id="${eid}" style="background:${c};color:${c}">&nbsp;</span>`;
+          case "line":
+            return `<span id="${eid}" style="border-left:2px solid ${c};margin-left:1px">&nbsp;</span>`;
+          case "underscore":
+            return `<span id="${eid}" style="border-bottom:2px solid ${c}">&nbsp;</span>`;
+          default:
+            return "";
+        }
+      }
+
+      /* ── Apply style ── */
+      function applyStyle(tgt) {
+        const m = S.margin;
+        let sh = "none";
+        if (S.glow) sh = `0 0 ${S.gi}px ${S.gc}, 0 0 ${S.gi * 2.5}px ${S.gc}`;
+        Object.assign(tgt.style, {
+          fontFamily: `"${S.font}", monospace`,
+          fontSize: S.size + "px",
+          lineHeight: String(S.lh / 100),
+          color: S.color,
+          fontWeight: S.bold ? "700" : "400",
+          fontStyle: S.italic ? "italic" : "normal",
+          textAlign: S.align,
+          textShadow: sh,
+          webkitTextStroke: S.stroke ? `${S.sw}px ${S.sc}` : "",
+          left: "auto",
+          right: "auto",
+          top: "auto",
+          bottom: "auto",
+          transform: "none",
+        });
+        const pm = {
+          tl: { top: m, left: m },
+          tc: { top: m, left: "50%", transform: "translateX(-50%)" },
+          tr: { top: m, right: m },
+          ml: { top: "50%", left: m, transform: "translateY(-50%)" },
+          mc: { top: "50%", left: "50%", transform: "translate(-50%,-50%)" },
+          mr: { top: "50%", right: m, transform: "translateY(-50%)" },
+          bl: { bottom: m, left: m },
+          bc: { bottom: m, left: "50%", transform: "translateX(-50%)" },
+          br: { bottom: m, right: m },
+        };
+        Object.assign(tgt.style, pm[S.pos] || pm.bl);
+        const par = tgt.parentElement;
+        if (par) tgt.style.maxWidth = `calc(${par.clientWidth}px - ${m * 2}px)`;
+      }
+
+      /* ── Sound ── */
+      function clickSnd() {
+        if (!audioCtx)
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const t = audioCtx.currentTime,
+          o = audioCtx.createOscillator(),
+          g = audioCtx.createGain(),
+          f = audioCtx.createBiquadFilter();
+        o.type = "square";
+        o.frequency.value = 600 + Math.random() * 600;
+        f.type = "bandpass";
+        f.frequency.value = 2200;
+        f.Q.value = 0.8;
+        g.gain.setValueAtTime(0.035, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+        o.connect(f);
+        f.connect(g);
+        g.connect(audioCtx.destination);
+        o.start(t);
+        o.stop(t + 0.025);
+      }
+      function lineSnd() {
+        if (!audioCtx)
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const t = audioCtx.currentTime,
+          len = Math.floor(audioCtx.sampleRate * 0.08),
+          buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate),
+          d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++)
+          d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.08));
+        const s = audioCtx.createBufferSource();
+        s.buffer = buf;
+        const g = audioCtx.createGain();
+        g.gain.value = 0.06;
+        const f = audioCtx.createBiquadFilter();
+        f.type = "bandpass";
+        f.frequency.value = 2800;
+        f.Q.value = 1.2;
+        s.connect(f);
+        f.connect(g);
+        g.connect(audioCtx.destination);
+        s.start(t);
+      }
+
+      /* ── Playback engine ── */
+      function stopFx(tgt, sl) {
+        playing = false;
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        tgt.innerHTML = "";
+        tgt.style.whiteSpace = "pre-wrap";
+        if (sl) sl.style.opacity = "0";
+      }
+      function playFx(tgt, sl) {
+        stopFx(tgt, sl);
+        applyStyle(tgt);
+        const lines = S.text.split("\n").filter((l) => l.trim());
+        if (!lines.length) return;
+        if (S.mode === "typewriter") runTW(tgt, sl, lines);
+        else if (S.mode === "dotmatrix") runDM(tgt, sl, lines);
+        else runFI(tgt, sl, lines);
+      }
+
+      /* Typewriter */
+      function runTW(tgt, sl, lines) {
+        playing = true;
+        tgt.style.whiteSpace = "pre-wrap";
+        tgt.innerHTML = curH();
+        let li = 0,
+          ci = 0,
+          txt = "";
+        (function tick() {
+          if (!playing) return;
+          if (li >= lines.length) {
+            if (S.loop)
+              timer = setTimeout(() => {
+                tgt.innerHTML = "";
+                li = 0;
+                ci = 0;
+                txt = "";
+                tick();
+              }, 2200);
+            return;
+          }
+          const ln = lines[li];
+          if (ci === 0 && li > 0) txt += "\n";
+          if (ci < ln.length) {
+            txt += ln[ci];
+            ci++;
+            tgt.innerHTML = esc(txt) + curH();
+            if (S.sound) clickSnd();
+            let d = S.speed;
+            const ch = ln[ci - 1];
+            if (".!?".includes(ch)) d *= 5;
+            else if (",;:".includes(ch)) d *= 2.5;
+            else if (ch === " ") d *= 0.4;
+            timer = setTimeout(tick, d);
+          } else {
+            li++;
+            ci = 0;
+            timer = setTimeout(tick, S.pause);
+          }
+        })();
+      }
+
+      /* Dot Matrix */
+      function runDM(tgt, sl, lines) {
+        playing = true;
+        tgt.style.whiteSpace = "normal";
+        tgt.innerHTML = "";
+        let li = 0;
+        (function pL() {
+          if (!playing) return;
+          if (li >= lines.length) {
+            if (sl) sl.style.opacity = "0";
+            if (S.loop)
+              timer = setTimeout(() => {
+                tgt.innerHTML = "";
+                li = 0;
+                pL();
+              }, 2200);
+            return;
+          }
+          const div = document.createElement("div");
+          div.style.whiteSpace = "pre-wrap";
+          div.style.opacity = "0";
+          div.style.transition = "opacity .12s ease";
+          const raw = lines[li];
+          for (let i = 0; i < raw.length; i++) {
+            const sp = document.createElement("span");
+            sp.textContent = raw[i];
+            sp.style.display = "inline-block";
+            sp.style.transform = `translate(${(Math.random() - 0.5) * 1.6}px,${Math.random() - 0.5}px)`;
+            div.appendChild(sp);
+          }
+          tgt.appendChild(div);
+          if (sl) {
+            const r = div.getBoundingClientRect(),
+              dur = Math.max(120, raw.length * 6);
+            sl.style.transition = "none";
+            sl.style.opacity = "1";
+            sl.style.top = r.top + "px";
+            sl.style.left = r.left + "px";
+            sl.style.width = "0";
+            sl.style.height = r.height + "px";
+            void sl.offsetWidth;
+            sl.style.transition = `width ${dur}ms linear, opacity .3s ease`;
+            sl.style.width = r.width + "px";
+          }
+          if (S.sound) lineSnd();
+          setTimeout(() => {
+            div.style.opacity = "1";
+          }, 80);
+          setTimeout(
+            () => {
+              if (sl) sl.style.opacity = "0";
+              li++;
+              timer = setTimeout(pL, S.pause);
+            },
+            Math.max(120, raw.length * 6) + 120,
+          );
+        })();
+      }
+
+      /* Fade */
+      function runFI(tgt, sl, lines) {
+        playing = true;
+        tgt.style.whiteSpace = "normal";
+        tgt.innerHTML = "";
+        let li = 0;
+        (function fL() {
+          if (!playing) return;
+          if (li >= lines.length) {
+            if (S.loop)
+              timer = setTimeout(() => {
+                tgt.innerHTML = "";
+                li = 0;
+                fL();
+              }, 2200);
+            return;
+          }
+          const div = document.createElement("div");
+          div.textContent = lines[li];
+          div.style.opacity = "0";
+          div.style.transform = "translateY(8px)";
+          div.style.transition = "opacity .5s ease, transform .5s ease";
+          tgt.appendChild(div);
+          requestAnimationFrame(() => {
+            div.style.opacity = "1";
+            div.style.transform = "translateY(0)";
+          });
+          li++;
+          timer = setTimeout(fL, S.pause);
+        })();
+      }
+
+      /* ═══════════════════════════════════════════
+   FONT SCANNING
+═══════════════════════════════════════════ */
+      const FF = [
+        "Arial",
+        "Arial Black",
+        "Arial Narrow",
+        "Bahnschrift",
+        "Book Antiqua",
+        "Bookman Old Style",
+        "Bradley Hand",
+        "Calibri",
+        "Cambria",
+        "Cambria Math",
+        "Candara",
+        "Century",
+        "Century Gothic",
+        "Comic Sans MS",
+        "Consolas",
+        "Constantia",
+        "Corbel",
+        "Courier New",
+        "Ebrima",
+        "Franklin Gothic Medium",
+        "Garamond",
+        "Georgia",
+        "Gill Sans MT",
+        "Goudy Old Style",
+        "Harrington",
+        "Impact",
+        "Jokerman",
+        "Juice ITC",
+        "Kristen ITC",
+        "Lucida Console",
+        "Lucida Handwriting",
+        "Lucida Sans Unicode",
+        "Malgun Gothic",
+        "Marlett",
+        "Microsoft Sans Serif",
+        "MingLiU",
+        "MS Gothic",
+        "MS Mincho",
+        "MS PGothic",
+        "MV Boli",
+        "NSimSun",
+        "Palatino Linotype",
+        "Papyrus",
+        "Perpetua",
+        "PMingLiU",
+        "Raavi",
+        "Rockwell",
+        "Segoe Print",
+        "Segoe Script",
+        "Segoe UI",
+        "Segoe UI Black",
+        "Segoe UI Light",
+        "Segoe UI Semibold",
+        "Segoe UI Symbol",
+        "SimHei",
+        "SimSun",
+        "Sitka Display",
+        "Sitka Heading",
+        "Sitka Small",
+        "Sitka Text",
+        "Snap ITC",
+        "Sylfaen",
+        "Symbol",
+        "Tahoma",
+        "Times New Roman",
+        "Trebuchet MS",
+        "Tw Cen MT",
+        "Verdana",
+        "Wingdings",
+      ];
+
+      async function scanFonts() {
+        const st = $("fst");
+        st.textContent = "Scanning...";
+        st.className = "fst";
+        try {
+          if ("queryLocalFonts" in window) {
+            const raw = await window.queryLocalFonts();
+            const set = new Set();
+            raw.forEach((f) => {
+              set.add(
+                f.family.replace(
+                  /\s+(Regular|Bold|Italic|Light|Medium|Semibold|Black|Thin|ExtraBold|SemiLight|DemiBold|Heavy|ExtraLight|UltraBold|UltraLight|Narrow|Condensed|SemiCondensed|ExtraCondensed)\s*$/i,
+                  "",
+                ),
+              );
+            });
+            const list = Array.from(set).sort((a, b) =>
+              a.localeCompare(b, undefined, { sensitivity: "base" }),
+            );
+            fillFontSel(list);
+            st.textContent = list.length + " fonts detected";
+            st.className = "fst ok";
+            return;
+          }
+        } catch (e) {
+          console.warn("Font scan error:", e);
+        }
+        fillFontSel(FF);
+        st.textContent = FF.length + " common fonts (no scan API — use HTTPS)";
+        st.className = "fst err";
+      }
+      function fillFontSel(fonts) {
+        const sel = $("fs"),
+          cur = sel.value;
+        sel.innerHTML = "";
+        fonts.forEach((n) => {
+          const o = document.createElement("option");
+          o.value = n;
+          o.textContent = n;
+          sel.appendChild(o);
+        });
+        if (fonts.includes(cur)) sel.value = cur;
+        else sel.value = fonts[0];
+        S.font = sel.value;
+        updFpv();
+      }
+      function updFpv() {
+        $("fpv").style.fontFamily = `"${$("fs").value}", monospace`;
+      }
+
+      /* ═══════════════════════════════════════════
+   CONFIG UI
+═══════════════════════════════════════════ */
+      function readUI() {
+        S.font = $("fs").value;
+        S.mode = $("md").value;
+        S.text = $("ti").value;
+        S.speed = +$("sp").value;
+        S.size = +$("sz").value;
+        S.lh = +$("lh").value;
+        S.color = $("tc").value;
+        S.bold = $("tg-b").classList.contains("on");
+        S.italic = $("tg-i").classList.contains("on");
+        S.align = document.querySelector(".ab.on")?.dataset.a || "left";
+        S.glow = $("tg-gl").classList.contains("on");
+        S.gc = $("gc").value;
+        S.gi = +$("gi").value;
+        S.stroke = $("tg-st").classList.contains("on");
+        S.sc = $("sc").value;
+        S.sw = +$("sw").value;
+        S.cursor = $("cs").value;
+        S.cc = $("cc").value;
+        S.pos = document.querySelector(".pb.on")?.dataset.p || "bl";
+        S.margin = +$("mg").value;
+        S.sound = $("tg-snd").classList.contains("on");
+        S.loop = $("tg-loop").classList.contains("on");
+        S.pause = +$("lp").value;
+      }
+      function writeUI() {
+        $("fs").value = S.font;
+        $("md").value = S.mode;
+        $("ti").value = S.text;
+        $("sp").value = S.speed;
+        $("sp-v").textContent = S.speed + "ms";
+        $("sz").value = S.size;
+        $("sz-v").textContent = S.size + "px";
+        $("lh").value = S.lh;
+        $("lh-v").textContent = (S.lh / 100).toFixed(1);
+        $("tc").value = S.color;
+        $("tg-b").classList.toggle("on", S.bold);
+        $("tg-i").classList.toggle("on", S.italic);
+        document
+          .querySelectorAll(".ab")
+          .forEach((b) => b.classList.toggle("on", b.dataset.a === S.align));
+        $("tg-gl").classList.toggle("on", S.glow);
+        $("gs-gl").style.display = S.glow ? "block" : "none";
+        $("gc").value = S.gc;
+        $("gi").value = S.gi;
+        $("gi-v").textContent = S.gi + "px";
+        $("tg-st").classList.toggle("on", S.stroke);
+        $("gs-st").style.display = S.stroke ? "block" : "none";
+        $("sc").value = S.sc;
+        $("sw").value = S.sw;
+        $("sw-v").textContent = S.sw + "px";
+        $("cs").value = S.cursor;
+        $("cc").value = S.cc;
+        document
+          .querySelectorAll(".pb")
+          .forEach((b) => b.classList.toggle("on", b.dataset.p === S.pos));
+        $("mg").value = S.margin;
+        $("mg-v").textContent = S.margin + "px";
+        $("tg-snd").classList.toggle("on", S.sound);
+        $("tg-loop").classList.toggle("on", S.loop);
+        $("lp").value = S.pause;
+        $("lp-v").textContent = (S.pause / 1000).toFixed(1) + "s";
+        updFpv();
+      }
+      function updURL() {
+        $("ubox").textContent = fullURL();
+      }
+      function onChange() {
+        readUI();
+        updURL();
+      }
+
+      function initCfg() {
+        $("cp").classList.add("on");
+        /* Show host info */
+        const loc = location;
+        if (loc.protocol === "https:")
+          $("host-info").textContent = "HTTPS — font scan available";
+        else if (loc.protocol === "file:")
+          $("host-info").textContent = "Local file — font scan limited";
+        else $("host-info").textContent = loc.host;
+
+        parseHash();
+        writeUI();
+        updURL();
+        scanFonts();
+
+        /* Toggles */
+        document.querySelectorAll(".tg").forEach((tg) => {
+          tg.addEventListener("click", () => {
+            tg.classList.toggle("on");
+            if (tg.id === "tg-gl")
+              $("gs-gl").style.display = tg.classList.contains("on")
+                ? "block"
+                : "none";
+            if (tg.id === "tg-st")
+              $("gs-st").style.display = tg.classList.contains("on")
+                ? "block"
+                : "none";
+            onChange();
+          });
+        });
+
+        /* Ranges */
+        const rvM = {
+          sp: (v) => v + "ms",
+          sz: (v) => v + "px",
+          lh: (v) => (v / 100).toFixed(1),
+          mg: (v) => v + "px",
+          gi: (v) => v + "px",
+          sw: (v) => v + "px",
+          lp: (v) => (v / 1000).toFixed(1) + "s",
+        };
+        document.querySelectorAll('input[type="range"]').forEach((r) => {
+          r.addEventListener("input", () => {
+            const v = $(r.id + "-v");
+            if (v && rvM[r.id]) v.textContent = rvM[r.id](r.value);
+            onChange();
+          });
+        });
+
+        /* Position */
+        document.querySelectorAll(".pb").forEach((b) => {
+          b.addEventListener("click", () => {
+            document
+              .querySelectorAll(".pb")
+              .forEach((x) => x.classList.remove("on"));
+            b.classList.add("on");
+            onChange();
+          });
+        });
+        /* Align */
+        document.querySelectorAll(".ab").forEach((b) => {
+          b.addEventListener("click", () => {
+            document
+              .querySelectorAll(".ab")
+              .forEach((x) => x.classList.remove("on"));
+            b.classList.add("on");
+            onChange();
+          });
+        });
+        /* Font */
+        $("fs").addEventListener("change", () => {
+          updFpv();
+          onChange();
+        });
+        $("bscan").addEventListener("click", scanFonts);
+        /* Colors */
+        ["tc", "cc", "gc", "sc"].forEach((id) =>
+          $(id).addEventListener("input", onChange),
+        );
+        /* Selects */
+        ["md", "cs"].forEach((id) =>
+          $(id).addEventListener("change", onChange),
+        );
+        $("ti").addEventListener("input", onChange);
+
+        /* Preview — play in the preview pane */
+        $("bprev").addEventListener("click", () => {
+          onChange();
+          playFx($("pt"), $("psl"));
+        });
+
+        /* Test Tab — open overlay in new tab (same browser, for testing) */
+        $("btest").addEventListener("click", () => {
+          onChange();
+          window.open(fullURL(), "_blank");
+        });
+
+        /* Copy URL */
+        $("bcopy").addEventListener("click", () => {
+          onChange();
+          navigator.clipboard.writeText(fullURL()).then(() => {
+            const btn = $("bcopy");
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+            btn.classList.add("copied");
+            setTimeout(() => {
+              btn.innerHTML = '<i class="fas fa-copy"></i> Copy URL';
+              btn.classList.remove("copied");
+            }, 2000);
+          });
+        });
+
+        /* Auto-play preview on load */
+        setTimeout(() => playFx($("pt"), $("psl")), 300);
+      }
+
+      /* ═══════════════════════════════════════════
+   OVERLAY MODE
+═══════════════════════════════════════════ */
+      function initOv() {
+        parseHash();
+        playFx($("ov"), $("sl"));
+      }
+
+      /* ── Init ── */
+      if (IS_CFG) initCfg();
+      else initOv();
+    </script>
+  </body>
+</html>
