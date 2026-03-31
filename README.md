@@ -8,6 +8,8 @@
 
 Новый кот читающий сообщения - https://violafox.github.io/strimer-features/gif-speacer-cat
 
-Новый кот читающий сообщения - https://violafox.github.io/strimer-features/gif-speacer-cat-alex/
+Новый кот читающий сообщения для AlexChat - https://violafox.github.io/strimer-features/gif-speacer-cat-alex/
 
 Таймер - https://violafox.github.io/strimer-features/timer
+
+qrcode для тиктока - https://violafox.github.io/strimer-features/grcode-tik-tok/
