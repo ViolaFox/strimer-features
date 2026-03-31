@@ -13,3 +13,5 @@
 Таймер - https://violafox.github.io/strimer-features/timer
 
 qrcode для тиктока - https://violafox.github.io/strimer-features/grcode-tik-tok/
+
+печатание текста - https://violafox.github.io/strimer-features/textwriter/#config
