@@ -1,0 +1,2847 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OBS Text Effects Standart</title>
+    <link rel="shortcut icon" href="Icon.png" type="image/png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0e0c0b;
+        --fg: #e8e0d4;
+        --muted: #6b6560;
+        --accent: #d4a054;
+        --border: rgba(212, 160, 84, 0.2);
+        --ok: #6dbe6d;
+        --err: #d46a54;
+      }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        width: 100vw;
+        height: 100vh;
+        background: transparent;
+        overflow: hidden;
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--fg);
+      }
+      #cv {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+      #ov {
+        position: absolute;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.4;
+        font-weight: 700;
+        color: #fff;
+        pointer-events: none;
+        z-index: 2;
+      }
+      #oc {
+        display: inline-block;
+        animation: bk 0.75s step-end infinite;
+      }
+      @keyframes bk {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      #sl {
+        position: fixed;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background: var(--accent);
+        box-shadow:
+          0 0 14px var(--accent),
+          0 0 28px rgba(212, 160, 84, 0.4);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 50;
+      }
+      #cp {
+        display: none;
+        width: 100vw;
+        height: 100vh;
+        background: var(--bg);
+        overflow: hidden;
+      }
+      #cp.on {
+        display: flex;
+        flex-direction: column;
+      }
+      .hdr {
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+      .hdr h1 {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .badge {
+        font-size: 9px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: rgba(212, 160, 84, 0.15);
+        color: var(--accent);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .hdr-h {
+        font-size: 10px;
+        color: var(--muted);
+        margin-left: auto;
+      }
+      .body {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+      }
+      .ctrl {
+        width: 310px;
+        flex-shrink: 0;
+        overflow-y: auto;
+        padding: 14px 16px;
+        border-right: 1px solid var(--border);
+      }
+      .ctrl::-webkit-scrollbar {
+        width: 3px;
+      }
+      .ctrl::-webkit-scrollbar-thumb {
+        background: var(--muted);
+        border-radius: 2px;
+      }
+      .st {
+        font-size: 9px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin: 14px 0 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+      }
+      .st:first-child {
+        margin-top: 0;
+      }
+      .cg {
+        margin-bottom: 9px;
+      }
+      .cl {
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+        display: block;
+      }
+      .cr {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      input[type="text"],
+      textarea,
+      select {
+        width: 100%;
+        background: rgb(34, 33, 34);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 10px;
+        color: var(--fg);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      input[type="text"]:focus,
+      textarea:focus,
+      select:focus {
+        border-color: var(--accent);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 60px;
+        line-height: 1.5;
+      }
+      select {
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .sw {
+        position: relative;
+      }
+      .sw::after {
+        content: "\f107";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        pointer-events: none;
+        font-size: 11px;
+      }
+      #fs {
+        padding-right: 28px;
+      }
+      input[type="range"] {
+        width: 100%;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        box-shadow: 0 0 6px rgba(212, 160, 84, 0.4);
+      }
+      input[type="color"] {
+        -webkit-appearance: none;
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+        background: transparent;
+        padding: 2px;
+        flex-shrink: 0;
+      }
+      input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      input[type="color"]::-webkit-color-swatch {
+        border: none;
+        border-radius: 4px;
+      }
+      .rv {
+        font-size: 11px;
+        color: var(--accent);
+        min-width: 38px;
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .tw {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .tg {
+        position: relative;
+        width: 36px;
+        height: 19px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.25s;
+        flex-shrink: 0;
+      }
+      .tg.on {
+        background: var(--accent);
+      }
+      .tg::after {
+        content: "";
+        position: absolute;
+        top: 2.5px;
+        left: 2.5px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.25s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+      .tg.on::after {
+        transform: translateX(17px);
+      }
+      .pg {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3px;
+        width: 78px;
+      }
+      .pb {
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .pb:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .pb.on {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .ag {
+        display: flex;
+        gap: 3px;
+      }
+      .ab {
+        flex: 1;
+        height: 26px;
+        border-radius: 5px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+      }
+      .ab:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--fg);
+      }
+      .ab.on {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #1a1410;
+      }
+      .gsg {
+        margin-top: 6px;
+      }
+      .fst {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 3px;
+        min-height: 14px;
+      }
+      .fst.ok {
+        color: var(--ok);
+      }
+      .fst.err {
+        color: var(--err);
+      }
+      .fpv {
+        margin-top: 4px;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        font-size: 15px;
+        color: var(--fg);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: 26px;
+        transition: font-family 0.15s;
+      }
+      .bsc {
+        padding: 6px 10px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--fg);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .bsc:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--accent);
+      }
+      .prv {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 14px;
+        gap: 10px;
+        min-width: 0;
+      }
+      .prv-lbl {
+        font-size: 9px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .prv-stage {
+        flex: 1;
+        position: relative;
+        background:
+          repeating-conic-gradient(
+              rgba(255, 255, 255, 0.03) 0% 25%,
+              transparent 0% 50%
+            )
+            0 0/20px 20px,
+          #0a0908;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      #pt {
+        position: absolute;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.4;
+        font-weight: 700;
+        color: #fff;
+        pointer-events: none;
+        z-index: 2;
+      }
+      #pcv {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+      #psl {
+        position: absolute;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background: var(--accent);
+        box-shadow: 0 0 14px var(--accent);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 50;
+      }
+      .note {
+        font-size: 9px;
+        color: var(--muted);
+        font-style: italic;
+        margin-top: 3px;
+        min-height: 13px;
+        opacity: 0.8;
+      }
+      .inst {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.7;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 6px;
+        border: 1px solid var(--border);
+      }
+      .inst strong {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .ftr {
+        border-top: 1px solid var(--border);
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .ftr label {
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+      .ubox {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 12px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--fg);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        user-select: all;
+      }
+      .btn {
+        padding: 7px 14px;
+        border: none;
+        border-radius: 6px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn1 {
+        background: var(--accent);
+        color: #1a1410;
+      }
+      .btn1:hover {
+        background: #e0b06a;
+        transform: translateY(-1px);
+      }
+      .btn1.copied {
+        background: var(--ok);
+      }
+      .btn2 {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--fg);
+        border: 1px solid var(--border);
+      }
+      .btn2:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--accent);
+      }
+      .steps {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .step {
+        flex: 1;
+        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        text-align: center;
+      }
+      .step-n {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #1a1410;
+        font-size: 10px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .step-t {
+        font-size: 9px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .fx-neon {
+        animation: fxNeon 3s infinite;
+      }
+      @keyframes fxNeon {
+        0%,
+        19%,
+        21%,
+        23%,
+        25%,
+        54%,
+        56%,
+        100% {
+          opacity: 1;
+        }
+        20%,
+        24%,
+        55% {
+          opacity: 0.12;
+        }
+      }
+      .fx-glitch {
+        position: relative;
+      }
+      .fx-glitch::before,
+      .fx-glitch::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      .fx-glitch::before {
+        color: #ff0040;
+        animation: gl1 2s infinite;
+        clip-path: inset(0 0 55% 0);
+        mix-blend-mode: screen;
+      }
+      .fx-glitch::after {
+        color: #00ffcc;
+        animation: gl2 2s infinite;
+        clip-path: inset(55% 0 0 0);
+        mix-blend-mode: screen;
+      }
+      @keyframes gl1 {
+        0%,
+        100% {
+          transform: translate(0);
+        }
+        20% {
+          transform: translate(-5px, 2px);
+        }
+        40% {
+          transform: translate(5px, -2px);
+        }
+        60% {
+          transform: translate(-3px, 1px);
+        }
+        80% {
+          transform: translate(4px, -1px);
+        }
+      }
+      @keyframes gl2 {
+        0%,
+        100% {
+          transform: translate(0);
+        }
+        20% {
+          transform: translate(5px, -2px);
+        }
+        40% {
+          transform: translate(-5px, 2px);
+        }
+        60% {
+          transform: translate(3px, -1px);
+        }
+        80% {
+          transform: translate(-4px, 1px);
+        }
+      }
+      .fx-wl {
+        display: inline-block;
+        animation: fxWave 2s ease-in-out infinite;
+      }
+      @keyframes fxWave {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-14px);
+        }
+      }
+      .fx-shake {
+        animation: fxShake 0.06s infinite;
+      }
+      @keyframes fxShake {
+        0% {
+          transform: translate(2px, 1px) rotate(0.5deg);
+        }
+        25% {
+          transform: translate(-2px, -1px) rotate(-0.5deg);
+        }
+        50% {
+          transform: translate(1px, -2px) rotate(0.3deg);
+        }
+        75% {
+          transform: translate(-1px, 2px) rotate(-0.3deg);
+        }
+        100% {
+          transform: translate(2px, 1px) rotate(0.5deg);
+        }
+      }
+      .fx-ripple {
+        animation: fxRipple 1.5s ease-in-out infinite;
+      }
+      @keyframes fxRipple {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.08);
+        }
+      }
+      .fx-chrome {
+        background: linear-gradient(
+          90deg,
+          #8b6914,
+          #ffd700,
+          #fff8dc,
+          #ffd700,
+          #b8860b,
+          #ffd700,
+          #fff8dc,
+          #8b6914
+        );
+        background-size: 300% 100%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: fxChrome 3s linear infinite;
+      }
+      @keyframes fxChrome {
+        0% {
+          background-position: 0% 50%;
+        }
+        100% {
+          background-position: 300% 50%;
+        }
+      }
+      /* FIXED RAINBOW: Gradient text animation */
+      .fx-rainbow {
+        background-image: linear-gradient(
+          90deg,
+          #ff0000,
+          #ff8800,
+          #ffff00,
+          #00ff00,
+          #00ffff,
+          #0000ff,
+          #ff00ff,
+          #ff0000
+        );
+        background-size: 400% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fxRainbow 4s linear infinite;
+      }
+      @keyframes fxRainbow {
+        0% {
+          background-position: 0% 50%;
+        }
+        100% {
+          background-position: 400% 50%;
+        }
+      }
+
+      .fx-ice {
+        animation: fxIce 3s ease-in-out infinite;
+      }
+      @keyframes fxIce {
+        0%,
+        100% {
+          filter: brightness(1) saturate(1);
+        }
+        50% {
+          filter: brightness(1.3) saturate(0.7);
+        }
+      }
+      .fx-fire-text {
+        animation: fxFT 0.12s infinite alternate;
+      }
+      @keyframes fxFT {
+        from {
+          text-shadow:
+            0 0 10px #ff6600,
+            0 -4px 20px #ff3300;
+        }
+        to {
+          text-shadow:
+            0 0 18px #ffaa00,
+            0 -8px 35px #ff6600;
+        }
+      }
+      .fx-sl {
+        animation: fxSL 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes fxSL {
+        from {
+          transform: translateX(-100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .fx-sr {
+        animation: fxSR 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes fxSR {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .fx-fd {
+        animation: fxFD 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes fxFD {
+        from {
+          transform: translateY(-120%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .fx-ru {
+        animation: fxRU 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes fxRU {
+        from {
+          transform: translateY(120%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .fx-ri {
+        animation: fxRI 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes fxRI {
+        from {
+          transform: rotate(-180deg) scale(0);
+          opacity: 0;
+        }
+        to {
+          transform: rotate(0) scale(1);
+          opacity: 1;
+        }
+      }
+      .fx-bi {
+        animation: fxBI 0.9s ease-out both;
+      }
+      @keyframes fxBI {
+        from {
+          filter: blur(20px);
+          opacity: 0;
+        }
+        to {
+          filter: blur(0);
+          opacity: 1;
+        }
+      }
+      .fx-pi {
+        animation: fxPI 1.2s steps(10) both;
+      }
+      @keyframes fxPI {
+        from {
+          filter: blur(10px) contrast(0.5);
+          opacity: 0;
+        }
+        to {
+          filter: blur(0) contrast(1);
+          opacity: 1;
+        }
+      }
+      /* FIXED FADE IN: Simple fade in, no blink */
+      .fx-fi {
+        animation: fxFI 1s ease-out forwards;
+      }
+      @keyframes fxFI {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .fx-ms {
+        animation: fxMS 1.2s ease-in-out both;
+        clip-path: inset(0 100% 0 0);
+      }
+      @keyframes fxMS {
+        to {
+          clip-path: inset(0 0% 0 0);
+        }
+      }
+      .fx-zi {
+        animation: fxZI 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes fxZI {
+        from {
+          transform: scale(0);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .fx-al {
+        display: inline-block;
+        opacity: 0;
+        animation: fxAL 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes fxAL {
+        from {
+          transform: translate(var(--sx), var(--sy)) rotate(var(--sr));
+          opacity: 0;
+        }
+        to {
+          transform: translate(0, 0) rotate(0);
+          opacity: 1;
+        }
+      }
+      .fx-scl {
+        display: inline-block;
+        animation: fxSCL 1.4s ease-in both;
+      }
+      @keyframes fxSCL {
+        to {
+          opacity: 0;
+          transform: translate(var(--sx), var(--sy)) rotate(var(--sr));
+        }
+      }
+      .fx-stamp {
+        animation: fxSt 0.12s ease-out both;
+      }
+      @keyframes fxSt {
+        0% {
+          transform: scale(1.4) rotate(-3deg);
+          opacity: 0.5;
+        }
+        100% {
+          transform: scale(1) rotate(0);
+          opacity: 1;
+        }
+      }
+      .fx-pour {
+        display: inline-block;
+        opacity: 0;
+        animation: fxPour 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      @keyframes fxPour {
+        0% {
+          transform: translateY(-280px) translateX(var(--px, 0px))
+            rotate(var(--pr, 0deg));
+          opacity: 0;
+        }
+        35% {
+          opacity: 1;
+        }
+        65% {
+          transform: translateY(8px) translateX(0) rotate(0deg);
+        }
+        80% {
+          transform: translateY(-4px);
+        }
+        100% {
+          transform: translateY(0) translateX(0) rotate(0deg);
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          opacity: 1 !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg
+      style="position: absolute; width: 0; height: 0; pointer-events: none"
+      aria-hidden="true"
+    >
+      <defs>
+        <filter id="waterFilter">
+          <feTurbulence
+            id="waterTurb"
+            type="fractalNoise"
+            baseFrequency="0.015 0.04"
+            numOctaves="3"
+            seed="1"
+            result="turbulence"
+          />
+          <feDisplacementMap
+            id="waterDisp"
+            in2="turbulence"
+            in="SourceGraphic"
+            scale="12"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+      </defs>
+    </svg>
+    <canvas id="cv"></canvas>
+    <div id="ov"></div>
+    <div id="sl"></div>
+
+    <div id="cp">
+      <div class="hdr">
+        <i class="fas fa-magic" style="color: var(--accent)"></i>
+        <h1>Text Effects</h1>
+        <span class="badge">OBS</span><span class="hdr-h" id="host-info"></span>
+      </div>
+      <div class="body">
+        <div class="ctrl">
+          <div class="st">Font</div>
+          <div class="cg">
+            <label class="cl">Font Family</label>
+            <div class="cr">
+              <div class="sw" style="flex: 1"><select id="fs"></select></div>
+              <button class="bsc" id="bscan">
+                <i class="fas fa-search"></i> Scan
+              </button>
+            </div>
+            <div class="fst" id="fst"></div>
+            <div class="fpv" id="fpv">The quick brown fox</div>
+          </div>
+          <div class="st">Content</div>
+          <div class="cg">
+            <label class="cl">Text (one line per entry)</label>
+            <textarea id="ti">
+Welcome to the stream
+Today we're doing something special
+Let's get started</textarea
+            >
+          </div>
+          <div class="st">Effects</div>
+          <div class="cg">
+            <label class="cl">Visual Effect</label>
+            <div class="sw">
+              <select id="vis">
+                <option value="none">None (static text)</option>
+                <option value="typewriter">Typewriter</option>
+                <option value="neon">Neon Flicker</option>
+                <option value="glitch">Glitch (RGB Shift)</option>
+                <option value="smoke">Smoke / Fog</option>
+                <option value="fire">Fire</option>
+                <option value="ice">Ice (Frozen + Cracks)</option>
+                <option value="chrome">Gold / Chrome</option>
+                <option value="wave">Wave</option>
+                <option value="shake">Shaking (Alert)</option>
+                <option value="ripple">Ripple</option>
+                <option value="glowpulse">Glow Pulse</option>
+                <option value="shadow">Moving Shadow</option>
+                <option value="scatter">Scattering Letters</option>
+                <option value="assemble">Assembling Text</option>
+                <option value="pour">Pour (Letters Fall Into Place)</option>
+                <option value="stamp">Print Stamp</option>
+                <option value="scanner">Scanner Line</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="matrix">Matrix Code</option>
+                <option value="water">Water Distortion</option>
+                <option value="particles">Falling Particles</option>
+              </select>
+            </div>
+            <div class="note" id="vis-note"></div>
+          </div>
+          <div class="cg">
+            <label class="cl">Visual Effect Speed</label>
+            <div class="cr">
+              <input type="range" id="sp" min="10" max="200" value="55" />
+              <span class="rv" id="sp-v">1.0x</span>
+            </div>
+            <div class="note" id="sp-note"></div>
+          </div>
+          <div class="cg">
+            <label class="cl">Appearance Effect</label>
+            <div class="sw">
+              <select id="apr">
+                <option value="none">None</option>
+                <option value="slide-left">From Left</option>
+                <option value="slide-right">From Right</option>
+                <option value="fall-down">Falling from Above</option>
+                <option value="rise-up">Rising from Below</option>
+                <option value="rotate-in">Rotate In</option>
+                <option value="blur-in">Through Blur</option>
+                <option value="pixel-in">Through Pixels</option>
+                <option value="fade-in">Fade In</option>
+                <option value="mask-stripe">Mask Stripe</option>
+                <option value="zoom-in">Zoom In</option>
+              </select>
+            </div>
+            <div class="note" id="apr-note"></div>
+          </div>
+          <div class="cg" id="asp-opts" style="display: none">
+            <label class="cl">Appearance Effect Speed</label>
+            <div class="cr">
+              <input type="range" id="asp" min="10" max="200" value="55" />
+              <span class="rv" id="asp-v">1.0x</span>
+            </div>
+          </div>
+          <div class="cg" id="pt-opts" style="display: none">
+            <label class="cl">Particle Type</label>
+            <div class="sw">
+              <select id="ptyp">
+                <option value="snow">Snow</option>
+                <option value="petals">Petals</option>
+                <option value="sparks">Sparks</option>
+              </select>
+            </div>
+          </div>
+          <div class="cg" id="pc-opts" style="display: none">
+            <label class="cl">Particle Color</label>
+            <div class="cr"><input type="color" id="pc" value="#ffffff" /></div>
+          </div>
+          <div class="cg" id="pspd-opts" style="display: none">
+            <label class="cl">Particle Fall Speed</label>
+            <div class="cr">
+              <input type="range" id="pspd" min="10" max="200" value="55" />
+              <span class="rv" id="pspd-v">1.0x</span>
+            </div>
+          </div>
+          <div class="cg" id="fd-opts" style="display: none">
+            <label class="cl">Flame Direction</label>
+            <div class="sw">
+              <select id="fdir">
+                <option value="up">Up (default)</option>
+                <option value="up-left">Up-Left</option>
+                <option value="up-right">Up-Right</option>
+                <option value="down">Down</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+          </div>
+          <div class="cg" id="fi-opts" style="display: none">
+            <label class="cl">Flame Intensity</label>
+            <div class="cr">
+              <input type="range" id="fint" min="10" max="100" value="50" />
+              <span class="rv" id="fint-v">50%</span>
+            </div>
+          </div>
+          <div class="cg" id="sd-opts" style="display: none">
+            <label class="cl">Smoke Density</label>
+            <div class="cr">
+              <input type="range" id="sdns" min="10" max="100" value="50" />
+              <span class="rv" id="sdns-v">50%</span>
+            </div>
+          </div>
+          <!-- Typewriter-only controls -->
+          <div id="tw-opts" style="display: none">
+            <div class="cg">
+              <label class="cl">Pause Between Lines</label>
+              <div class="cr">
+                <input
+                  type="range"
+                  id="lp"
+                  min="100"
+                  max="4000"
+                  value="700"
+                  step="50"
+                />
+                <span class="rv" id="lp-v">0.7s</span>
+              </div>
+            </div>
+            <div class="cg">
+              <div class="tw">
+                <label class="cl" style="margin-bottom: 0">Sound</label>
+                <div class="tg" id="tg-sn"></div>
+              </div>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Loop</label>
+              <div class="tg" id="tg-lo"></div>
+            </div>
+          </div>
+          <div class="st">Style</div>
+          <div class="cg">
+            <label class="cl">Size</label>
+            <div class="cr">
+              <input type="range" id="sz" min="14" max="128" value="42" /><span
+                class="rv"
+                id="sz-v"
+                >42px</span
+              >
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Line Height</label>
+            <div class="cr">
+              <input
+                type="range"
+                id="lh"
+                min="100"
+                max="260"
+                value="140"
+                step="5"
+              /><span class="rv" id="lh-v">1.4</span>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Bold</label>
+              <div class="tg on" id="tg-b"></div>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Italic</label>
+              <div class="tg" id="tg-i"></div>
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Color</label>
+            <div class="cr"><input type="color" id="tc" value="#ffffff" /></div>
+          </div>
+          <div class="cg">
+            <label class="cl">Align</label>
+            <div class="ag">
+              <button class="ab on" data-a="left">L</button
+              ><button class="ab" data-a="center">C</button
+              ><button class="ab" data-a="right">R</button>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Glow</label>
+              <div class="tg" id="tg-gl"></div>
+            </div>
+            <div class="gsg" id="gs-gl" style="display: none">
+              <div class="cr" style="margin-top: 4px">
+                <input type="color" id="gc" value="#d4a054" /><input
+                  type="range"
+                  id="gi"
+                  min="2"
+                  max="40"
+                  value="12"
+                  style="flex: 1"
+                /><span class="rv" id="gi-v">12px</span>
+              </div>
+            </div>
+          </div>
+          <div class="cg">
+            <div class="tw">
+              <label class="cl" style="margin-bottom: 0">Stroke</label>
+              <div class="tg" id="tg-st"></div>
+            </div>
+            <div class="gsg" id="gs-st" style="display: none">
+              <div class="cr" style="margin-top: 4px">
+                <input type="color" id="sc" value="#000000" /><input
+                  type="range"
+                  id="sw"
+                  min="1"
+                  max="8"
+                  value="2"
+                  style="flex: 1"
+                /><span class="rv" id="sw-v">2px</span>
+              </div>
+            </div>
+          </div>
+          <div class="st">Cursor (Typewriter only)</div>
+          <div class="cg">
+            <label class="cl">Style</label>
+            <div class="sw">
+              <select id="cs">
+                <option value="block">Block</option>
+                <option value="line">Line</option>
+                <option value="underscore">Underscore</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Color</label>
+            <div class="cr"><input type="color" id="cc" value="#d4a054" /></div>
+          </div>
+          <div class="st">Layout</div>
+          <div class="cg">
+            <label class="cl">Position</label>
+            <div class="pg">
+              <div class="pb" data-p="tl"></div>
+              <div class="pb" data-p="tc"></div>
+              <div class="pb" data-p="tr"></div>
+              <div class="pb" data-p="ml"></div>
+              <div class="pb" data-p="mc"></div>
+              <div class="pb" data-p="mr"></div>
+              <div class="pb on" data-p="bl"></div>
+              <div class="pb" data-p="bc"></div>
+              <div class="pb" data-p="br"></div>
+            </div>
+          </div>
+          <div class="cg">
+            <label class="cl">Margin</label>
+            <div class="cr">
+              <input type="range" id="mg" min="8" max="160" value="40" /><span
+                class="rv"
+                id="mg-v"
+                >40px</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="prv">
+          <span class="prv-lbl">Preview</span>
+          <div class="prv-stage" id="pstage">
+            <canvas id="pcv"></canvas>
+            <div id="pt"></div>
+            <div id="psl"></div>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-n">1</div>
+              <div class="step-t">Adjust settings</div>
+            </div>
+            <div class="step">
+              <div class="step-n">2</div>
+              <div class="step-t">Preview effect</div>
+            </div>
+            <div class="step">
+              <div class="step-n">3</div>
+              <div class="step-t">Copy URL</div>
+            </div>
+            <div class="step">
+              <div class="step-n">4</div>
+              <div class="step-t">Paste in OBS</div>
+            </div>
+          </div>
+          <div class="inst">
+            <strong>Usage:</strong> Adjust settings, click Preview to test, Copy
+            URL, paste into OBS Browser Source. Visual + Appearance effects
+            combine automatically (e.g. Neon + From Left).
+          </div>
+        </div>
+      </div>
+      <div class="ftr">
+        <label>OBS URL</label>
+        <div class="ubox" id="ubox"></div>
+        <button class="btn btn2" id="bprev">
+          <i class="fas fa-eye"></i> Preview
+        </button>
+        <button class="btn btn2" id="btest">
+          <i class="fas fa-external-link-alt"></i> Test Tab
+        </button>
+        <button class="btn btn1" id="bcopy">
+          <i class="fas fa-copy"></i> Copy URL
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const IS_CFG =
+        location.hash === "#config" || location.search.includes("config");
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      /* Defaults */
+      const D = {
+        font: "IBM Plex Mono",
+        visual: "typewriter",
+        appear: "none",
+        text: "Welcome to the stream\nToday we're doing something special\nLet's get started",
+        speed: 55,
+        aspeed: 55,
+        size: 42,
+        lh: 140,
+        color: "#ffffff",
+        bold: true,
+        italic: false,
+        align: "left",
+        glow: false,
+        gc: "#d4a054",
+        gi: 12,
+        stroke: false,
+        sc: "#000000",
+        sw: 2,
+        cursor: "block",
+        cc: "#d4a054",
+        pos: "bl",
+        margin: 40,
+        sound: false,
+        loop: false,
+        pause: 700,
+        ptype: "snow",
+        pcolor: "#ffffff",
+        pspd: 55,
+        fdir: "up",
+        fint: 50,
+        sdns: 50,
+      };
+      let S = { ...D },
+        playing = false,
+        timer = null,
+        animFrame = null,
+        audioCtx = null,
+        particles = [];
+
+      const SELF_ENTRANCE = new Set([
+        "typewriter",
+        "matrix",
+        "assemble",
+        "scatter",
+        "stamp",
+        "scanner",
+        "pour",
+      ]);
+      const APPEAR_CLS = {
+        "slide-left": "fx-sl",
+        "slide-right": "fx-sr",
+        "fall-down": "fx-fd",
+        "rise-up": "fx-ru",
+        "rotate-in": "fx-ri",
+        "blur-in": "fx-bi",
+        "pixel-in": "fx-pi",
+        "fade-in": "fx-fi",
+        "mask-stripe": "fx-ms",
+        "zoom-in": "fx-zi",
+      };
+      const APPEAR_DUR = {
+        "slide-left": 700,
+        "slide-right": 700,
+        "fall-down": 700,
+        "rise-up": 700,
+        "rotate-in": 800,
+        "blur-in": 900,
+        "pixel-in": 1200,
+        "mask-stripe": 1200,
+        "zoom-in": 700,
+      };
+
+      /*
+        Speed multiplier: slider goes 10..200, default 55.
+        Left (10) = 0.18x (slow), Right (200) = 3.6x (fast).
+      */
+      function vm(val) {
+        return val / 55;
+      }
+
+      function toHash() {
+        const l = S.text
+          .split("\n")
+          .map((x) => encodeURIComponent(x))
+          .join("|");
+        return (
+          "#v=" +
+          S.visual +
+          "&ap=" +
+          S.appear +
+          "&t=" +
+          l +
+          "&f=" +
+          encodeURIComponent(S.font) +
+          "&sp=" +
+          S.speed +
+          "&as=" +
+          S.aspeed +
+          "&sz=" +
+          S.size +
+          "&lh=" +
+          S.lh +
+          "&c=" +
+          encodeURIComponent(S.color) +
+          "&b=" +
+          (S.bold ? 1 : 0) +
+          "&i=" +
+          (S.italic ? 1 : 0) +
+          "&a=" +
+          S.align +
+          "&gl=" +
+          (S.glow ? 1 : 0) +
+          "&gc=" +
+          encodeURIComponent(S.gc) +
+          "&gi=" +
+          S.gi +
+          "&st=" +
+          (S.stroke ? 1 : 0) +
+          "&sc=" +
+          encodeURIComponent(S.sc) +
+          "&sw=" +
+          S.sw +
+          "&cs=" +
+          S.cursor +
+          "&cc=" +
+          encodeURIComponent(S.cc) +
+          "&p=" +
+          S.pos +
+          "&m=" +
+          S.margin +
+          "&sn=" +
+          (S.sound ? 1 : 0) +
+          "&lo=" +
+          (S.loop ? 1 : 0) +
+          "&lp=" +
+          S.pause +
+          "&pt=" +
+          S.ptype +
+          "&pc=" +
+          encodeURIComponent(S.pcolor) +
+          "&ps=" +
+          S.pspd +
+          "&fd=" +
+          S.fdir +
+          "&fi=" +
+          S.fint +
+          "&sd=" +
+          S.sdns
+        );
+      }
+      function parseHash() {
+        const h = location.hash.slice(1);
+        if (!h || h === "config") return;
+        const p = new URLSearchParams(h),
+          g = (k) => p.get(k);
+        if (g("v")) S.visual = g("v");
+        if (g("ap")) S.appear = g("ap");
+        if (g("t")) S.text = g("t").replace(/\|/g, "\n");
+        if (g("sp")) S.speed = +g("sp");
+        if (g("as")) S.aspeed = +g("as");
+        if (g("sz")) S.size = +g("sz");
+        if (g("lh")) S.lh = +g("lh");
+        if (g("c")) S.color = g("c");
+        S.bold = g("b") === "1";
+        S.italic = g("i") === "1";
+        if (g("a")) S.align = g("a");
+        S.glow = g("gl") === "1";
+        if (g("gc")) S.gc = g("gc");
+        if (g("gi")) S.gi = +g("gi");
+        S.stroke = g("st") === "1";
+        if (g("sc")) S.sc = g("sc");
+        if (g("sw")) S.sw = +g("sw");
+        if (g("cs")) S.cursor = g("cs");
+        if (g("cc")) S.cc = g("cc");
+        if (g("p")) S.pos = g("p");
+        if (g("m")) S.margin = +g("m");
+        S.sound = g("sn") === "1";
+        S.loop = g("lo") === "1";
+        if (g("lp")) S.pause = +g("lp");
+        if (g("pt")) S.ptype = g("pt");
+        if (g("pc")) S.pcolor = g("pc");
+        if (g("ps")) S.pspd = +g("ps");
+        if (g("fd")) S.fdir = g("fd");
+        if (g("fi")) S.fint = +g("fi");
+        if (g("sd")) S.sdns = +g("sd");
+      }
+      function fullURL() {
+        return location.href.split("#")[0].split("?")[0] + toHash();
+      }
+
+      const dynCSS = document.createElement("style");
+      document.head.appendChild(dynCSS);
+      function injCSS(c) {
+        dynCSS.textContent = c;
+      }
+      function clrCSS() {
+        dynCSS.textContent = "";
+      }
+
+      function curH(id) {
+        const c = S.cc,
+          e = id || "oc";
+        switch (S.cursor) {
+          case "block":
+            return `<span id="${e}" style="background:${c};color:${c}">&nbsp;</span>`;
+          case "line":
+            return `<span id="${e}" style="border-left:2px solid ${c};margin-left:1px">&nbsp;</span>`;
+          case "underscore":
+            return `<span id="${e}" style="border-bottom:2px solid ${c}">&nbsp;</span>`;
+          default:
+            return "";
+        }
+      }
+
+      function applyStyle(tgt) {
+        const m = S.margin;
+        let sh = "none";
+        if (
+          S.glow &&
+          !["neon", "glowpulse", "fire", "chrome", "ice"].includes(S.visual)
+        )
+          sh = `0 0 ${S.gi}px ${S.gc}, 0 0 ${S.gi * 2.5}px ${S.gc}`;
+        Object.assign(tgt.style, {
+          fontFamily: `"${S.font}", monospace`,
+          fontSize: S.size + "px",
+          lineHeight: String(S.lh / 100),
+          color: S.color,
+          fontWeight: S.bold ? "700" : "400",
+          fontStyle: S.italic ? "italic" : "normal",
+          textAlign: S.align,
+          textShadow: sh,
+          webkitTextStroke: S.stroke ? `${S.sw}px ${S.sc}` : "",
+          webkitBackgroundClip: "",
+          webkitTextFillColor: "",
+          background: "",
+          backgroundSize: "",
+          filter: "",
+          clipPath: "",
+          animation: "",
+          left: "auto",
+          right: "auto",
+          top: "auto",
+          bottom: "auto",
+          transform: "none",
+        });
+        const pm = {
+          tl: { top: m, left: m },
+          tc: { top: m, left: "50%", transform: "translateX(-50%)" },
+          tr: { top: m, right: m },
+          ml: { top: "50%", left: m, transform: "translateY(-50%)" },
+          mc: { top: "50%", left: "50%", transform: "translate(-50%,-50%)" },
+          mr: { top: "50%", right: m, transform: "translateY(-50%)" },
+          bl: { bottom: m, left: m },
+          bc: { bottom: m, left: "50%", transform: "translateX(-50%)" },
+          br: { bottom: m, right: m },
+        };
+        Object.assign(tgt.style, pm[S.pos] || pm.bl);
+        const par = tgt.parentElement;
+        if (par) tgt.style.maxWidth = `calc(${par.clientWidth}px - ${m * 2}px)`;
+      }
+
+      function resetTgt(t) {
+        t.innerHTML = "";
+        t.className = "";
+        t.removeAttribute("data-text");
+      }
+      function setLines(tgt, cls, sty) {
+        const lines = S.text.split("\n").filter((l) => l.trim());
+        tgt.innerHTML = lines
+          .map(
+            (l) =>
+              `<div class="${cls || ""}" style="${sty || ""}">${esc(l)}</div>`,
+          )
+          .join("");
+      }
+      function setChars(tgt, cls, dfn) {
+        const lines = S.text.split("\n");
+        let h = "";
+        lines.forEach((ln, li) => {
+          if (li > 0) h += "<br>";
+          for (let i = 0; i < ln.length; i++) {
+            const d = dfn ? dfn(li, i) : i * 0.05;
+            h += `<span class="${cls}" style="animation-delay:${d}s">${esc(ln[i])}</span>`;
+          }
+        });
+        tgt.innerHTML = h;
+      }
+
+      function sizeCV(cv) {
+        if (!cv || !cv.parentElement) return;
+        cv.width = cv.parentElement.clientWidth;
+        cv.height = cv.parentElement.clientHeight;
+      }
+
+      function clickSnd() {
+        if (!audioCtx)
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const t = audioCtx.currentTime,
+          o = audioCtx.createOscillator(),
+          g = audioCtx.createGain(),
+          f = audioCtx.createBiquadFilter();
+        o.type = "square";
+        o.frequency.value = 600 + Math.random() * 600;
+        f.type = "bandpass";
+        f.frequency.value = 2200;
+        f.Q.value = 0.8;
+        g.gain.setValueAtTime(0.035, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+        o.connect(f);
+        f.connect(g);
+        g.connect(audioCtx.destination);
+        o.start(t);
+        o.stop(t + 0.025);
+      }
+
+      function cleanup() {
+        playing = false;
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        if (animFrame) {
+          cancelAnimationFrame(animFrame);
+          animFrame = null;
+        }
+        clrCSS();
+        particles = [];
+        $("sl").style.opacity = "0";
+        const cv = $("cv");
+        if (cv) {
+          const ctx = cv.getContext("2d");
+          if (ctx) ctx.clearRect(0, 0, cv.width, cv.height);
+        }
+      }
+
+      function hexToRGB(hex) {
+        return {
+          r: parseInt(hex.slice(1, 3), 16),
+          g: parseInt(hex.slice(3, 5), 16),
+          b: parseInt(hex.slice(5, 7), 16),
+        };
+      }
+
+      function smokeNoise(x, y, t) {
+        return (
+          Math.sin(x * 0.008 + t * 0.4) * Math.cos(y * 0.012 + t * 0.25) * 0.5 +
+          Math.sin(x * 0.015 - t * 0.15) *
+            Math.cos(y * 0.008 + t * 0.35) *
+            0.3 +
+          Math.sin((x + y) * 0.005 + t * 0.5) * 0.2
+        );
+      }
+
+      /* ==================== EFFECTS ==================== */
+      const FX = {
+        typewriter(tgt) {
+          /* For typewriter, speed directly controls delay: higher slider = faster = lower ms delay */
+          playing = true;
+          tgt.style.whiteSpace = "pre-wrap";
+          tgt.innerHTML = curH();
+          let li = 0,
+            ci = 0,
+            txt = "",
+            lines = S.text.split("\n");
+          const baseDelay = Math.max(5, 3025 / S.speed); // 10→~300ms slow, 55→~55ms normal, 200→~15ms fast
+          (function tick() {
+            if (!playing) return;
+            if (li >= lines.length) {
+              if (S.loop)
+                timer = setTimeout(() => {
+                  tgt.innerHTML = "";
+                  li = 0;
+                  ci = 0;
+                  txt = "";
+                  tick();
+                }, 2200);
+              return;
+            }
+            const ln = lines[li];
+            if (!ln || !ln.trim()) {
+              li++;
+              if (ci === 0 && li > 0) txt += "\n";
+              timer = setTimeout(tick, 50);
+              return;
+            }
+            if (ci === 0 && li > 0) txt += "\n";
+            if (ci < ln.length) {
+              txt += ln[ci];
+              ci++;
+              tgt.innerHTML = esc(txt) + curH();
+              if (S.sound) clickSnd();
+              let d = baseDelay;
+              const ch = ln[ci - 1];
+              if (".!?".includes(ch)) d *= 5;
+              else if (",;:".includes(ch)) d *= 2.5;
+              else if (ch === " ") d *= 0.4;
+              timer = setTimeout(tick, d);
+            } else {
+              li++;
+              ci = 0;
+              timer = setTimeout(tick, S.pause);
+            }
+          })();
+        },
+        neon(tgt) {
+          const sm = vm(S.speed),
+            dur = (3 / sm).toFixed(3);
+          setLines(tgt, "fx-neon");
+          tgt
+            .querySelectorAll(".fx-neon")
+            .forEach((el) => (el.style.animationDuration = dur + "s"));
+          tgt.style.textShadow = `0 0 7px ${S.color},0 0 15px ${S.color},0 0 30px ${S.color},0 0 60px ${S.color}`;
+          playing = true;
+        },
+        glitch(tgt) {
+          const sm = vm(S.speed),
+            dur = (2 / sm).toFixed(3);
+          injCSS(
+            `.fx-glitch::before,.fx-glitch::after{animation-duration:${dur}s}`,
+          );
+          const lines = S.text.split("\n");
+          tgt.innerHTML = lines
+            .map(
+              (l) =>
+                `<div class="fx-glitch" data-text="${esc(l)}">${esc(l)}</div>`,
+            )
+            .join("");
+          playing = true;
+        },
+        smoke(tgt, cv) {
+          setLines(tgt);
+          tgt.style.opacity = "0";
+          sizeCV(cv);
+          const ctx = cv.getContext("2d");
+          playing = true;
+          let age = 0;
+          const sm = vm(S.speed);
+          const density = (S.sdns || 50) / 50;
+          (function draw() {
+            if (!playing) return;
+            age++;
+            const spawnCount = Math.max(1, Math.floor(2 * density));
+            if (age % 2 === 0) {
+              for (let i = 0; i < spawnCount; i++) {
+                particles.push({
+                  x: cv.width * 0.1 + Math.random() * cv.width * 0.8,
+                  y: cv.height * 0.1 + Math.random() * cv.height * 0.8,
+                  r: 25 + Math.random() * 55,
+                  baseX: 0,
+                  baseY: 0,
+                  age: 0,
+                  maxAge: 180 + Math.random() * 250,
+                  phase: Math.random() * Math.PI * 2,
+                  drift: 0.3 + Math.random() * 0.6,
+                });
+                particles[particles.length - 1].baseX =
+                  particles[particles.length - 1].x;
+                particles[particles.length - 1].baseY =
+                  particles[particles.length - 1].y;
+              }
+            }
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const revealT = Math.max(60, 180 / density / sm);
+            const revealProg = Math.min(
+              1,
+              Math.max(0, (age - revealT * 0.4) / (revealT * 0.8)),
+            );
+            const smokeAlpha = Math.max(0, 1 - revealProg * 1.3);
+            particles.forEach((p) => {
+              p.age++;
+              const life = 1 - p.age / p.maxAge;
+              if (life <= 0) return;
+              const t = age * 0.008 * sm;
+              const nx =
+                smokeNoise(p.baseX, p.baseY, t + p.phase) * 35 * p.drift;
+              const ny =
+                smokeNoise(p.baseX + 500, p.baseY + 500, t + p.phase) *
+                  25 *
+                  p.drift -
+                p.age * 0.04 * sm;
+              p.x = p.baseX + nx;
+              p.y = p.baseY + ny;
+              const curR = p.r + p.age * 0.18;
+              const a = life * 0.1 * smokeAlpha * density;
+              if (a > 0.002) {
+                const grad = ctx.createRadialGradient(
+                  p.x,
+                  p.y,
+                  0,
+                  p.x,
+                  p.y,
+                  Math.max(1, curR),
+                );
+                grad.addColorStop(0, `rgba(170,170,180,${a})`);
+                grad.addColorStop(0.35, `rgba(150,150,160,${a * 0.65})`);
+                grad.addColorStop(0.7, `rgba(130,130,140,${a * 0.25})`);
+                grad.addColorStop(1, `rgba(110,110,120,0)`);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, Math.max(1, curR), 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+              }
+            });
+            particles = particles.filter((p) => p.age < p.maxAge);
+            if (particles.length > 250) particles.splice(0, 50);
+            tgt.style.opacity = String(revealProg);
+            animFrame = requestAnimationFrame(draw);
+          })();
+        },
+        fire(tgt, cv) {
+          const sm = vm(S.speed);
+          setLines(tgt, "fx-fire-text");
+          tgt.style.color = "#ffdd88";
+          const dir = S.fdir || "up";
+          const shadowMap = {
+            up: "0 0 10px #ff6600, 0 -4px 20px #ff3300",
+            "up-left": "0 0 10px #ff6600, -4px -4px 20px #ff3300",
+            "up-right": "0 0 10px #ff6600, 4px -4px 20px #ff3300",
+            down: "0 0 10px #ff6600, 0 4px 20px #ff3300",
+            left: "0 0 10px #ff6600, -4px 0 20px #ff3300",
+            right: "0 0 10px #ff6600, 4px 0 20px #ff3300",
+          };
+          tgt.style.textShadow = shadowMap[dir] || shadowMap["up"];
+          tgt
+            .querySelectorAll(".fx-fire-text")
+            .forEach(
+              (el) =>
+                (el.style.animationDuration = Math.max(0.02, 0.12 / sm) + "s"),
+            );
+          sizeCV(cv);
+          const ctx = cv.getContext("2d");
+          playing = true;
+          const intensity = (S.fint || 50) / 50;
+          const dirVecs = {
+            up: { vx: 0, vy: -1 },
+            "up-left": { vx: -0.6, vy: -1 },
+            "up-right": { vx: 0.6, vy: -1 },
+            down: { vx: 0, vy: 1 },
+            left: { vx: -1, vy: -0.2 },
+            right: { vx: 1, vy: -0.2 },
+          };
+          const dv = dirVecs[dir] || dirVecs["up"];
+          (function draw() {
+            if (!playing) return;
+            const r = tgt.getBoundingClientRect(),
+              cvR = cv.getBoundingClientRect();
+            if (r.width > 0) {
+              const count = Math.floor(3 + intensity * 6);
+              for (let i = 0; i < count; i++) {
+                let px, py;
+                if (dv.vy < 0) {
+                  px = r.left - cvR.left + Math.random() * r.width;
+                  py = r.bottom - cvR.top;
+                } else if (dv.vy > 0) {
+                  px = r.left - cvR.left + Math.random() * r.width;
+                  py = r.top - cvR.top;
+                } else {
+                  px = r.left - cvR.left + Math.random() * r.width;
+                  py = r.top - cvR.top + Math.random() * r.height;
+                }
+                if (dv.vx < 0 && !dv.vy) {
+                  px = r.right - cvR.left;
+                  py = r.top - cvR.top + Math.random() * r.height;
+                }
+                if (dv.vx > 0 && !dv.vy) {
+                  px = r.left - cvR.left;
+                  py = r.top - cvR.top + Math.random() * r.height;
+                }
+                const spd = (1.5 + Math.random() * 3) * intensity * sm;
+                particles.push({
+                  x: px,
+                  y: py,
+                  r: 1.5 + Math.random() * 4 * intensity,
+                  vx:
+                    dv.vx * spd + (Math.random() - 0.5) * 1.2 * intensity * sm,
+                  vy:
+                    dv.vy * spd + (Math.random() - 0.5) * 0.8 * intensity * sm,
+                  a: 1,
+                  life: 1,
+                  decay:
+                    (0.008 + Math.random() * 0.014) / Math.max(0.3, intensity),
+                  hue: dir.includes("down")
+                    ? 0 + Math.random() * 15
+                    : 15 + Math.random() * 35,
+                });
+              }
+            }
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            particles.forEach((p) => {
+              p.x += p.vx;
+              p.y += p.vy;
+              p.vy *= 0.99;
+              p.vx *= 0.98;
+              p.r *= 0.997;
+              p.life -= p.decay;
+              if (p.life > 0) {
+                const bri = 45 + p.life * 40;
+                const g = ctx.createRadialGradient(
+                  p.x,
+                  p.y,
+                  0,
+                  p.x,
+                  p.y,
+                  Math.max(0.5, p.r),
+                );
+                g.addColorStop(
+                  0,
+                  `hsla(${p.hue},100%,${bri}%,${p.life * 0.9})`,
+                );
+                g.addColorStop(
+                  0.4,
+                  `hsla(${p.hue + 8},100%,${bri - 12}%,${p.life * 0.55})`,
+                );
+                g.addColorStop(1, `hsla(${p.hue + 20},100%,18%,0)`);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, Math.max(0.5, p.r), 0, Math.PI * 2);
+                ctx.fillStyle = g;
+                ctx.fill();
+              }
+            });
+            particles = particles.filter((p) => p.life > 0);
+            if (particles.length > 700) particles.splice(0, 150);
+            animFrame = requestAnimationFrame(draw);
+          })();
+        },
+        ice(tgt, cv) {
+          const sm = vm(S.speed),
+            dur = (3 / sm).toFixed(3);
+          setLines(tgt, "fx-ice");
+          tgt
+            .querySelectorAll(".fx-ice")
+            .forEach((el) => (el.style.animationDuration = dur + "s"));
+          tgt.style.color = "#a8d8ff";
+          tgt.style.textShadow = "0 0 8px #4488cc, 0 0 20px #2266aa";
+          sizeCV(cv);
+          const ctx = cv.getContext("2d");
+          playing = true;
+          const cracks = [];
+          (function init() {
+            const r = tgt.getBoundingClientRect(),
+              cvR = cv.getBoundingClientRect();
+            if (r.width === 0) {
+              requestAnimationFrame(init);
+              return;
+            }
+            for (let i = 0; i < 10; i++) {
+              const pts = [
+                {
+                  x: r.left - cvR.left + Math.random() * r.width,
+                  y: r.top - cvR.top + Math.random() * r.height,
+                },
+              ];
+              for (let j = 0; j < 4 + Math.random() * 6; j++) {
+                const prev = pts[pts.length - 1];
+                pts.push({
+                  x: prev.x + (Math.random() - 0.5) * 55,
+                  y: prev.y + (Math.random() - 0.5) * 35,
+                });
+              }
+              cracks.push({ pts, delay: i * (250 / sm) });
+            }
+            let start = Date.now();
+            (function draw() {
+              if (!playing) return;
+              const elapsed = Date.now() - start;
+              ctx.clearRect(0, 0, cv.width, cv.height);
+              cracks.forEach((cr) => {
+                const show = Math.min(
+                  cr.pts.length,
+                  Math.floor((elapsed - cr.delay) / (90 / sm)),
+                );
+                if (show < 2) return;
+                ctx.beginPath();
+                ctx.moveTo(cr.pts[0].x, cr.pts[0].y);
+                for (let i = 1; i < show; i++)
+                  ctx.lineTo(cr.pts[i].x, cr.pts[i].y);
+                ctx.strokeStyle = "rgba(200,230,255,0.5)";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.strokeStyle = "rgba(255,255,255,0.25)";
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+              });
+              animFrame = requestAnimationFrame(draw);
+            })();
+          })();
+        },
+        chrome(tgt) {
+          const sm = vm(S.speed),
+            dur = (3 / sm).toFixed(3);
+          setLines(tgt, "fx-chrome");
+          tgt
+            .querySelectorAll(".fx-chrome")
+            .forEach((el) => (el.style.animationDuration = dur + "s"));
+          playing = true;
+        },
+        wave(tgt) {
+          const sm = vm(S.speed),
+            dur = (2 / sm).toFixed(3);
+          const lines = S.text.split("\n");
+          let h = "";
+          lines.forEach((ln, li) => {
+            if (li > 0) h += "<br>";
+            for (let i = 0; i < ln.length; i++) {
+              const d = (((li * 20 + i) * 0.06) / sm).toFixed(3);
+              h += `<span class="fx-wl" style="animation-delay:${d}s;animation-duration:${dur}s">${esc(ln[i])}</span>`;
+            }
+          });
+          tgt.innerHTML = h;
+          playing = true;
+        },
+        shake(tgt) {
+          const sm = vm(S.speed),
+            dur = Math.max(0.015, 0.06 / sm).toFixed(4);
+          setLines(tgt, "fx-shake");
+          tgt
+            .querySelectorAll(".fx-shake")
+            .forEach((el) => (el.style.animationDuration = dur + "s"));
+          playing = true;
+        },
+        ripple(tgt) {
+          const sm = vm(S.speed),
+            dur = (1.5 / sm).toFixed(3);
+          setLines(tgt, "fx-ripple");
+          tgt
+            .querySelectorAll(".fx-ripple")
+            .forEach((el) => (el.style.animationDuration = dur + "s"));
+          playing = true;
+        },
+        glowpulse(tgt) {
+          const sm = vm(S.speed),
+            dur = (2 / sm).toFixed(3);
+          const c = S.glow ? S.gc : S.color;
+          injCSS(
+            `@keyframes fxGP{0%,100%{text-shadow:0 0 5px ${c}}50%{text-shadow:0 0 20px ${c},0 0 45px ${c},0 0 80px ${c}}}`,
+          );
+          setLines(tgt);
+          tgt.style.animation = `fxGP ${dur}s ease-in-out infinite`;
+          playing = true;
+        },
+        shadow(tgt) {
+          const sm = vm(S.speed),
+            dur = (3 / sm).toFixed(3);
+          injCSS(
+            `@keyframes fxShd{0%{text-shadow:4px 4px 0 rgba(0,0,0,.6)}25%{text-shadow:-4px 3px 0 rgba(0,0,0,.6)}50%{text-shadow:-3px -4px 0 rgba(0,0,0,.6)}75%{text-shadow:3px -3px 0 rgba(0,0,0,.6)}100%{text-shadow:4px 4px 0 rgba(0,0,0,.6)}}`,
+          );
+          setLines(tgt);
+          tgt.style.animation = `fxShd ${dur}s ease-in-out infinite`;
+          playing = true;
+        },
+        scatter(tgt) {
+          const sm = vm(S.speed),
+            durS = (1.4 / sm).toFixed(3),
+            delayBase = 0.03 / sm;
+          const lines = S.text.split("\n");
+          let h = "",
+            idx = 0;
+          lines.forEach((ln, li) => {
+            if (li > 0) h += "<br>";
+            for (let i = 0; i < ln.length; i++) {
+              const sx = (Math.random() - 0.5) * 1200,
+                sy = (Math.random() - 0.5) * 800,
+                sr = (Math.random() - 0.5) * 1080;
+              h += `<span class="fx-scl" style="--sx:${sx}px;--sy:${sy}px;--sr:${sr}deg;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durS}s">${esc(ln[i])}</span>`;
+              idx++;
+            }
+          });
+          tgt.innerHTML = h;
+          playing = true;
+          if (S.loop)
+            timer = setTimeout(
+              () => FX.scatter(tgt),
+              idx * delayBase * 1000 + 800 + 1800,
+            );
+        },
+        assemble(tgt) {
+          const sm = vm(S.speed),
+            durA = (0.7 / sm).toFixed(3),
+            delayBase = 0.04 / sm;
+          const lines = S.text.split("\n");
+          let h = "",
+            idx = 0;
+          lines.forEach((ln, li) => {
+            if (li > 0) h += "<br>";
+            for (let i = 0; i < ln.length; i++) {
+              const sx = (Math.random() - 0.5) * 900,
+                sy = (Math.random() - 0.5) * 600,
+                sr = (Math.random() - 0.5) * 720;
+              h += `<span class="fx-al" style="--sx:${sx}px;--sy:${sy}px;--sr:${sr}deg;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durA}s">${esc(ln[i])}</span>`;
+              idx++;
+            }
+          });
+          tgt.innerHTML = h;
+          playing = true;
+          if (S.loop)
+            timer = setTimeout(
+              () => FX.assemble(tgt),
+              idx * delayBase * 1000 + durA * 1000 + 800,
+            );
+        },
+        pour(tgt) {
+          const sm = vm(S.speed),
+            durP = (0.9 / sm).toFixed(3),
+            delayBase = 0.05 / sm;
+          const lines = S.text.split("\n");
+          let h = "",
+            idx = 0;
+          lines.forEach((ln, li) => {
+            if (li > 0) h += "<br>";
+            for (let i = 0; i < ln.length; i++) {
+              const pr = (Math.random() - 0.5) * 25,
+                px = (Math.random() - 0.5) * 50;
+              h += `<span class="fx-pour" style="--pr:${pr}deg;--px:${px}px;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durP}s">${esc(ln[i])}</span>`;
+              idx++;
+            }
+          });
+          tgt.innerHTML = h;
+          playing = true;
+          if (S.loop) {
+            const totalDur = idx * delayBase + parseFloat(durP) + 0.5;
+            timer = setTimeout(
+              () => {
+                stopFx(tgt, null, null);
+                applyStyle(tgt);
+                FX.pour(tgt);
+              },
+              totalDur * 1000 + 800,
+            );
+          }
+        },
+        stamp(tgt) {
+          const sm = vm(S.speed),
+            durSt = Math.max(0.02, 0.12 / sm).toFixed(4);
+          const pauseSt = Math.max(100, 800 / sm);
+          const lines = S.text.split("\n").filter((l) => l.trim());
+          let li = 0;
+          playing = true;
+          (function go() {
+            if (!playing) return;
+            if (li >= lines.length) {
+              if (S.loop)
+                timer = setTimeout(() => {
+                  resetTgt(tgt);
+                  applyStyle(tgt);
+                  li = 0;
+                  playing = true;
+                  go();
+                }, pauseSt + 1500);
+              return;
+            }
+            const d = document.createElement("div");
+            d.className = "fx-stamp";
+            d.textContent = lines[li];
+            d.style.animationDuration = durSt + "s";
+            tgt.appendChild(d);
+            li++;
+            timer = setTimeout(go, pauseSt);
+          })();
+        },
+        scanner(tgt, sl) {
+          const sm = vm(S.speed),
+            dur = Math.max(200, 1500 / sm);
+          setLines(tgt);
+          tgt.style.clipPath = "inset(0 100% 0 0)";
+          tgt.style.transition = "none";
+          void tgt.offsetWidth;
+          tgt.style.transition = `clip-path ${dur}ms linear`;
+          tgt.style.clipPath = "inset(0 0% 0 0)";
+          sl.style.transition = "none";
+          sl.style.opacity = "1";
+          sl.style.top = "0";
+          sl.style.left = "0";
+          sl.style.width = "3px";
+          sl.style.height = "100%";
+          void sl.offsetWidth;
+          sl.style.transition = `left ${dur}ms linear, opacity .3s ease`;
+          sl.style.left = "100%";
+          playing = true;
+          setTimeout(() => (sl.style.opacity = "0"), dur);
+          if (S.loop)
+            timer = setTimeout(() => {
+              resetTgt(tgt);
+              applyStyle(tgt);
+              FX.scanner(tgt, sl);
+            }, dur + 800);
+        },
+        rainbow(tgt) {
+          const sm = vm(S.speed),
+            dur = (4 / sm).toFixed(3);
+          setLines(tgt, "fx-rainbow");
+          tgt
+            .querySelectorAll(".fx-rainbow")
+            .forEach((el) => (el.style.animationDuration = dur + "s"));
+          playing = true;
+        },
+        matrix(tgt) {
+          const sm = vm(S.speed),
+            baseDelay = Math.max(5, (30 + 55 * 0.3) / sm);
+          const lines = S.text.split("\n"),
+            chars =
+              "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*";
+          tgt.style.whiteSpace = "pre-wrap";
+          let spans = [];
+          lines.forEach((ln, li) => {
+            if (li > 0) tgt.appendChild(document.createElement("br"));
+            for (let i = 0; i < ln.length; i++) {
+              const sp = document.createElement("span");
+              sp.textContent = chars[Math.floor(Math.random() * chars.length)];
+              sp.style.color = "#00ff41";
+              tgt.appendChild(sp);
+              spans.push({ el: sp, target: ln[i], done: false });
+            }
+          });
+          playing = true;
+          let round = 0;
+          (function tick() {
+            if (!playing) return;
+            let allDone = true;
+            spans.forEach((s) => {
+              if (!s.done) {
+                if (Math.random() < 0.08 + round * 0.004) {
+                  s.el.textContent = s.target;
+                  s.el.style.color = S.color;
+                  s.done = true;
+                } else {
+                  s.el.textContent =
+                    chars[Math.floor(Math.random() * chars.length)];
+                  allDone = false;
+                }
+              }
+            });
+            round++;
+            if (allDone) {
+              if (S.loop)
+                timer = setTimeout(() => {
+                  resetTgt(tgt);
+                  applyStyle(tgt);
+                  tgt.style.whiteSpace = "pre-wrap";
+                  FX.matrix(tgt);
+                }, 800 + 1500);
+            } else timer = setTimeout(tick, baseDelay);
+          })();
+        },
+        water(tgt) {
+          setLines(tgt);
+          tgt.style.filter = "url(#waterFilter)";
+          playing = true;
+          let frame = 0;
+          const sm = vm(S.speed);
+          const turb = document.getElementById("waterTurb"),
+            disp = document.getElementById("waterDisp");
+          (function anim() {
+            if (!playing) return;
+            frame++;
+            const t = frame * 0.008 * sm;
+            turb.setAttribute(
+              "baseFrequency",
+              `${(0.015 + Math.sin(t) * 0.004).toFixed(4)} ${(0.035 + Math.cos(t * 0.7) * 0.008).toFixed(4)}`,
+            );
+            disp.setAttribute(
+              "scale",
+              String(12 + Math.sin(t * 1.3) * 5 + Math.sin(t * 0.4) * 3),
+            );
+            animFrame = requestAnimationFrame(anim);
+          })();
+        },
+        particles_fx(tgt, cv) {
+          setLines(tgt);
+          sizeCV(cv);
+          const ctx = cv.getContext("2d");
+          playing = true;
+          const type = S.ptype,
+            pColor = hexToRGB(S.pcolor || "#ffffff");
+          const pSpeedMul = vm(S.pspd),
+            sm = vm(S.speed),
+            totalSpeed = pSpeedMul * sm;
+          (function draw() {
+            if (!playing) return;
+            if (Math.random() < 0.4) {
+              if (type === "snow")
+                particles.push({
+                  x: Math.random() * cv.width,
+                  y: -10,
+                  r: 1 + Math.random() * 3,
+                  vx: (Math.random() - 0.5) * 0.5,
+                  vy: (0.5 + Math.random() * 1.5) * totalSpeed,
+                  a: 0.6 + Math.random() * 0.4,
+                  w: Math.random() * Math.PI * 2,
+                  t: "snow",
+                });
+              else if (type === "petals")
+                particles.push({
+                  x: Math.random() * cv.width,
+                  y: -15,
+                  r: 3 + Math.random() * 4,
+                  vx: (0.3 + Math.random() * 0.8) * totalSpeed,
+                  vy: (0.8 + Math.random() * 1.2) * totalSpeed,
+                  a: 0.5 + Math.random() * 0.4,
+                  rot: Math.random() * 360,
+                  rv: (Math.random() - 0.5) * 3,
+                  t: "petals",
+                });
+              else
+                particles.push({
+                  x: Math.random() * cv.width,
+                  y: -5,
+                  r: 1 + Math.random() * 2,
+                  vx: (Math.random() - 0.5) * 2,
+                  vy: (3 + Math.random() * 5) * totalSpeed,
+                  a: 1,
+                  life: 1,
+                  decay:
+                    (0.005 + Math.random() * 0.01) * Math.max(0.3, totalSpeed),
+                  t: "sparks",
+                });
+            }
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            particles.forEach((p) => {
+              if (p.t === "snow") {
+                p.w += 0.02;
+                p.x += p.vx + Math.sin(p.w) * 0.5;
+                p.y += p.vy;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${pColor.r},${pColor.g},${pColor.b},${p.a})`;
+                ctx.fill();
+                if (p.y > cv.height + 10) p.y = -10;
+              } else if (p.t === "petals") {
+                p.x += p.vx + Math.sin(p.rot * 0.05) * 0.5;
+                p.y += p.vy;
+                p.rot += p.rv;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rot * Math.PI) / 180);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, p.r, p.r * 0.5, 0, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${pColor.r},${pColor.g},${pColor.b},${p.a})`;
+                ctx.fill();
+                ctx.restore();
+                if (p.y > cv.height + 15) p.y = -15;
+              } else {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.05;
+                p.life -= p.decay;
+                if (p.life > 0) {
+                  ctx.beginPath();
+                  ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                  ctx.fillStyle = `rgba(${pColor.r},${pColor.g},${pColor.b},${p.life})`;
+                  ctx.fill();
+                  ctx.beginPath();
+                  ctx.arc(
+                    p.x - p.vx * 2,
+                    p.y - p.vy * 2,
+                    p.r * 0.6,
+                    0,
+                    Math.PI * 2,
+                  );
+                  ctx.fillStyle = `rgba(${Math.max(0, pColor.r - 60)},${Math.max(0, pColor.g - 80)},${Math.max(0, pColor.b - 30)},${p.life * 0.4})`;
+                  ctx.fill();
+                }
+              }
+            });
+            particles = particles.filter((p) =>
+              p.t === "sparks" ? p.life > 0 : p.y < cv.height + 20,
+            );
+            if (particles.length > 500) particles.splice(0, 80);
+            animFrame = requestAnimationFrame(draw);
+          })();
+        },
+      };
+
+      function stopFx(tgt, cv, sl) {
+        playing = false;
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        if (animFrame) {
+          cancelAnimationFrame(animFrame);
+          animFrame = null;
+        }
+        clrCSS();
+        particles = [];
+        tgt.innerHTML = "";
+        tgt.className = "";
+        tgt.removeAttribute("data-text");
+        tgt.style.whiteSpace = "pre-wrap";
+        tgt.style.filter = "";
+        if (sl) sl.style.opacity = "0";
+        if (cv) {
+          const ctx = cv.getContext("2d");
+          if (ctx) ctx.clearRect(0, 0, cv.width, cv.height);
+        }
+      }
+
+      function playFx(tgt, cv, sl) {
+        stopFx(tgt, cv, sl);
+        applyStyle(tgt);
+        if (cv) sizeCV(cv);
+        const vis = S.visual,
+          apr = S.appear;
+        const canCombine = apr !== "none" && !SELF_ENTRANCE.has(vis);
+        let effectTarget = tgt;
+        if (canCombine) {
+          const aw = document.createElement("div");
+          aw.style.display = "inline-block";
+          const cls = APPEAR_CLS[apr];
+          if (cls) aw.className = cls;
+          /* Apply appearance speed to the wrapper */
+          const asm = vm(S.aspeed);
+          const baseDur = APPEAR_DUR[apr] || 700;
+          const scaledDur = Math.max(80, baseDur / asm);
+          aw.style.animationDuration = scaledDur + "ms";
+          tgt.appendChild(aw);
+          effectTarget = aw;
+        }
+        if (vis === "none") {
+          setLines(effectTarget);
+          playing = true;
+        } else {
+          const fn = FX[vis === "particles" ? "particles_fx" : vis];
+          if (fn) fn(effectTarget, cv, sl);
+        }
+        if (canCombine && S.loop) {
+          const asm = vm(S.aspeed),
+            baseDur = APPEAR_DUR[apr] || 700;
+          const scaledDur = Math.max(80, baseDur / asm);
+          timer = setTimeout(() => playFx(tgt, cv, sl), scaledDur + 3000);
+        }
+      }
+
+      /* Font scanning */
+      const FF = [
+        "Arial",
+        "Arial Black",
+        "Arial Narrow",
+        "Bahnschrift",
+        "Book Antiqua",
+        "Bookman Old Style",
+        "Bradley Hand",
+        "Calibri",
+        "Cambria",
+        "Candara",
+        "Century",
+        "Century Gothic",
+        "Comic Sans MS",
+        "Consolas",
+        "Constantia",
+        "Corbel",
+        "Courier New",
+        "Ebrima",
+        "Franklin Gothic Medium",
+        "Garamond",
+        "Georgia",
+        "Gill Sans MT",
+        "Goudy Old Style",
+        "Harrington",
+        "Impact",
+        "Jokerman",
+        "Juice ITC",
+        "Kristen ITC",
+        "Lucida Console",
+        "Lucida Handwriting",
+        "Lucida Sans Unicode",
+        "Malgun Gothic",
+        "Marlett",
+        "Microsoft Sans Serif",
+        "MingLiU",
+        "MS Gothic",
+        "MS Mincho",
+        "MS PGothic",
+        "MV Boli",
+        "NSimSun",
+        "Palatino Linotype",
+        "Papyrus",
+        "Perpetua",
+        "PMingLiU",
+        "Raavi",
+        "Rockwell",
+        "Segoe Print",
+        "Segoe Script",
+        "Segoe UI",
+        "Segoe UI Black",
+        "Segoe UI Light",
+        "Segoe UI Semibold",
+        "Segoe UI Symbol",
+        "SimHei",
+        "SimSun",
+        "Sitka Display",
+        "Sitka Heading",
+        "Sitka Small",
+        "Sitka Text",
+        "Snap ITC",
+        "Sylfaen",
+        "Symbol",
+        "Tahoma",
+        "Times New Roman",
+        "Trebuchet MS",
+        "Verdana",
+        "Wingdings",
+      ];
+      async function scanFonts() {
+        const st = $("fst");
+        st.textContent = "Scanning...";
+        st.className = "fst";
+        try {
+          if ("queryLocalFonts" in window) {
+            const raw = await window.queryLocalFonts();
+            const set = new Set();
+            raw.forEach((f) => {
+              set.add(
+                f.family.replace(
+                  /\s+(Regular|Bold|Italic|Light|Medium|Semibold|Black|Thin|ExtraBold|SemiLight|DemiBold|Heavy|ExtraLight|UltraBold|UltraLight|Narrow|Condensed|SemiCondensed|ExtraCondensed)\s*$/i,
+                  "",
+                ),
+              );
+            });
+            const list = Array.from(set).sort((a, b) =>
+              a.localeCompare(b, undefined, { sensitivity: "base" }),
+            );
+            fillFontSel(list);
+            st.textContent = list.length + " fonts detected";
+            st.className = "fst ok";
+            return;
+          }
+        } catch (e) {}
+        fillFontSel(FF);
+        st.textContent = FF.length + " common fonts (HTTPS for full scan)";
+        st.className = "fst err";
+      }
+      function fillFontSel(fonts) {
+        const sel = $("fs"),
+          cur = sel.value;
+        sel.innerHTML = "";
+        fonts.forEach((n) => {
+          const o = document.createElement("option");
+          o.value = n;
+          o.textContent = n;
+          sel.appendChild(o);
+        });
+        if (fonts.includes(cur)) sel.value = cur;
+        else sel.value = fonts[0];
+        S.font = sel.value;
+        updFpv();
+      }
+      function updFpv() {
+        $("fpv").style.fontFamily = `"${$("fs").value}", monospace`;
+      }
+
+      function updateVisCtrls() {
+        const v = S.visual,
+          a = S.appear;
+        const isTW = v === "typewriter";
+        $("tw-opts").style.display = isTW ? "block" : "none";
+        $("pt-opts").style.display = v === "particles" ? "block" : "none";
+        $("pc-opts").style.display = v === "particles" ? "block" : "none";
+        $("pspd-opts").style.display = v === "particles" ? "block" : "none";
+        $("fd-opts").style.display = v === "fire" ? "block" : "none";
+        $("fi-opts").style.display = v === "fire" ? "block" : "none";
+        $("sd-opts").style.display = v === "smoke" ? "block" : "none";
+        /* Appearance speed: show only when appearance is active and can combine */
+        const canCombine = a !== "none" && !SELF_ENTRANCE.has(v);
+        $("asp-opts").style.display = canCombine ? "block" : "none";
+        $("vis-note").textContent = SELF_ENTRANCE.has(v)
+          ? "Has built-in entrance — appearance skipped"
+          : "";
+        $("apr-note").textContent =
+          a !== "none" && SELF_ENTRANCE.has(v)
+            ? "Ignored — visual effect handles entrance"
+            : "";
+        /* Visual speed hint */
+        if (isTW) $("sp-note").textContent = "Controls character typing speed";
+        else if (v === "none")
+          $("sp-note").textContent = "No active visual effect";
+        else $("sp-note").textContent = "";
+      }
+
+      function readUI() {
+        S.font = $("fs").value;
+        S.visual = $("vis").value;
+        S.appear = $("apr").value;
+        S.text = $("ti").value;
+        S.speed = +$("sp").value;
+        S.aspeed = +$("asp").value;
+        S.size = +$("sz").value;
+        S.lh = +$("lh").value;
+        S.color = $("tc").value;
+        S.bold = $("tg-b").classList.contains("on");
+        S.italic = $("tg-i").classList.contains("on");
+        S.align = document.querySelector(".ab.on")?.dataset.a || "left";
+        S.glow = $("tg-gl").classList.contains("on");
+        S.gc = $("gc").value;
+        S.gi = +$("gi").value;
+        S.stroke = $("tg-st").classList.contains("on");
+        S.sc = $("sc").value;
+        S.sw = +$("sw").value;
+        S.cursor = $("cs").value;
+        S.cc = $("cc").value;
+        S.pos = document.querySelector(".pb.on")?.dataset.p || "bl";
+        S.margin = +$("mg").value;
+        S.sound = $("tg-sn").classList.contains("on");
+        S.loop = $("tg-lo").classList.contains("on");
+        S.pause = +$("lp").value;
+        S.ptype = $("ptyp").value;
+        S.pcolor = $("pc").value;
+        S.pspd = +$("pspd").value;
+        S.fdir = $("fdir").value;
+        S.fint = +$("fint").value;
+        S.sdns = +$("sdns").value;
+        updateVisCtrls();
+      }
+      function writeUI() {
+        $("fs").value = S.font;
+        $("vis").value = S.visual;
+        $("apr").value = S.appear;
+        $("ti").value = S.text;
+        $("sp").value = S.speed;
+        $("sp-v").textContent = vm(S.speed).toFixed(1) + "x";
+        $("asp").value = S.aspeed;
+        $("asp-v").textContent = vm(S.aspeed).toFixed(1) + "x";
+        $("sz").value = S.size;
+        $("sz-v").textContent = S.size + "px";
+        $("lh").value = S.lh;
+        $("lh-v").textContent = (S.lh / 100).toFixed(1);
+        $("tc").value = S.color;
+        $("tg-b").classList.toggle("on", S.bold);
+        $("tg-i").classList.toggle("on", S.italic);
+        document
+          .querySelectorAll(".ab")
+          .forEach((b) => b.classList.toggle("on", b.dataset.a === S.align));
+        $("tg-gl").classList.toggle("on", S.glow);
+        $("gs-gl").style.display = S.glow ? "block" : "none";
+        $("gc").value = S.gc;
+        $("gi").value = S.gi;
+        $("gi-v").textContent = S.gi + "px";
+        $("tg-st").classList.toggle("on", S.stroke);
+        $("gs-st").style.display = S.stroke ? "block" : "none";
+        $("sc").value = S.sc;
+        $("sw").value = S.sw;
+        $("sw-v").textContent = S.sw + "px";
+        $("cs").value = S.cursor;
+        $("cc").value = S.cc;
+        document
+          .querySelectorAll(".pb")
+          .forEach((b) => b.classList.toggle("on", b.dataset.p === S.pos));
+        $("mg").value = S.margin;
+        $("mg-v").textContent = S.margin + "px";
+        $("tg-sn").classList.toggle("on", S.sound);
+        $("tg-lo").classList.toggle("on", S.loop);
+        $("lp").value = S.pause;
+        $("lp-v").textContent = (S.pause / 1000).toFixed(1) + "s";
+        $("ptyp").value = S.ptype;
+        $("pc").value = S.pcolor;
+        $("pspd").value = S.pspd;
+        $("pspd-v").textContent = vm(S.pspd).toFixed(1) + "x";
+        $("fdir").value = S.fdir;
+        $("fint").value = S.fint;
+        $("fint-v").textContent = S.fint + "%";
+        $("sdns").value = S.sdns;
+        $("sdns-v").textContent = S.sdns + "%";
+        updateVisCtrls();
+      }
+      function updURL() {
+        $("ubox").textContent = fullURL();
+      }
+      function onChange() {
+        readUI();
+        updURL();
+      }
+
+      function initCfg() {
+        $("cp").classList.add("on");
+        $("host-info").textContent =
+          location.protocol === "https:"
+            ? "HTTPS — full scan"
+            : location.protocol === "file:"
+              ? "Local file — limited"
+              : "HTTP";
+        parseHash();
+        writeUI();
+        updURL();
+        scanFonts();
+
+        document.querySelectorAll(".tg").forEach((tg) => {
+          tg.addEventListener("click", () => {
+            tg.classList.toggle("on");
+            if (tg.id === "tg-gl")
+              $("gs-gl").style.display = tg.classList.contains("on")
+                ? "block"
+                : "none";
+            if (tg.id === "tg-st")
+              $("gs-st").style.display = tg.classList.contains("on")
+                ? "block"
+                : "none";
+            onChange();
+          });
+        });
+
+        const rvM = {
+          sp: (v) => vm(v).toFixed(1) + "x",
+          asp: (v) => vm(v).toFixed(1) + "x",
+          pspd: (v) => vm(v).toFixed(1) + "x",
+          sz: (v) => v + "px",
+          lh: (v) => (v / 100).toFixed(1),
+          mg: (v) => v + "px",
+          gi: (v) => v + "px",
+          sw: (v) => v + "px",
+          lp: (v) => (v / 1000).toFixed(1) + "s",
+          fint: (v) => v + "%",
+          sdns: (v) => v + "%",
+        };
+        document.querySelectorAll('input[type="range"]').forEach((r) => {
+          r.addEventListener("input", () => {
+            const v = $(r.id + "-v");
+            if (v && rvM[r.id]) v.textContent = rvM[r.id](r.value);
+            onChange();
+          });
+        });
+
+        document.querySelectorAll(".pb").forEach((b) => {
+          b.addEventListener("click", () => {
+            document
+              .querySelectorAll(".pb")
+              .forEach((x) => x.classList.remove("on"));
+            b.classList.add("on");
+            onChange();
+          });
+        });
+        document.querySelectorAll(".ab").forEach((b) => {
+          b.addEventListener("click", () => {
+            document
+              .querySelectorAll(".ab")
+              .forEach((x) => x.classList.remove("on"));
+            b.classList.add("on");
+            onChange();
+          });
+        });
+
+        $("fs").addEventListener("change", () => {
+          updFpv();
+          onChange();
+        });
+        $("bscan").addEventListener("click", scanFonts);
+        ["tc", "cc", "gc", "sc", "pc"].forEach((id) =>
+          $(id).addEventListener("input", onChange),
+        );
+        ["vis", "apr", "cs", "ptyp", "fdir"].forEach((id) =>
+          $(id).addEventListener("change", onChange),
+        );
+        $("ti").addEventListener("input", onChange);
+
+        $("bprev").addEventListener("click", () => {
+          onChange();
+          playFx($("pt"), $("pcv"), $("psl"));
+        });
+        $("btest").addEventListener("click", () => {
+          onChange();
+          window.open(fullURL(), "_blank");
+        });
+        $("bcopy").addEventListener("click", () => {
+          onChange();
+          navigator.clipboard.writeText(fullURL()).then(() => {
+            const b = $("bcopy");
+            b.innerHTML = '<i class="fas fa-check"></i> Copied';
+            b.classList.add("copied");
+            setTimeout(() => {
+              b.innerHTML = '<i class="fas fa-copy"></i> Copy URL';
+              b.classList.remove("copied");
+            }, 2000);
+          });
+        });
+
+        setTimeout(() => playFx($("pt"), $("pcv"), $("psl")), 300);
+      }
+
+      function initOv() {
+        parseHash();
+        const cv = $("cv");
+        cv.width = window.innerWidth;
+        cv.height = window.innerHeight;
+        playFx($("ov"), cv, $("sl"));
+        window.addEventListener("resize", () => {
+          cv.width = window.innerWidth;
+          cv.height = window.innerHeight;
+        });
+      }
+
+      if (IS_CFG) initCfg();
+      else initOv();
+    </script>
+  </body>
+</html>
