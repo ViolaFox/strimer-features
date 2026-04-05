@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Glass Shatter Text</title>
+    <style>
+      body {
+        margin: 0;
+        background: black;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+      #text {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 120px;
+        font-weight: bold;
+        color: white;
+      }
+      .shard {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        width: 6px;
+        height: 6px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="text">ПРИВЕТ</div>
+
+    <script>
+      const textEl = document.getElementById("text");
+
+      // получаем позицию текста
+      const rect = textEl.getBoundingClientRect();
+
+      // скрываем текст и создаем осколки
+      function shatterText() {
+        textEl.style.display = "none";
+        const shards = [];
+
+        // создаем осколки по сетке текста
+        const step = 6;
+        for (let y = 0; y < rect.height; y += step) {
+          for (let x = 0; x < rect.width; x += step) {
+            const shard = document.createElement("div");
+            shard.className = "shard";
+            shard.style.left = rect.left + x + "px";
+            shard.style.top = rect.top + y + "px";
+            document.body.appendChild(shard);
+
+            shards.push({
+              el: shard,
+              dx: (Math.random() - 0.5) * 6, // скорость x
+              dy: (Math.random() - 0.5) * 6, // скорость y
+              rot: Math.random() * 360,
+              rotSpeed: (Math.random() - 0.5) * 10,
+            });
+          }
+        }
+
+        function animate() {
+          shards.forEach((s) => {
+            s.el.style.left = parseFloat(s.el.style.left) + s.dx + "px";
+            s.el.style.top = parseFloat(s.el.style.top) + s.dy + 0.1 + "px"; // гравитация
+            s.rot += s.rotSpeed;
+            s.el.style.transform = `rotate(${s.rot}deg)`;
+            s.el.style.opacity -= 0.005;
+          });
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      // запускаем через 1.5 сек
+      setTimeout(shatterText, 1500);
+    </script>
+  </body>
+</html>
