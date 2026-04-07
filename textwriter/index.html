@@ -6,19 +6,21 @@
     <title>OBS Text Effects PRO</title>
     <link rel="shortcut icon" href="icon.png" type="image/png" />
 
+    <!-- Google Fonts (работают без сервера) -->
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Font Awesome -->
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
     />
+
+    <!-- Основные стили -->
     <link rel="stylesheet" href="index.css" />
+    <!-- Локальные шрифты (требуют локального сервера для работы) -->
+    <link rel="stylesheet" href="fonts/fonts.css" />
   </head>
   <body>
     <svg
@@ -97,7 +99,6 @@ Let's get started</textarea
                 <option value="ripple">Ripple</option>
                 <option value="glowpulse">Glow Pulse</option>
                 <option value="shadow">Moving Shadow</option>
-                <!-- Removed Scatter and Assemble from Visual -->
                 <option value="pour">Pour (Letters Fall Into Place)</option>
                 <option value="stamp">Print Stamp</option>
                 <option value="scanner">Scanner Line</option>
@@ -123,7 +124,6 @@ Let's get started</textarea
             <div class="sw">
               <select id="apr">
                 <option value="none">None</option>
-                <!-- Removed Line Draw -->
                 <option value="assemble">Assembling Text</option>
                 <option value="slide-left">From Left</option>
                 <option value="slide-right">From Right</option>

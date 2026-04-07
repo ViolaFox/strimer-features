@@ -237,6 +237,7 @@ export function parseHash() {
   if (g("sz")) S.size = +g("sz");
   if (g("lh")) S.lh = +g("lh");
   if (g("c")) S.color = g("c");
+  if (g("f")) S.font = g("f");
   S.bold = g("b") === "1";
   S.italic = g("i") === "1";
   if (g("a")) S.align = g("a");

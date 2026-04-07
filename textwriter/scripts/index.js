@@ -1,4 +1,3 @@
-// main.js
 import {
   S,
   D,
@@ -14,6 +13,55 @@ const IS_CFG =
   location.hash === "#config" || location.search.includes("config");
 const $ = (id) => document.getElementById(id);
 
+// Список шрифтов, определенных в fonts.css и подключенных Google Fonts
+const SITE_FONTS = [
+  "IBM Plex Mono",
+  "Agnosco",
+  "Atonic",
+  "BLOS",
+  "BOWLER",
+  "Bedstead",
+  "Better VCR",
+  "Coiny 2.0",
+  "Coolvetica Compressed Rg",
+  "Coolvetica Condensed Rg",
+  "Coolvetica Crammed Rg",
+  "Coolvetica Rg",
+  "Corinthia",
+  "Corsa Grotesk",
+  "Cursyger",
+  "Dead Hammer",
+  "Foo",
+  "Forward",
+  "Gloria script",
+  "Gunny Rewritten",
+  "Kirpich",
+  "Kudry Weird Headline",
+  "Machrie",
+  "Mail Ray Stuff",
+  "Miama Nueva",
+  "Moiamova-1",
+  "Moiamova-2",
+  "Moiamova-3",
+  "Moiamova-4",
+  "Morana",
+  "Nasalization Rg",
+  "Neucha",
+  "Neuropol X Rg",
+  "Penguin Attack Cyrillic",
+  "Phage Regular KG",
+  "Podarok",
+  "Pressuru",
+  "Relic Pro Canonic TRIAL",
+  "acogessic",
+  "fs metallic",
+  "gooseberry",
+  "inglobal",
+  "koliko",
+  "overdoze sans",
+];
+
+// Список популярных системных шрифтов для fallback
 const FF = [
   "Arial",
   "Arial Black",
@@ -84,36 +132,6 @@ const FF = [
   "Wingdings",
 ];
 
-async function scanFonts() {
-  const st = $("fst");
-  st.textContent = "Scanning...";
-  st.className = "fst";
-  try {
-    if ("queryLocalFonts" in window) {
-      const raw = await window.queryLocalFonts();
-      const set = new Set();
-      raw.forEach((f) => {
-        set.add(
-          f.family.replace(
-            /\s+(Regular|Bold|Italic|Light|Medium|Semibold|Black|Thin|ExtraBold|SemiLight|DemiBold|Heavy|ExtraLight|UltraBold|UltraLight|Narrow|Condensed|SemiCondensed|ExtraCondensed)\s*$/i,
-            "",
-          ),
-        );
-      });
-      const list = Array.from(set).sort((a, b) =>
-        a.localeCompare(b, undefined, { sensitivity: "base" }),
-      );
-      fillFontSel(list);
-      st.textContent = list.length + " fonts detected";
-      st.className = "fst ok";
-      return;
-    }
-  } catch (e) {}
-  fillFontSel(FF);
-  st.textContent = FF.length + " common fonts (HTTPS for full scan)";
-  st.className = "fst err";
-}
-
 function fillFontSel(fonts) {
   const sel = $("fs"),
     cur = sel.value;
@@ -129,8 +147,68 @@ function fillFontSel(fonts) {
   S.font = sel.value;
   updFpv();
 }
+
 function updFpv() {
   $("fpv").style.fontFamily = `"${$("fs").value}", sans-serif`;
+}
+
+// Загрузка начального списка (шрифты сайта)
+async function loadFonts() {
+  const st = $("fst");
+  st.textContent = "Loading site fonts...";
+  st.className = "fst";
+
+  // Сортировка
+  const fonts = [...SITE_FONTS].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
+
+  fillFontSel(fonts);
+  st.textContent = fonts.length + " site fonts loaded";
+  st.className = "fst ok";
+}
+
+// Сканирование системных шрифтов
+async function scanFonts() {
+  const st = $("fst");
+  st.textContent = "Scanning system fonts...";
+  st.className = "fst";
+
+  try {
+    if ("queryLocalFonts" in window) {
+      const raw = await window.queryLocalFonts();
+      const set = new Set(SITE_FONTS); // Начинаем с шрифтов сайта
+
+      raw.forEach((f) => {
+        // Очистка имени шрифта от суффиксов типа "Regular", "Bold"
+        const family = f.family.replace(
+          /\s+(Regular|Bold|Italic|Light|Medium|Semibold|Black|Thin|ExtraBold|SemiLight|DemiBold|Heavy|ExtraLight|UltraBold|UltraLight|Narrow|Condensed|SemiCondensed|ExtraCondensed)\s*$/i,
+          "",
+        );
+        set.add(family);
+      });
+
+      const list = Array.from(set).sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" }),
+      );
+
+      fillFontSel(list);
+      const systemCount = list.length - SITE_FONTS.length;
+      st.textContent = `${SITE_FONTS.length} site + ${systemCount} system fonts found`;
+      st.className = "fst ok";
+      return;
+    }
+  } catch (e) {
+    console.error("Font scan error:", e);
+  }
+
+  // Fallback если сканирование не доступно
+  const combined = [...new Set([...SITE_FONTS, ...FF])].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
+  fillFontSel(combined);
+  st.textContent = "Scan unavailable (HTTPS required). Showing common fonts.";
+  st.className = "fst err";
 }
 
 function updateVisCtrls() {
@@ -146,7 +224,6 @@ function updateVisCtrls() {
   $("sd-opts").style.display = v === "smoke" ? "block" : "none";
   $("ns-opts").style.display = v === "neonstroke" ? "block" : "none";
 
-  // Assemble is now an Appearance effect
   const SELF_ENTRANCE_UI = new Set([
     "typewriter",
     "matrix",
@@ -380,14 +457,14 @@ function initCfg() {
   $("cp").classList.add("on");
   $("host-info").textContent =
     location.protocol === "https:"
-      ? "HTTPS — full scan"
+      ? "HTTPS — full scan available"
       : location.protocol === "file:"
         ? "Local file — limited"
         : "HTTP";
   parseHash();
   writeUI();
   updURL();
-  scanFonts();
+  loadFonts(); // Load site fonts initially
 
   document.querySelectorAll(".tg").forEach((tg) => {
     tg.addEventListener("click", () => {
@@ -452,7 +529,10 @@ function initCfg() {
     updFpv();
     onChange();
   });
+
+  // Scan button listener
   $("bscan").addEventListener("click", scanFonts);
+
   ["tc", "cc", "gc", "sc", "pc", "dpc"].forEach((id) =>
     $(id).addEventListener("input", onChange),
   );
@@ -496,8 +576,28 @@ function initCfg() {
   else setTimeout(() => playFx($("pt"), $("pcv"), $("psl")), 300);
 }
 
-function initOv() {
+function waitForFont(fontName) {
+  return new Promise((resolve) => {
+    if (!document.fonts || !document.fonts.load) {
+      resolve(false);
+      return;
+    }
+    const fontSpec = `bold 48px "${fontName}"`;
+    document.fonts.load(fontSpec).then(
+      (faces) => {
+        resolve(faces.length > 0);
+      },
+      () => {
+        resolve(false);
+      },
+    );
+    setTimeout(() => resolve(false), 3000);
+  });
+}
+
+async function initOv() {
   parseHash();
+  await waitForFont(S.font);
   const cv = $("cv");
   cv.width = window.innerWidth;
   cv.height = window.innerHeight;
