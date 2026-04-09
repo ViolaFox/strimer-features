@@ -13,7 +13,6 @@ const IS_CFG =
   location.hash === "#config" || location.search.includes("config");
 const $ = (id) => document.getElementById(id);
 
-// Список шрифтов, определенных в fonts.css и подключенных Google Fonts
 const SITE_FONTS = [
   "IBM Plex Mono",
   "Agnosco",
@@ -61,7 +60,6 @@ const SITE_FONTS = [
   "overdoze sans",
 ];
 
-// Список популярных системных шрифтов для fallback
 const FF = [
   "Arial",
   "Arial Black",
@@ -152,13 +150,11 @@ function updFpv() {
   $("fpv").style.fontFamily = `"${$("fs").value}", sans-serif`;
 }
 
-// Загрузка начального списка (шрифты сайта)
 async function loadFonts() {
   const st = $("fst");
   st.textContent = "Loading site fonts...";
   st.className = "fst";
 
-  // Сортировка
   const fonts = [...SITE_FONTS].sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" }),
   );
@@ -168,7 +164,6 @@ async function loadFonts() {
   st.className = "fst ok";
 }
 
-// Сканирование системных шрифтов
 async function scanFonts() {
   const st = $("fst");
   st.textContent = "Scanning system fonts...";
@@ -177,10 +172,9 @@ async function scanFonts() {
   try {
     if ("queryLocalFonts" in window) {
       const raw = await window.queryLocalFonts();
-      const set = new Set(SITE_FONTS); // Начинаем с шрифтов сайта
+      const set = new Set(SITE_FONTS);
 
       raw.forEach((f) => {
-        // Очистка имени шрифта от суффиксов типа "Regular", "Bold"
         const family = f.family.replace(
           /\s+(Regular|Bold|Italic|Light|Medium|Semibold|Black|Thin|ExtraBold|SemiLight|DemiBold|Heavy|ExtraLight|UltraBold|UltraLight|Narrow|Condensed|SemiCondensed|ExtraCondensed)\s*$/i,
           "",
@@ -202,7 +196,6 @@ async function scanFonts() {
     console.error("Font scan error:", e);
   }
 
-  // Fallback если сканирование не доступно
   const combined = [...new Set([...SITE_FONTS, ...FF])].sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" }),
   );
@@ -219,8 +212,6 @@ function updateVisCtrls() {
   $("pt-opts").style.display = v === "particles" ? "block" : "none";
   $("pc-opts").style.display = v === "particles" ? "block" : "none";
   $("pspd-opts").style.display = v === "particles" ? "block" : "none";
-  $("fd-opts").style.display = v === "fire" ? "block" : "none";
-  $("fi-opts").style.display = v === "fire" ? "block" : "none";
   $("sd-opts").style.display = v === "smoke" ? "block" : "none";
   $("ns-opts").style.display = v === "neonstroke" ? "block" : "none";
 
@@ -237,6 +228,8 @@ function updateVisCtrls() {
     a !== "none" && !SELF_ENTRANCE_UI.has(v) && a !== "assemble";
 
   $("asp-opts").style.display = canCombine ? "block" : "none";
+
+  // ИЗМЕНЕНО: Показываем слайдер скорости для fire-out
   $("dsp-opts").style.display =
     d !== "none" &&
     d !== "particle-explode" &&
@@ -244,6 +237,7 @@ function updateVisCtrls() {
     d !== "scatter"
       ? "block"
       : "none";
+
   $("dp-opts").style.display = d === "particle-explode" ? "block" : "none";
 
   const needsActivityTime = S.autoTrigger || (S.loop && d !== "none");
@@ -329,8 +323,6 @@ function readUI() {
   S.ptype = $("ptyp").value;
   S.pcolor = $("pc").value;
   S.pspd = +$("pspd").value;
-  S.fdir = $("fdir").value;
-  S.fint = +$("fint").value;
   S.sdns = +$("sdns").value;
   S.autoTrigger = $("tg-at").classList.contains("on");
   S.activityTime = +$("atm").value;
@@ -398,11 +390,6 @@ function writeUI() {
   $("pc").value = S.pcolor;
   $("pspd").value = S.pspd;
   $("pspd-v").textContent = (S.pspd / 55).toFixed(1) + "x";
-  $("fdir").value = S.fdir;
-  $("fint").value = S.fint;
-  try {
-    $("fint-v").textContent = S.fint + "%";
-  } catch (e) {}
   $("sdns").value = S.sdns;
   try {
     $("sdns-v").textContent = S.sdns + "%";
@@ -464,7 +451,7 @@ function initCfg() {
   parseHash();
   writeUI();
   updURL();
-  loadFonts(); // Load site fonts initially
+  loadFonts();
 
   document.querySelectorAll(".tg").forEach((tg) => {
     tg.addEventListener("click", () => {
@@ -492,7 +479,6 @@ function initCfg() {
     gi: (v) => v + "px",
     sw: (v) => v + "px",
     lp: (v) => (v / 1000).toFixed(1) + "s",
-    fint: (v) => v + "%",
     sdns: (v) => v + "%",
     atm: (v) => fmtTimeUI(+v),
     btm: (v) => fmtTimeUI(+v),
@@ -530,13 +516,12 @@ function initCfg() {
     onChange();
   });
 
-  // Scan button listener
   $("bscan").addEventListener("click", scanFonts);
 
   ["tc", "cc", "gc", "sc", "pc", "dpc"].forEach((id) =>
     $(id).addEventListener("input", onChange),
   );
-  ["vis", "apr", "dis", "cs", "ptyp", "fdir"].forEach((id) =>
+  ["vis", "apr", "dis", "cs", "ptyp"].forEach((id) =>
     $(id).addEventListener("change", onChange),
   );
   $("ti").addEventListener("input", onChange);

@@ -1,5 +1,3 @@
-// engine.js
-
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -68,7 +66,7 @@ const SELF_ENTRANCE = new Set([
   "scanner",
   "pour",
   "neonstroke",
-  "assemble", // Moved to Self Entrance
+  "assemble",
 ]);
 const APPEAR_CLS = {
   "slide-left": "fx-sl",
@@ -113,7 +111,8 @@ const EXIT_DUR = {
   "shrink-point": 600,
   "glass-shatter": 1800,
   "particle-explode": 1000,
-  scatter: 1400, // Added for scatter
+  scatter: 1400,
+  "fire-out": 2500, // Slightly longer for the nice burn effect
 };
 
 function vm(val) {
@@ -480,7 +479,6 @@ const FX = {
     (function tick() {
       if (!playing) return;
       if (li >= lines.length) {
-        // Stop animation, but do NOT trigger disappear. Just stay.
         return;
       }
       const ln = lines[li];
@@ -606,114 +604,17 @@ const FX = {
       animFrame = requestAnimationFrame(draw);
     })();
   },
-  fire(tgt, cv) {
+  fire(tgt) {
     const sm = vm(S.speed);
     setLines(tgt, "fx-fire-text");
     tgt.style.color = "#ffdd88";
-    const dir = S.fdir || "up";
-    const shadowMap = {
-      up: "0 0 10px #ff6600, 0 -4px 20px #ff3300",
-      "up-left": "0 0 10px #ff6600, -4px -4px 20px #ff3300",
-      "up-right": "0 0 10px #ff6600, 4px -4px 20px #ff3300",
-      down: "0 0 10px #ff6600, 0 4px 20px #ff3300",
-      left: "0 0 10px #ff6600, -4px 0 20px #ff3300",
-      right: "0 0 10px #ff6600, 4px 0 20px #ff3300",
-    };
-    tgt.style.textShadow = shadowMap[dir] || shadowMap["up"];
+    tgt.style.textShadow = "0 0 10px #ff6600, 0 -4px 20px #ff3300";
     tgt
       .querySelectorAll(".fx-fire-text")
       .forEach(
         (el) => (el.style.animationDuration = Math.max(0.02, 0.12 / sm) + "s"),
       );
-    sizeCV(cv);
-    const ctx = cv.getContext("2d");
     playing = true;
-    const intensity = (S.fint || 50) / 50;
-    const dirVecs = {
-      up: { vx: 0, vy: -1 },
-      "up-left": { vx: -0.6, vy: -1 },
-      "up-right": { vx: 0.6, vy: -1 },
-      down: { vx: 0, vy: 1 },
-      left: { vx: -1, vy: -0.2 },
-      right: { vx: 1, vy: -0.2 },
-    };
-    const dv = dirVecs[dir] || dirVecs["up"];
-    (function draw() {
-      if (!playing) return;
-      const r = tgt.getBoundingClientRect(),
-        cvR = cv.getBoundingClientRect();
-      if (r.width > 0) {
-        const count = Math.floor(3 + intensity * 6);
-        for (let i = 0; i < count; i++) {
-          let px, py;
-          if (dv.vy < 0) {
-            px = r.left - cvR.left + Math.random() * r.width;
-            py = r.bottom - cvR.top;
-          } else if (dv.vy > 0) {
-            px = r.left - cvR.left + Math.random() * r.width;
-            py = r.top - cvR.top;
-          } else {
-            px = r.left - cvR.left + Math.random() * r.width;
-            py = r.top - cvR.top + Math.random() * r.height;
-          }
-          if (dv.vx < 0 && !dv.vy) {
-            px = r.right - cvR.left;
-            py = r.top - cvR.top + Math.random() * r.height;
-          }
-          if (dv.vx > 0 && !dv.vy) {
-            px = r.left - cvR.left;
-            py = r.top - cvR.top + Math.random() * r.height;
-          }
-          const spd = (1.5 + Math.random() * 3) * intensity * sm;
-          particles.push({
-            x: px,
-            y: py,
-            r: 1.5 + Math.random() * 4 * intensity,
-            vx: dv.vx * spd + (Math.random() - 0.5) * 1.2 * intensity * sm,
-            vy: dv.vy * spd + (Math.random() - 0.5) * 0.8 * intensity * sm,
-            a: 1,
-            life: 1,
-            decay: (0.008 + Math.random() * 0.014) / Math.max(0.3, intensity),
-            hue: dir.includes("down")
-              ? 0 + Math.random() * 15
-              : 15 + Math.random() * 35,
-          });
-        }
-      }
-      ctx.clearRect(0, 0, cv.width, cv.height);
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy *= 0.99;
-        p.vx *= 0.98;
-        p.r *= 0.997;
-        p.life -= p.decay;
-        if (p.life > 0) {
-          const bri = 45 + p.life * 40;
-          const g = ctx.createRadialGradient(
-            p.x,
-            p.y,
-            0,
-            p.x,
-            p.y,
-            Math.max(0.5, p.r),
-          );
-          g.addColorStop(0, `hsla(${p.hue},100%,${bri}%,${p.life * 0.9})`);
-          g.addColorStop(
-            0.4,
-            `hsla(${p.hue + 8},100%,${bri - 12}%,${p.life * 0.55})`,
-          );
-          g.addColorStop(1, `hsla(${p.hue + 20},100%,18%,0)`);
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, Math.max(0.5, p.r), 0, Math.PI * 2);
-          ctx.fillStyle = g;
-          ctx.fill();
-        }
-      });
-      particles = particles.filter((p) => p.life > 0);
-      if (particles.length > 700) particles.splice(0, 150);
-      animFrame = requestAnimationFrame(draw);
-    })();
   },
   ice(tgt, cv) {
     const sm = vm(S.speed),
@@ -840,7 +741,6 @@ const FX = {
     playing = true;
   },
 
-  // SCATTER: Now acts as a Disappearance Effect (Exit)
   scatter(tgt) {
     const sm = vm(S.speed),
       durS = (1.4 / sm).toFixed(3),
@@ -867,7 +767,6 @@ const FX = {
     }, totalAnimTime);
   },
 
-  // ASSEMBLE: Now acts as an Appearance Effect
   assemble(tgt) {
     const sm = vm(S.speed),
       durA = (0.7 / sm).toFixed(3),
@@ -907,7 +806,6 @@ const FX = {
     });
     tgt.innerHTML = h;
     playing = true;
-    // Removed auto-disappear timer
   },
   stamp(tgt) {
     const sm = vm(S.speed),
@@ -919,7 +817,6 @@ const FX = {
     (function go() {
       if (!playing) return;
       if (li >= lines.length) {
-        // Stop, don't disappear
         return;
       }
       const d = document.createElement("div");
@@ -951,7 +848,6 @@ const FX = {
     sl.style.left = "100%";
     playing = true;
     setTimeout(() => (sl.style.opacity = "0"), dur);
-    // Removed auto-disappear timer
   },
   rainbow(tgt) {
     const sm = vm(S.speed),
@@ -999,7 +895,6 @@ const FX = {
       });
       round++;
       if (allDone) {
-        // Stop, don't disappear
         return;
       } else timer = setTimeout(tick, baseDelay);
     })();
@@ -1133,7 +1028,7 @@ const FX = {
     const uid = "ns" + Date.now();
     const sm = vm(S.speed);
     const dashDur = Math.max(0.4, 3 / sm).toFixed(2);
-    const dashLen = 5000; // Large enough for any text length
+    const dashLen = 5000;
     const sw = S.nsw || 3;
     const glow = S.ngi || 0;
     const colors = S.colors || ["#ff00ff", "#00ffff"];
@@ -1153,7 +1048,6 @@ const FX = {
     grad.setAttribute("x2", "100%");
     grad.setAttribute("y2", "0%");
 
-    // Gradient Animation
     if (gradSpeed > 0) {
       const gSm = vm(gradSpeed);
       const animDur = (4 / gSm).toFixed(2);
@@ -1206,7 +1100,6 @@ const FX = {
     const filtRef = glow > 0 ? `url(#${"nsF" + uid})` : "";
     const gradRef = `url(#${"nsG" + uid})`;
 
-    // CSS Animation for drawing the line (stroke-dashoffset)
     injCSS(
       `@keyframes ${"nsD" + uid}{0%{stroke-dashoffset:${dashLen}}100%{stroke-dashoffset:0}}.nsA${uid}{animation:${"nsD" + uid} ${dashDur}s linear forwards;}`,
     );
@@ -1225,15 +1118,12 @@ const FX = {
       text.setAttribute("stroke-width", sw);
       text.setAttribute("paint-order", "stroke fill");
       text.setAttribute("stroke-dasharray", dashLen);
-      text.setAttribute("stroke-dashoffset", dashLen); // Start hidden
+      text.setAttribute("stroke-dashoffset", dashLen);
       text.setAttribute("stroke-linecap", "round");
       text.setAttribute("stroke-linejoin", "round");
       if (filtRef) text.setAttribute("filter", filtRef);
 
-      // Class triggers CSS animation (drawing)
       text.classList.add("nsA" + uid);
-
-      // REMOVED: opacity 0 and fade transitions. Pure stroke animation.
 
       text.textContent = line.text;
       svg.appendChild(text);
@@ -1247,7 +1137,6 @@ const FX = {
 
     playing = true;
 
-    // Timer only if NOT auto-trigger
     if (!S.autoTrigger) {
       const stay = Math.max(2000, 5000 / sm);
       timer = setTimeout(() => triggerCycleEnd(tgt), dashDur * 1000 + stay);
@@ -1265,23 +1154,13 @@ const FX = {
     }
 
     const sm = vm(S.speed);
-    // Duration matches appearance
     const dur = Math.max(400, 3000 / sm);
 
     svg.querySelectorAll("text").forEach((t) => {
-      // 1. Stop appearance animation
       t.style.animation = "none";
-
-      // 2. Set to fully drawn state
       t.style.strokeDashoffset = "0";
-
-      // 3. Force reflow
       void t.getBoundingClientRect();
-
-      // 4. Start transition (erasing line)
       t.style.transition = `stroke-dashoffset ${dur}ms linear`;
-
-      // 5. Move dash to cover the line (Gap covers line)
       t.style.strokeDashoffset = String(dashLen);
     });
 
@@ -1289,6 +1168,186 @@ const FX = {
       stopFx(tgt, $("cv"), $("sl"));
       handleNextCycle(tgt);
     }, dur + 100);
+  },
+
+  // UPDATED: Based on user provided code, adapted for transparency
+  // ИСПРАВЛЕНО: Текст остается четким (HTML), огонь точно на тексте, фон прозрачный
+  // ИСПРАВЛЕНО: Четкий текст (HTML), прозрачный фон, физика огня из примера
+  // ИСПРАВЛЕНО: Добавлена регулировка скорости, текст четкий, фон прозрачный
+  exitFire: function (tgt, cv) {
+    const rect = tgt.getBoundingClientRect();
+    const cvR = cv.getBoundingClientRect();
+
+    // Координаты текста относительно канваса
+    const x = rect.left - cvR.left;
+    const y = rect.top - cvR.top;
+    const w = rect.width;
+    const h = rect.height;
+
+    if (w === 0 || h === 0) {
+      tgt.style.opacity = "0";
+      timer = setTimeout(() => {
+        stopFx(tgt, cv, $("sl"));
+        handleNextCycle(tgt);
+      }, 50);
+      return;
+    }
+
+    sizeCV(cv);
+    const ctx = cv.getContext("2d");
+
+    // Скрываем текст через clip-path, сохраняя четкость
+    tgt.style.opacity = "1";
+    tgt.style.clipPath = "inset(0 0 0% 0)";
+
+    const fireParticles = [];
+    const sparks = [];
+
+    // РЕГУЛИРОВКА СКОРОСТИ
+    const sm = vm(S.dspeed); // Множитель скорости (1.0 при значении 55)
+    const baseDur = 2500; // Базовая длительность в мс
+    const dur = Math.max(500, baseDur / sm); // Итоговая длительность
+
+    const startTime = Date.now();
+
+    // --- Классы частиц (из вашего примера) ---
+
+    class FireParticle {
+      constructor(px, py) {
+        this.x = px;
+        this.y = py;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = -Math.random() * 5 - 2;
+        this.life = 1.0;
+        this.decay = Math.random() * 0.02 + 0.01;
+        this.size = Math.random() * 15 + 5;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= this.decay;
+        this.size *= 0.96;
+      }
+
+      draw(context) {
+        if (this.life <= 0) return;
+        let r, g, b;
+        if (this.life > 0.8) {
+          r = 255;
+          g = 255;
+          b = 100;
+        } else if (this.life > 0.5) {
+          r = 255;
+          g = 100;
+          b = 0;
+        } else {
+          r = 200;
+          g = 20;
+          b = 0;
+        }
+
+        context.beginPath();
+        context.fillStyle = `rgba(${r}, ${g}, ${b}, ${this.life})`;
+        context.shadowBlur = 20;
+        context.shadowColor = `rgb(${r}, ${g}, ${b})`;
+        context.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        context.fill();
+        context.shadowBlur = 0;
+      }
+    }
+
+    class Spark {
+      constructor(px, py) {
+        this.x = px;
+        this.y = py;
+        this.vx = (Math.random() - 0.5) * 6;
+        this.vy = -Math.random() * 10 - 5;
+        this.life = 1.0;
+        this.decay = Math.random() * 0.03 + 0.02;
+        this.size = Math.random() * 2 + 1;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.1; // Гравитация
+        this.life -= this.decay;
+      }
+
+      draw(context) {
+        if (this.life <= 0) return;
+        context.beginPath();
+        context.fillStyle = `rgba(255, 200, 50, ${this.life})`;
+        context.shadowBlur = 5;
+        context.shadowColor = "yellow";
+        context.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        context.fill();
+        context.shadowBlur = 0;
+      }
+    }
+
+    function draw() {
+      if (!playing) return;
+
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(1, elapsed / dur);
+
+      // 1. Прозрачная очистка фона
+      ctx.clearRect(0, 0, cv.width, cv.height);
+
+      // 2. Срезание текста CSS clip-path
+      tgt.style.clipPath = `inset(0 0 ${progress * 100}% 0)`;
+
+      // 3. Спавн частиц
+      if (progress < 1) {
+        const currentLineY = y + h - h * progress;
+
+        // Количество частиц зависит от скорости, чтобы плотность сохранялась
+        const spawnCount = Math.ceil((w / 20) * Math.max(1, sm));
+
+        for (let i = 0; i < spawnCount; i++) {
+          const px = x + Math.random() * w;
+          const py = currentLineY + (Math.random() - 0.5) * 10;
+          fireParticles.push(new FireParticle(px, py));
+        }
+
+        if (Math.random() < 0.3) {
+          const sx = x + Math.random() * w;
+          sparks.push(new Spark(sx, currentLineY));
+        }
+      }
+
+      // 4. Отрисовка огня
+      for (let i = fireParticles.length - 1; i >= 0; i--) {
+        fireParticles[i].update();
+        fireParticles[i].draw(ctx);
+        if (fireParticles[i].life <= 0) fireParticles.splice(i, 1);
+      }
+
+      // 5. Отрисовка искр
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        sparks[i].update();
+        sparks[i].draw(ctx);
+        if (sparks[i].life <= 0) sparks.splice(i, 1);
+      }
+
+      // 6. Завершение
+      if (
+        elapsed < dur + 1000 ||
+        fireParticles.length > 0 ||
+        sparks.length > 0
+      ) {
+        requestAnimationFrame(draw);
+      } else {
+        tgt.style.clipPath = "";
+        tgt.style.opacity = "0";
+        stopFx(tgt, cv, $("sl"));
+        handleNextCycle(tgt);
+      }
+    }
+
+    draw();
   },
 
   exitShatter: function (tgt, cv) {
@@ -1720,8 +1779,9 @@ function triggerCycleEnd(tgt) {
   } else if (S.disappear === "particle-explode") {
     FX.exitParticles(tgt, $("cv"));
   } else if (S.disappear === "scatter") {
-    // Handle Scatter here
     FX.scatter(tgt);
+  } else if (S.disappear === "fire-out") {
+    FX.exitFire(tgt, $("cv"));
   } else if (S.disappear === "shrink-point") {
     const baseDur = EXIT_DUR["shrink-point"] || 600;
     const dur = Math.max(80, baseDur / vm(S.dspeed));
@@ -1803,8 +1863,6 @@ export function playFx(tgt, cv, sl) {
   const canCombine = apr !== "none" && !SELF_ENTRANCE.has(vis);
   let effectTarget = tgt;
 
-  // Removed Line Draw (Wrapped)
-
   if (canCombine) {
     const aw = document.createElement("div");
     aw.style.display = "inline-block";
@@ -1824,12 +1882,10 @@ export function playFx(tgt, cv, sl) {
   } else {
     const fn = FX[vis === "particles" ? "particles_fx" : vis];
     if (fn) fn(effectTarget, cv, sl);
-    // Logic: If NOT auto-trigger, AND looping (or has disappear effect), start timer for Activity Time
-    // This ensures text stays on screen for Activity Time even after print effects finish
     if (
       !S.autoTrigger &&
       (S.loop || S.disappear !== "none") &&
-      !SELF_ENTRANCE.has(vis) // Exceptions handled inside functions
+      !SELF_ENTRANCE.has(vis)
     ) {
       const duration = (S.activityTime || 5) * 1000;
       timer = setTimeout(() => triggerCycleEnd(tgt), duration);

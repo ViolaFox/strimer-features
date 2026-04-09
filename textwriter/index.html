@@ -91,7 +91,7 @@ Let's get started</textarea
                 <option value="neon">Neon Flicker</option>
                 <option value="glitch">Glitch (RGB Shift)</option>
                 <option value="smoke">Smoke / Fog</option>
-                <option value="fire">Fire</option>
+                <option value="fire">Fire (Text Flicker)</option>
                 <option value="ice">Ice (Frozen + Cracks)</option>
                 <option value="chrome">Gold / Chrome</option>
                 <option value="wave">Wave</option>
@@ -169,6 +169,7 @@ Let's get started</textarea
                 <option value="particle-explode">
                   Transforms into Particles
                 </option>
+                <option value="fire-out">Burn / Fire</option>
               </select>
             </div>
           </div>
@@ -225,26 +226,8 @@ Let's get started</textarea
               <span class="rv" id="pspd-v">1.0x</span>
             </div>
           </div>
-          <div class="cg" id="fd-opts" style="display: none">
-            <label class="cl">Flame Direction</label>
-            <div class="sw">
-              <select id="fdir">
-                <option value="up">Up (default)</option>
-                <option value="up-left">Up-Left</option>
-                <option value="up-right">Up-Right</option>
-                <option value="down">Down</option>
-                <option value="left">Left</option>
-                <option value="right">Right</option>
-              </select>
-            </div>
-          </div>
-          <div class="cg" id="fi-opts" style="display: none">
-            <label class="cl">Flame Intensity</label>
-            <div class="cr">
-              <input type="range" id="fint" min="10" max="100" value="50" />
-              <span class="rv" id="fint-v">50%</span>
-            </div>
-          </div>
+
+          <!-- Smoke options kept -->
           <div class="cg" id="sd-opts" style="display: none">
             <label class="cl">Smoke Density</label>
             <div class="cr">
@@ -252,6 +235,7 @@ Let's get started</textarea
               <span class="rv" id="sdns-v">50%</span>
             </div>
           </div>
+
           <!-- Neon Stroke options -->
           <div id="ns-opts" style="display: none">
             <div class="cg">
