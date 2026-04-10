@@ -8,6 +8,7 @@ import {
   startAutoTrigger,
   stopAutoTrigger,
 } from "./engine.js";
+import { initFrameEditor, destroyFrameEditor } from "./frame.js";
 
 const IS_CFG =
   location.hash === "#config" || location.search.includes("config");
@@ -213,6 +214,8 @@ function updateVisCtrls() {
   $("pc-opts").style.display = v === "particles" ? "block" : "none";
   $("pspd-opts").style.display = v === "particles" ? "block" : "none";
   $("sd-opts").style.display = v === "smoke" ? "block" : "none";
+  $("bd-opts").style.display = v === "blood" ? "block" : "none";
+  $("bdpl-opts").style.display = v === "blood" ? "block" : "none";
   $("ns-opts").style.display = v === "neonstroke" ? "block" : "none";
 
   const SELF_ENTRANCE_UI = new Set([
@@ -229,7 +232,6 @@ function updateVisCtrls() {
 
   $("asp-opts").style.display = canCombine ? "block" : "none";
 
-  // ИЗМЕНЕНО: Показываем слайдер скорости для fire-out
   $("dsp-opts").style.display =
     d !== "none" &&
     d !== "particle-explode" &&
@@ -323,7 +325,11 @@ function readUI() {
   S.ptype = $("ptyp").value;
   S.pcolor = $("pc").value;
   S.pspd = +$("pspd").value;
+  S.fdir = "up";
+  S.fint = 50;
   S.sdns = +$("sdns").value;
+  S.bdns = +$("bdns").value;
+  S.bdpl = +$("bdpl").value;
   S.autoTrigger = $("tg-at").classList.contains("on");
   S.activityTime = +$("atm").value;
   S.betweenTime = +$("btm").value;
@@ -394,6 +400,14 @@ function writeUI() {
   try {
     $("sdns-v").textContent = S.sdns + "%";
   } catch (e) {}
+  $("bdns").value = S.bdns;
+  try {
+    $("bdns-v").textContent = S.bdns + "%";
+  } catch (e) {}
+  $("bdpl").value = S.bdpl;
+  try {
+    $("bdpl-v").textContent = S.bdpl + "px";
+  } catch (e) {}
   $("tg-at").classList.toggle("on", S.autoTrigger);
   $("atm").value = S.activityTime;
   $("atm-v").textContent = fmtTimeUI(S.activityTime);
@@ -453,6 +467,56 @@ function initCfg() {
   updURL();
   loadFonts();
 
+  // --- НАЧАЛО ЛОГИКИ ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК ---
+  const btnFont = $("tab-btn-font");
+  const btnFrame = $("tab-btn-frame");
+  const contentFont = $("tab-font");
+  const contentFrame = $("tab-frame");
+
+  if (btnFont && btnFrame) {
+    // Клик на вкладку Font
+    btnFont.addEventListener("click", () => {
+      btnFont.classList.add("active");
+      btnFrame.classList.remove("active");
+      contentFont.style.display = "block";
+      contentFrame.style.display = "none";
+
+      // Показать текстовый превью, скрыть рамку
+      const pt = $("pt");
+      const pcv = $("pcv");
+      if (pt) pt.style.display = "";
+      if (pcv) pcv.style.display = "";
+
+      destroyFrameEditor();
+
+      onChange();
+    });
+
+    // Клик на вкладку Frame
+    btnFrame.addEventListener("click", () => {
+      btnFrame.classList.add("active");
+      btnFont.classList.remove("active");
+      contentFrame.style.display = "block";
+      contentFont.style.display = "none";
+
+      // Скрыть текстовый превью, показать рамку
+      const pt = $("pt");
+      const pcv = $("pcv");
+      if (pt) pt.style.display = "none";
+      if (pcv) pcv.style.display = "none";
+
+      // Очистить канвас текста
+      const c = $("pcv");
+      if (c) {
+        const ctx = c.getContext("2d");
+        ctx.clearRect(0, 0, c.width, c.height);
+      }
+
+      initFrameEditor();
+    });
+  }
+  // --- КОНЕЦ ЛОГИКИ ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК ---
+
   document.querySelectorAll(".tg").forEach((tg) => {
     tg.addEventListener("click", () => {
       tg.classList.toggle("on");
@@ -480,6 +544,8 @@ function initCfg() {
     sw: (v) => v + "px",
     lp: (v) => (v / 1000).toFixed(1) + "s",
     sdns: (v) => v + "%",
+    bdns: (v) => v + "%",
+    bdpl: (v) => v + "px",
     atm: (v) => fmtTimeUI(+v),
     btm: (v) => fmtTimeUI(+v),
     nsw: (v) => v + "px",

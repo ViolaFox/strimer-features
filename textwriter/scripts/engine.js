@@ -40,6 +40,8 @@ export const D = {
   fdir: "up",
   fint: 50,
   sdns: 50,
+  bdns: 60,
+  bdpl: 50,
   autoTrigger: false,
   activityTime: 10,
   betweenTime: 60,
@@ -112,7 +114,7 @@ const EXIT_DUR = {
   "glass-shatter": 1800,
   "particle-explode": 1000,
   scatter: 1400,
-  "fire-out": 2500, // Slightly longer for the nice burn effect
+  "fire-out": 2500,
 };
 
 function vm(val) {
@@ -198,6 +200,10 @@ export function toHash() {
     S.fint +
     "&sd=" +
     S.sdns +
+    "&bd=" +
+    S.bdns +
+    "&bl=" +
+    S.bdpl +
     "&atr=" +
     (S.autoTrigger ? 1 : 0) +
     "&atm=" +
@@ -259,6 +265,8 @@ export function parseHash() {
   if (g("fd")) S.fdir = g("fd");
   if (g("fi")) S.fint = +g("fi");
   if (g("sd")) S.sdns = +g("sd");
+  if (g("bd")) S.bdns = +g("bd");
+  if (g("bl")) S.bdpl = +g("bl");
   S.autoTrigger = g("atr") === "1";
   if (g("atm")) S.activityTime = +g("atm");
   if (g("btm")) S.betweenTime = +g("btm");
@@ -308,9 +316,15 @@ function applyStyle(tgt) {
   let sh = "none";
   if (
     S.glow &&
-    !["neon", "glowpulse", "fire", "chrome", "ice", "neonstroke"].includes(
-      S.visual,
-    )
+    ![
+      "neon",
+      "glowpulse",
+      "fire",
+      "chrome",
+      "ice",
+      "neonstroke",
+      "blood",
+    ].includes(S.visual)
   )
     sh = `0 0 ${S.gi}px ${S.gc}, 0 0 ${S.gi * 2.5}px ${S.gc}`;
   Object.assign(tgt.style, {
@@ -1016,6 +1030,348 @@ const FX = {
     })();
   },
 
+  /* ==================== BLOOD DRIP EFFECT ==================== */
+  blood(tgt, cv) {
+    setLines(tgt);
+    sizeCV(cv);
+    const ctx = cv.getContext("2d");
+    playing = true;
+
+    const sm = vm(S.speed);
+    const density = (S.bdns || 60) / 60;
+
+    // Add blood-themed glow to text
+    tgt.style.textShadow =
+      "0 0 8px rgba(139,0,0,0.5), 0 0 20px rgba(100,0,0,0.25)";
+
+    // We need to find text pixel edges using an offscreen canvas
+    const rect = tgt.getBoundingClientRect();
+    const cvR = cv.getBoundingClientRect();
+
+    if (rect.width === 0 || rect.height === 0) {
+      // Fallback: try after a frame
+      requestAnimationFrame(() => FX.blood(tgt, cv));
+      return;
+    }
+
+    const offscreen = document.createElement("canvas");
+    offscreen.width = Math.ceil(rect.width);
+    offscreen.height = Math.ceil(rect.height);
+    const offCtx = offscreen.getContext("2d");
+
+    // Render text to offscreen canvas for edge detection
+    const fontSize = S.size;
+    const lineH = (fontSize * S.lh) / 100;
+    const lines = S.text.split("\n").filter((l) => l.trim());
+
+    offCtx.font = `${S.italic ? "italic " : ""}${S.bold ? "900 " : "400 "}${fontSize}px "${S.font}", sans-serif`;
+    offCtx.textAlign = S.align;
+    offCtx.textBaseline = "top";
+    offCtx.fillStyle = "#ffffff";
+
+    // CSS centers text vertically within the line-height box.
+    // Canvas "top" baseline starts at the em square top, which is higher.
+    // Compensate with the half-leading offset to match browser rendering.
+    const yOffset = (lineH - fontSize) / 2;
+
+    lines.forEach((line, i) => {
+      let x =
+        S.align === "center"
+          ? rect.width / 2
+          : S.align === "right"
+            ? rect.width
+            : 0;
+      offCtx.fillText(line, x, yOffset + i * lineH);
+    });
+
+    const imgData = offCtx.getImageData(
+      0,
+      0,
+      offscreen.width,
+      offscreen.height,
+    );
+    const pxData = imgData.data;
+    const oW = offscreen.width;
+    const oH = offscreen.height;
+
+    // Find top edges of text (first opaque pixel per column, scanning top→bottom)
+    const topEdges = [];
+    for (let x = 0; x < oW; x += 2) {
+      for (let y = 0; y < oH; y++) {
+        const idx = (y * oW + x) * 4;
+        if (pxData[idx + 3] > 100) {
+          topEdges.push({ x, y });
+          break;
+        }
+      }
+    }
+
+    // Find bottom edges of text (first opaque pixel per column, scanning bottom→top)
+    const bottomEdges = [];
+    for (let x = 0; x < oW; x += 2) {
+      for (let y = oH - 1; y >= 0; y--) {
+        const idx = (y * oW + x) * 4;
+        if (pxData[idx + 3] > 100) {
+          bottomEdges.push({ x, y });
+          break;
+        }
+      }
+    }
+
+    const offsetX = rect.left - cvR.left;
+    const offsetY = rect.top - cvR.top;
+
+    // Blood drip data
+    const drips = [];
+    const pools = [];
+    let lastSpawnTop = 0;
+    let lastSpawnBottom = 0;
+
+    function makeDrip(ex, ey) {
+      const dripWidth = 2 + Math.random() * 6;
+      const dripLen = (S.bdpl || 50) / 50;
+      const maxLen = (15 + Math.random() * 60) * dripLen;
+      const numSegs = 4 + Math.floor(Math.random() * 6);
+      const shape = [];
+      for (let i = 0; i <= numSegs; i++) {
+        shape.push(0.5 + Math.random() * 0.8);
+      }
+
+      const vy = (0.3 + Math.random() * 0.6) * sm;
+
+      return {
+        x: ex + offsetX + (Math.random() * 4 - 2),
+        y: ey + offsetY,
+        width: dripWidth,
+        maxLength: maxLen,
+        currentLength: 0,
+        vy: vy,
+        wobble: (Math.random() - 0.5) * 1.2,
+        wobbleSpeed: 0.015 + Math.random() * 0.03,
+        opacity: 0.65 + Math.random() * 0.35,
+        growing: true,
+        phase: Math.random() * Math.PI * 2,
+        shape: shape,
+      };
+    }
+
+    function drawDrip(d) {
+      const len = d.currentLength;
+      if (len < 1.5) return;
+
+      const segs = d.shape.length - 1;
+      const segLen = len / segs;
+
+      ctx.save();
+      ctx.globalAlpha = d.opacity;
+
+      // Calculate direction unit vector
+      // Drips go straight down
+      const cosA = 0;
+      const sinA = 1;
+
+      ctx.beginPath();
+
+      // Start point
+      const sx = d.x;
+      const sy = d.y;
+      ctx.moveTo(sx, sy);
+
+      // Build drip path along the flow direction
+      const points = [];
+      for (let i = 0; i <= segs; i++) {
+        const t = i / segs;
+        const dist = i * segLen;
+        // Wobble perpendicular to flow
+        const wobbleOffset = Math.sin(d.phase + i * 0.6) * d.wobble * 1.5;
+        const px = sx + cosA * dist + -sinA * wobbleOffset;
+        const py = sy + sinA * dist + cosA * wobbleOffset;
+        points.push({ x: px, y: py, t });
+      }
+
+      // Left contour (going forward)
+      for (let i = 0; i <= segs; i++) {
+        const p = points[i];
+        const perpX = -sinA;
+        const perpY = cosA;
+        const halfW =
+          (d.width * d.shape[i] * (0.5 + 0.5 * (1 - p.t * 0.35))) / 2;
+        if (i === 0) {
+          ctx.moveTo(p.x + perpX * halfW, p.y + perpY * halfW);
+        } else {
+          ctx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
+        }
+      }
+
+      // Tip
+      const tip = points[segs];
+      const tipExtend = d.width * 0.35;
+      const tipX = tip.x + cosA * tipExtend;
+      const tipY = tip.y + sinA * tipExtend;
+      ctx.quadraticCurveTo(tipX + -sinA * 1, tipY + cosA * 1, tipX, tipY);
+      ctx.quadraticCurveTo(tipX + sinA * 1, tipY - cosA * 1, tipX, tipY);
+
+      // Right contour (going backward)
+      for (let i = segs; i >= 0; i--) {
+        const p = points[i];
+        const perpX = sinA;
+        const perpY = -cosA;
+        const halfW =
+          (d.width * d.shape[i] * (0.5 + 0.5 * (1 - p.t * 0.35))) / 2;
+        ctx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
+      }
+
+      ctx.closePath();
+
+      // Blood gradient along drip direction
+      const grad = ctx.createLinearGradient(sx, sy, sx, sy + len);
+      grad.addColorStop(0, "#BB0000");
+      grad.addColorStop(0.15, "#990000");
+      grad.addColorStop(0.45, "#8B0000");
+      grad.addColorStop(0.75, "#AA1111");
+      grad.addColorStop(1, "#550000");
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Subtle highlight on one side
+      ctx.beginPath();
+      for (let i = 0; i <= segs; i++) {
+        const p = points[i];
+        const perpX = -sinA;
+        const perpY = cosA;
+        const hw = d.width * d.shape[i] * 0.15;
+        if (i === 0) ctx.moveTo(p.x + perpX * hw, p.y + perpY * hw);
+        else ctx.lineTo(p.x + perpX * hw, p.y + perpY * hw);
+      }
+      ctx.strokeStyle = "rgba(255,100,100,0.18)";
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawPool(p) {
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, p.width / 2, p.height / 2, 0, 0, Math.PI * 2);
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.width / 2);
+      grad.addColorStop(0, "#AA0000");
+      grad.addColorStop(0.35, "#880000");
+      grad.addColorStop(0.65, "#550000");
+      grad.addColorStop(1, "rgba(80,0,0,0)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Pre-seed some drips for immediate visual
+    for (let i = 0; i < 12; i++) {
+      if (topEdges.length > 0) {
+        const pt = topEdges[Math.floor(Math.random() * topEdges.length)];
+        const d = makeDrip(pt.x, pt.y);
+        d.currentLength = Math.random() * d.maxLength * 0.6;
+        drips.push(d);
+      }
+    }
+    for (let i = 0; i < 5; i++) {
+      if (bottomEdges.length > 0) {
+        const pt = bottomEdges[Math.floor(Math.random() * bottomEdges.length)];
+        const d = makeDrip(pt.x, pt.y);
+        d.currentLength = Math.random() * d.maxLength * 0.4;
+        drips.push(d);
+      }
+    }
+
+    function frame() {
+      if (!playing) return;
+
+      const time = performance.now();
+      ctx.clearRect(0, 0, cv.width, cv.height);
+
+      // Spawn intervals scale with density
+      const topInterval = Math.max(60, 180 / density);
+      const bottomInterval = Math.max(200, 500 / density);
+      // Spawn from top edges
+      if (time - lastSpawnTop > topInterval) {
+        if (topEdges.length > 0) {
+          const pt = topEdges[Math.floor(Math.random() * topEdges.length)];
+          drips.push(makeDrip(pt.x, pt.y));
+          lastSpawnTop = time;
+        }
+      }
+
+      // Spawn from bottom edges (less frequently)
+      if (time - lastSpawnBottom > bottomInterval) {
+        if (bottomEdges.length > 0 && Math.random() > 0.4) {
+          const pt =
+            bottomEdges[Math.floor(Math.random() * bottomEdges.length)];
+          drips.push(makeDrip(pt.x, pt.y));
+          lastSpawnBottom = time;
+        }
+      }
+
+      // Update & draw drips
+      for (let i = drips.length - 1; i >= 0; i--) {
+        const d = drips[i];
+        d.phase += d.wobbleSpeed;
+
+        if (d.growing) {
+          d.currentLength += d.vy;
+          d.y += d.vy;
+
+          // Gravity acceleration
+          d.vy += 0.005 * sm;
+
+          if (d.currentLength >= d.maxLength) {
+            d.growing = false;
+          }
+        }
+
+        drawDrip(d);
+
+        // Create pool at tip when done growing
+        if (!d.growing && d.currentLength >= d.maxLength * 0.8) {
+          const tipX = d.x;
+          const tipY = d.y + d.currentLength;
+
+          const poolExists = pools.some(
+            (p) => Math.abs(p.x - tipX) < 18 && Math.abs(p.y - tipY) < 12,
+          );
+          if (!poolExists && pools.length < 30) {
+            pools.push({
+              x: tipX,
+              y: tipY,
+              width: 6 + Math.random() * 14,
+              height: 2 + Math.random() * 5,
+              opacity: 0.35 + Math.random() * 0.25,
+            });
+          }
+          d.opacity -= 0.003;
+        }
+
+        if (d.opacity <= 0) drips.splice(i, 1);
+      }
+
+      // Cap drips to prevent performance issues
+      if (drips.length > 40) drips.splice(0, drips.length - 40);
+
+      // Draw & update pools
+      for (let i = pools.length - 1; i >= 0; i--) {
+        const p = pools[i];
+        p.width += 0.02;
+        p.height += 0.005;
+        drawPool(p);
+        p.opacity -= 0.0006;
+        if (p.opacity <= 0) pools.splice(i, 1);
+      }
+
+      animFrame = requestAnimationFrame(frame);
+    }
+
+    frame();
+  },
+
   neonstroke(tgt) {
     let stage = tgt.parentElement;
     while (
@@ -1170,15 +1526,10 @@ const FX = {
     }, dur + 100);
   },
 
-  // UPDATED: Based on user provided code, adapted for transparency
-  // ИСПРАВЛЕНО: Текст остается четким (HTML), огонь точно на тексте, фон прозрачный
-  // ИСПРАВЛЕНО: Четкий текст (HTML), прозрачный фон, физика огня из примера
-  // ИСПРАВЛЕНО: Добавлена регулировка скорости, текст четкий, фон прозрачный
   exitFire: function (tgt, cv) {
     const rect = tgt.getBoundingClientRect();
     const cvR = cv.getBoundingClientRect();
 
-    // Координаты текста относительно канваса
     const x = rect.left - cvR.left;
     const y = rect.top - cvR.top;
     const w = rect.width;
@@ -1196,21 +1547,17 @@ const FX = {
     sizeCV(cv);
     const ctx = cv.getContext("2d");
 
-    // Скрываем текст через clip-path, сохраняя четкость
     tgt.style.opacity = "1";
     tgt.style.clipPath = "inset(0 0 0% 0)";
 
     const fireParticles = [];
     const sparks = [];
 
-    // РЕГУЛИРОВКА СКОРОСТИ
-    const sm = vm(S.dspeed); // Множитель скорости (1.0 при значении 55)
-    const baseDur = 2500; // Базовая длительность в мс
-    const dur = Math.max(500, baseDur / sm); // Итоговая длительность
+    const sm = vm(S.dspeed);
+    const baseDur = 2500;
+    const dur = Math.max(500, baseDur / sm);
 
     const startTime = Date.now();
-
-    // --- Классы частиц (из вашего примера) ---
 
     class FireParticle {
       constructor(px, py) {
@@ -1271,7 +1618,7 @@ const FX = {
       update() {
         this.x += this.vx;
         this.y += this.vy;
-        this.vy += 0.1; // Гравитация
+        this.vy += 0.1;
         this.life -= this.decay;
       }
 
@@ -1293,17 +1640,11 @@ const FX = {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(1, elapsed / dur);
 
-      // 1. Прозрачная очистка фона
       ctx.clearRect(0, 0, cv.width, cv.height);
-
-      // 2. Срезание текста CSS clip-path
       tgt.style.clipPath = `inset(0 0 ${progress * 100}% 0)`;
 
-      // 3. Спавн частиц
       if (progress < 1) {
         const currentLineY = y + h - h * progress;
-
-        // Количество частиц зависит от скорости, чтобы плотность сохранялась
         const spawnCount = Math.ceil((w / 20) * Math.max(1, sm));
 
         for (let i = 0; i < spawnCount; i++) {
@@ -1318,21 +1659,18 @@ const FX = {
         }
       }
 
-      // 4. Отрисовка огня
       for (let i = fireParticles.length - 1; i >= 0; i--) {
         fireParticles[i].update();
         fireParticles[i].draw(ctx);
         if (fireParticles[i].life <= 0) fireParticles.splice(i, 1);
       }
 
-      // 5. Отрисовка искр
       for (let i = sparks.length - 1; i >= 0; i--) {
         sparks[i].update();
         sparks[i].draw(ctx);
         if (sparks[i].life <= 0) sparks.splice(i, 1);
       }
 
-      // 6. Завершение
       if (
         elapsed < dur + 1000 ||
         fireParticles.length > 0 ||

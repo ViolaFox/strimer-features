@@ -1,0 +1,118 @@
+/* frame.css - Стили для редактора рамок и вкладок */
+
+/* Стили переключения вкладок (Font / Frame) */
+.sub-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.sub-nav-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-family: "IBM Plex Mono", monospace;
+  flex: 1;
+  transition: all 0.2s;
+}
+
+.sub-nav-btn:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
+.sub-nav-btn.active {
+  background: var(--accent);
+  color: #1a1410;
+  border-color: var(--accent);
+}
+
+/* Превью рамки в области предпросмотра сайта */
+#editor-frame-preview {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* Базовые стили, будут перезаписаны JS */
+  border: 4px solid #ff00ff;
+  border-radius: 0px;
+  box-shadow:
+    0 0 20px #ff00ff,
+    0 0 40px #ff00ff,
+    inset 0 0 20px #ff00ff;
+  transition: all 0.1s ease;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Анимация мерцания (Flicker) */
+.flicker-anim {
+  animation: flicker-keyframes 1.5s infinite alternate;
+}
+
+@keyframes flicker-keyframes {
+  0%,
+  19%,
+  21%,
+  23%,
+  25%,
+  54%,
+  56%,
+  100% {
+    opacity: 1;
+  }
+  20%,
+  24%,
+  55% {
+    opacity: 0.4;
+  }
+}
+
+/* Блок с кодом CSS */
+.code-block {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 8px;
+  border-radius: 4px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-top: 8px;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+/* Список цветов-пресетов */
+.color-preset-list {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.color-preset {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    border-color 0.2s;
+}
+
+.color-preset:hover {
+  transform: scale(1.15);
+  border-color: var(--accent);
+}

@@ -6,7 +6,7 @@
     <title>OBS Text Effects PRO</title>
     <link rel="shortcut icon" href="icon.png" type="image/png" />
 
-    <!-- Google Fonts (работают без сервера) -->
+    <!-- Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap"
       rel="stylesheet"
@@ -19,7 +19,10 @@
 
     <!-- Основные стили -->
     <link rel="stylesheet" href="index.css" />
-    <!-- Локальные шрифты (требуют локального сервера для работы) -->
+    <!-- Стили для редактора рамок -->
+    <link rel="stylesheet" href="frame.css" />
+
+    <!-- Локальные шрифты -->
     <link rel="stylesheet" href="fonts/fonts.css" />
   </head>
   <body>
@@ -60,18 +63,166 @@
       </div>
       <div class="body">
         <div class="ctrl">
-          <div class="st">Font</div>
-          <div class="cg">
-            <label class="cl">Font Family</label>
-            <div class="cr">
-              <div class="sw" style="flex: 1"><select id="fs"></select></div>
-              <button class="bsc" id="bscan">
-                <i class="fas fa-search"></i> Scan
-              </button>
+          <!-- ИЗМЕНЕНО: Добавлены вкладки Font и Frame -->
+          <div class="st">
+            <div class="sub-nav">
+              <button class="sub-nav-btn active" id="tab-btn-font">Font</button>
+              <button class="sub-nav-btn" id="tab-btn-frame">Frame</button>
             </div>
-            <div class="fst" id="fst"></div>
-            <div class="fpv" id="fpv">The quick brown fox</div>
           </div>
+
+          <!-- Блок управления Шрифтом -->
+          <div id="tab-font">
+            <div class="cg">
+              <label class="cl">Font Family</label>
+              <div class="cr">
+                <div class="sw" style="flex: 1"><select id="fs"></select></div>
+                <button class="bsc" id="bscan">
+                  <i class="fas fa-search"></i> Scan
+                </button>
+              </div>
+              <div class="fst" id="fst"></div>
+              <div class="fpv" id="fpv">The quick brown fox</div>
+            </div>
+          </div>
+
+          <!-- Блок управления Рамкой (изначально скрыт) -->
+          <div id="tab-frame" style="display: none">
+            <!-- Neon Color -->
+            <div class="cg">
+              <label class="cl">Neon Color</label>
+              <div class="cr">
+                <input type="color" id="frame-color" value="#ff00ff" />
+                <span class="rv" id="frame-color-val">#ff00ff</span>
+              </div>
+              <div class="color-preset-list">
+                <div
+                  class="color-preset"
+                  style="background: #ff0055"
+                  onclick="setFrameColor('#ff0055')"
+                ></div>
+                <div
+                  class="color-preset"
+                  style="background: #00f2ff"
+                  onclick="setFrameColor('#00f2ff')"
+                ></div>
+                <div
+                  class="color-preset"
+                  style="background: #39ff14"
+                  onclick="setFrameColor('#39ff14')"
+                ></div>
+                <div
+                  class="color-preset"
+                  style="background: #ffea00"
+                  onclick="setFrameColor('#ffea00')"
+                ></div>
+                <div
+                  class="color-preset"
+                  style="background: #ffffff"
+                  onclick="setFrameColor('#ffffff')"
+                ></div>
+              </div>
+            </div>
+
+            <hr
+              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
+            />
+
+            <!-- Dimensions -->
+            <div class="cg">
+              <label class="cl">Width</label>
+              <div class="cr">
+                <input
+                  type="range"
+                  id="frame-width"
+                  min="100"
+                  max="800"
+                  value="300"
+                />
+                <span class="rv" id="frame-width-val">300px</span>
+              </div>
+            </div>
+            <div class="cg">
+              <label class="cl">Height</label>
+              <div class="cr">
+                <input
+                  type="range"
+                  id="frame-height"
+                  min="100"
+                  max="600"
+                  value="200"
+                />
+                <span class="rv" id="frame-height-val">200px</span>
+              </div>
+            </div>
+
+            <!-- Style -->
+            <div class="cg">
+              <label class="cl">Tube Size</label>
+              <div class="cr">
+                <input
+                  type="range"
+                  id="frame-size"
+                  min="1"
+                  max="20"
+                  value="4"
+                />
+                <span class="rv" id="frame-size-val">4px</span>
+              </div>
+            </div>
+            <div class="cg">
+              <label class="cl">Corner Radius</label>
+              <div class="cr">
+                <input
+                  type="range"
+                  id="frame-radius"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+                <span class="rv" id="frame-radius-val">0px</span>
+              </div>
+            </div>
+
+            <hr
+              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
+            />
+
+            <!-- Effects -->
+            <div class="cg">
+              <label class="cl">Glow Intensity</label>
+              <div class="cr">
+                <input
+                  type="range"
+                  id="frame-glow"
+                  min="0"
+                  max="100"
+                  value="20"
+                />
+                <span class="rv" id="frame-glow-val">20px</span>
+              </div>
+            </div>
+            <div class="cg">
+              <label class="cl">Flicker Effect</label>
+              <div class="cr">
+                <div class="tg" id="frame-flicker"></div>
+              </div>
+            </div>
+
+            <!-- Export -->
+            <button
+              class="btn btn1"
+              style="width: 100%; margin-top: 10px"
+              onclick="copyFrameCSS(this)"
+            >
+              <i class="fas fa-copy"></i> Copy CSS
+            </button>
+            <div class="code-block" id="frame-code-output">
+              /* CSS code will appear here */
+            </div>
+          </div>
+          <!-- Конец блока Frame -->
+
           <div class="st">Content</div>
           <div class="cg">
             <label class="cl">Text (one line per entry)</label>
@@ -107,6 +258,7 @@ Let's get started</textarea
                 <option value="water">Water Distortion</option>
                 <option value="particles">Falling Particles</option>
                 <option value="neonstroke">Neon Stroke (Flowing Light)</option>
+                <option value="blood">Blood Drip</option>
               </select>
             </div>
             <div class="note" id="vis-note"></div>
@@ -227,13 +379,31 @@ Let's get started</textarea
             </div>
           </div>
 
-          <!-- Smoke options kept -->
+          <!-- Smoke options -->
           <div class="cg" id="sd-opts" style="display: none">
             <label class="cl">Smoke Density</label>
             <div class="cr">
               <input type="range" id="sdns" min="10" max="100" value="50" />
               <span class="rv" id="sdns-v">50%</span>
             </div>
+          </div>
+
+          <!-- Blood Drip options -->
+          <div class="cg" id="bd-opts" style="display: none">
+            <label class="cl">Blood Density</label>
+            <div class="cr">
+              <input type="range" id="bdns" min="10" max="100" value="60" />
+              <span class="rv" id="bdns-v">60%</span>
+            </div>
+            <div class="note">Controls drip spawn rate</div>
+          </div>
+          <div class="cg" id="bdpl-opts" style="display: none">
+            <label class="cl">Drip Length</label>
+            <div class="cr">
+              <input type="range" id="bdpl" min="5" max="150" value="50" />
+              <span class="rv" id="bdpl-v">50</span>
+            </div>
+            <div class="note">Max height blood can drip down</div>
           </div>
 
           <!-- Neon Stroke options -->
@@ -506,5 +676,6 @@ Let's get started</textarea
     </div>
 
     <script type="module" src="scripts/index.js"></script>
+    <script type="module" src="scripts/frame.js"></script>
   </body>
 </html>
