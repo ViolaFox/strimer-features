@@ -59,7 +59,9 @@ let playing = false,
   timer = null,
   animFrame = null,
   audioCtx = null,
-  particles = [];
+  particles = [],
+  _bloodCtx = null,
+  _bloodFrontCv = null;
 
 const SELF_ENTRANCE = new Set([
   "typewriter",
@@ -1035,10 +1037,27 @@ const FX = {
     setLines(tgt);
     sizeCV(cv);
     const ctx = cv.getContext("2d");
+    _bloodCtx = { cv, ctx };
     playing = true;
 
     const sm = vm(S.speed);
     const density = (S.bdns || 60) / 60;
+
+    // Create a second canvas in front of the text for random front drips
+    let frontCv = null;
+    let frontCtx = null;
+    const par = cv.parentElement || tgt.parentElement;
+    if (par) {
+      frontCv = document.createElement("canvas");
+      frontCv.style.cssText =
+        "position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;";
+      par.style.position = "relative";
+      par.appendChild(frontCv);
+      frontCv.width = par.clientWidth;
+      frontCv.height = par.clientHeight;
+      frontCtx = frontCv.getContext("2d");
+      _bloodFrontCv = frontCv;
+    }
 
     // Add blood-themed glow to text
     tgt.style.textShadow =
@@ -1152,30 +1171,31 @@ const FX = {
         growing: true,
         phase: Math.random() * Math.PI * 2,
         shape: shape,
+        front: Math.random() > 0.5,
       };
     }
 
-    function drawDrip(d) {
+    function drawDrip(d, drawCtx) {
       const len = d.currentLength;
       if (len < 1.5) return;
 
       const segs = d.shape.length - 1;
       const segLen = len / segs;
 
-      ctx.save();
-      ctx.globalAlpha = d.opacity;
+      drawCtx.save();
+      drawCtx.globalAlpha = d.opacity;
 
       // Calculate direction unit vector
       // Drips go straight down
       const cosA = 0;
       const sinA = 1;
 
-      ctx.beginPath();
+      drawCtx.beginPath();
 
       // Start point
       const sx = d.x;
       const sy = d.y;
-      ctx.moveTo(sx, sy);
+      drawCtx.moveTo(sx, sy);
 
       // Build drip path along the flow direction
       const points = [];
@@ -1197,9 +1217,9 @@ const FX = {
         const halfW =
           (d.width * d.shape[i] * (0.5 + 0.5 * (1 - p.t * 0.35))) / 2;
         if (i === 0) {
-          ctx.moveTo(p.x + perpX * halfW, p.y + perpY * halfW);
+          drawCtx.moveTo(p.x + perpX * halfW, p.y + perpY * halfW);
         } else {
-          ctx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
+          drawCtx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
         }
       }
 
@@ -1208,8 +1228,8 @@ const FX = {
       const tipExtend = d.width * 0.35;
       const tipX = tip.x + cosA * tipExtend;
       const tipY = tip.y + sinA * tipExtend;
-      ctx.quadraticCurveTo(tipX + -sinA * 1, tipY + cosA * 1, tipX, tipY);
-      ctx.quadraticCurveTo(tipX + sinA * 1, tipY - cosA * 1, tipX, tipY);
+      drawCtx.quadraticCurveTo(tipX + -sinA * 1, tipY + cosA * 1, tipX, tipY);
+      drawCtx.quadraticCurveTo(tipX + sinA * 1, tipY - cosA * 1, tipX, tipY);
 
       // Right contour (going backward)
       for (let i = segs; i >= 0; i--) {
@@ -1218,51 +1238,58 @@ const FX = {
         const perpY = -cosA;
         const halfW =
           (d.width * d.shape[i] * (0.5 + 0.5 * (1 - p.t * 0.35))) / 2;
-        ctx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
+        drawCtx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
       }
 
-      ctx.closePath();
+      drawCtx.closePath();
 
       // Blood gradient along drip direction
-      const grad = ctx.createLinearGradient(sx, sy, sx, sy + len);
+      const grad = drawCtx.createLinearGradient(sx, sy, sx, sy + len);
       grad.addColorStop(0, "#BB0000");
       grad.addColorStop(0.15, "#990000");
       grad.addColorStop(0.45, "#8B0000");
       grad.addColorStop(0.75, "#AA1111");
       grad.addColorStop(1, "#550000");
-      ctx.fillStyle = grad;
-      ctx.fill();
+      drawCtx.fillStyle = grad;
+      drawCtx.fill();
 
       // Subtle highlight on one side
-      ctx.beginPath();
+      drawCtx.beginPath();
       for (let i = 0; i <= segs; i++) {
         const p = points[i];
         const perpX = -sinA;
         const perpY = cosA;
         const hw = d.width * d.shape[i] * 0.15;
-        if (i === 0) ctx.moveTo(p.x + perpX * hw, p.y + perpY * hw);
-        else ctx.lineTo(p.x + perpX * hw, p.y + perpY * hw);
+        if (i === 0) drawCtx.moveTo(p.x + perpX * hw, p.y + perpY * hw);
+        else drawCtx.lineTo(p.x + perpX * hw, p.y + perpY * hw);
       }
-      ctx.strokeStyle = "rgba(255,100,100,0.18)";
-      ctx.lineWidth = 0.8;
-      ctx.stroke();
+      drawCtx.strokeStyle = "rgba(255,100,100,0.18)";
+      drawCtx.lineWidth = 0.8;
+      drawCtx.stroke();
 
-      ctx.restore();
+      drawCtx.restore();
     }
 
-    function drawPool(p) {
-      ctx.save();
-      ctx.globalAlpha = p.opacity;
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y, p.width / 2, p.height / 2, 0, 0, Math.PI * 2);
-      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.width / 2);
+    function drawPool(p, poolCtx) {
+      poolCtx.save();
+      poolCtx.globalAlpha = p.opacity;
+      poolCtx.beginPath();
+      poolCtx.ellipse(p.x, p.y, p.width / 2, p.height / 2, 0, 0, Math.PI * 2);
+      const grad = poolCtx.createRadialGradient(
+        p.x,
+        p.y,
+        0,
+        p.x,
+        p.y,
+        p.width / 2,
+      );
       grad.addColorStop(0, "#AA0000");
       grad.addColorStop(0.35, "#880000");
       grad.addColorStop(0.65, "#550000");
       grad.addColorStop(1, "rgba(80,0,0,0)");
-      ctx.fillStyle = grad;
-      ctx.fill();
-      ctx.restore();
+      poolCtx.fillStyle = grad;
+      poolCtx.fill();
+      poolCtx.restore();
     }
 
     // Pre-seed some drips for immediate visual
@@ -1288,6 +1315,7 @@ const FX = {
 
       const time = performance.now();
       ctx.clearRect(0, 0, cv.width, cv.height);
+      if (frontCtx) frontCtx.clearRect(0, 0, frontCv.width, frontCv.height);
 
       // Spawn intervals scale with density
       const topInterval = Math.max(60, 180 / density);
@@ -1328,7 +1356,9 @@ const FX = {
           }
         }
 
-        drawDrip(d);
+        // Draw on front or back canvas depending on random assignment
+        const dCtx = d.front && frontCtx ? frontCtx : ctx;
+        drawDrip(d, dCtx);
 
         // Create pool at tip when done growing
         if (!d.growing && d.currentLength >= d.maxLength * 0.8) {
@@ -1345,6 +1375,7 @@ const FX = {
               width: 6 + Math.random() * 14,
               height: 2 + Math.random() * 5,
               opacity: 0.35 + Math.random() * 0.25,
+              front: d.front,
             });
           }
           d.opacity -= 0.003;
@@ -1361,7 +1392,8 @@ const FX = {
         const p = pools[i];
         p.width += 0.02;
         p.height += 0.005;
-        drawPool(p);
+        const pCtx = p.front && frontCtx ? frontCtx : ctx;
+        drawPool(p, pCtx);
         p.opacity -= 0.0006;
         if (p.opacity <= 0) pools.splice(i, 1);
       }
@@ -2107,6 +2139,24 @@ function triggerCycleEnd(tgt) {
     return;
   }
 
+  // Stop blood canvas animation immediately when cycle ends
+  if (S.visual === "blood") {
+    if (animFrame) {
+      cancelAnimationFrame(animFrame);
+      animFrame = null;
+    }
+    if (_bloodCtx) {
+      _bloodCtx.ctx.clearRect(0, 0, _bloodCtx.cv.width, _bloodCtx.cv.height);
+      _bloodCtx = null;
+    }
+    if (_bloodFrontCv) {
+      const fCtx = _bloodFrontCv.getContext("2d");
+      if (fCtx) fCtx.clearRect(0, 0, _bloodFrontCv.width, _bloodFrontCv.height);
+      _bloodFrontCv.remove();
+      _bloodFrontCv = null;
+    }
+  }
+
   if (S.disappear === "none" && !S.loop && !S.autoTrigger) {
     stopFx(tgt, $("cv"), $("sl"));
     return;
@@ -2168,6 +2218,11 @@ export function stopFx(tgt, cv, sl) {
   }
   clrCSS();
   particles = [];
+  _bloodCtx = null;
+  if (_bloodFrontCv) {
+    _bloodFrontCv.remove();
+    _bloodFrontCv = null;
+  }
   if (tgt._nsSvg) {
     tgt._nsSvg.remove();
     tgt._nsSvg = null;
