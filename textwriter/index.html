@@ -63,7 +63,6 @@
       </div>
       <div class="body">
         <div class="ctrl">
-          <!-- ИЗМЕНЕНО: Добавлены вкладки Font и Frame -->
           <div class="st">
             <div class="sub-nav">
               <button class="sub-nav-btn active" id="tab-btn-font">Font</button>
@@ -71,24 +70,64 @@
             </div>
           </div>
 
-          <!-- Блок управления Шрифтом -->
           <div id="tab-font">
+            <!-- НАЧАЛО БЛОКА ПРЕСЕТОВ -->
+            <div class="st">Presets</div>
             <div class="cg">
-              <label class="cl">Font Family</label>
               <div class="cr">
-                <div class="sw" style="flex: 1"><select id="fs"></select></div>
+                <input
+                  type="text"
+                  id="preset-name"
+                  placeholder="New preset name..."
+                  style="flex: 1"
+                />
+                <button class="bsc" id="bsave-preset">
+                  <i class="fas fa-save"></i> Save
+                </button>
+              </div>
+            </div>
+            <div class="cg">
+              <div class="cs-wrapper" id="preset-wrapper">
+                <div class="cs-trigger" id="preset-trigger" tabindex="0">
+                  <span id="preset-text">Select a preset...</span>
+                  <i class="fas fa-chevron-down cs-arrow"></i>
+                </div>
+                <div class="cs-options" id="preset-options">
+                  <div
+                    class="cs-option cs-empty"
+                    style="
+                      pointer-events: none;
+                      color: var(--muted);
+                      font-style: italic;
+                    "
+                  >
+                    No saved presets
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- КОНЕЦ БЛОКА ПРЕСЕТОВ -->
+
+            <div class="st">Font Family</div>
+            <div class="cg">
+              <div class="fpv" id="fpv">The quick brown fox</div>
+              <div class="cr">
+                <div class="cs-wrapper" id="fs-wrapper">
+                  <div class="cs-trigger" id="fs-trigger" tabindex="0">
+                    <span id="fs-text">IBM Plex Mono</span>
+                    <i class="fas fa-chevron-down cs-arrow"></i>
+                  </div>
+                  <div class="cs-options" id="fs-options"></div>
+                </div>
                 <button class="bsc" id="bscan">
                   <i class="fas fa-search"></i> Scan
                 </button>
               </div>
               <div class="fst" id="fst"></div>
-              <div class="fpv" id="fpv">The quick brown fox</div>
             </div>
           </div>
 
-          <!-- Блок управления Рамкой (изначально скрыт) -->
           <div id="tab-frame" style="display: none">
-            <!-- Neon Color -->
             <div class="cg">
               <label class="cl">Neon Color</label>
               <div class="cr">
@@ -128,7 +167,6 @@
               style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
             />
 
-            <!-- Dimensions -->
             <div class="cg">
               <label class="cl">Width</label>
               <div class="cr">
@@ -155,8 +193,6 @@
                 <span class="rv" id="frame-height-val">200px</span>
               </div>
             </div>
-
-            <!-- Style -->
             <div class="cg">
               <label class="cl">Tube Size</label>
               <div class="cr">
@@ -188,7 +224,6 @@
               style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
             />
 
-            <!-- Effects -->
             <div class="cg">
               <label class="cl">Glow Intensity</label>
               <div class="cr">
@@ -209,7 +244,6 @@
               </div>
             </div>
 
-            <!-- Export -->
             <button
               class="btn btn1"
               style="width: 100%; margin-top: 10px"
@@ -221,7 +255,6 @@
               /* CSS code will appear here */
             </div>
           </div>
-          <!-- Конец блока Frame -->
 
           <div class="st">Content</div>
           <div class="cg">
@@ -299,7 +332,6 @@ Let's get started</textarea
             </div>
           </div>
 
-          <!-- NEW: Disappearing Effects -->
           <div class="cg">
             <label class="cl">Disappearing Effect</label>
             <div class="sw">
@@ -333,7 +365,6 @@ Let's get started</textarea
             </div>
           </div>
 
-          <!-- Disappearing Particle Options -->
           <div id="dp-opts" style="display: none">
             <div class="cg">
               <label class="cl">Particle Color</label>
@@ -379,7 +410,6 @@ Let's get started</textarea
             </div>
           </div>
 
-          <!-- Smoke options -->
           <div class="cg" id="sd-opts" style="display: none">
             <label class="cl">Smoke Density</label>
             <div class="cr">
@@ -388,7 +418,6 @@ Let's get started</textarea
             </div>
           </div>
 
-          <!-- Blood Drip options -->
           <div class="cg" id="bd-opts" style="display: none">
             <label class="cl">Blood Density</label>
             <div class="cr">
@@ -406,7 +435,6 @@ Let's get started</textarea
             <div class="note">Max height blood can drip down</div>
           </div>
 
-          <!-- Neon Stroke options -->
           <div id="ns-opts" style="display: none">
             <div class="cg">
               <label class="cl">Gradient Colors</label>
@@ -586,22 +614,29 @@ Let's get started</textarea
               </div>
             </div>
           </div>
-          <div class="st">Cursor (Typewriter only)</div>
-          <div class="cg">
-            <label class="cl">Style</label>
-            <div class="sw">
-              <select id="cs">
-                <option value="block">Block</option>
-                <option value="line">Line</option>
-                <option value="underscore">Underscore</option>
-                <option value="none">None</option>
-              </select>
+
+          <!-- ИЗМЕНЕНО: Блок курсора обернут в div для скрытия -->
+          <div id="cursor-opts" style="display: none">
+            <div class="st">Cursor (Typewriter only)</div>
+            <div class="cg">
+              <label class="cl">Style</label>
+              <div class="sw">
+                <select id="cs">
+                  <option value="block">Block</option>
+                  <option value="line">Line</option>
+                  <option value="underscore">Underscore</option>
+                  <option value="none">None</option>
+                </select>
+              </div>
+            </div>
+            <div class="cg">
+              <label class="cl">Color</label>
+              <div class="cr">
+                <input type="color" id="cc" value="#d4a054" />
+              </div>
             </div>
           </div>
-          <div class="cg">
-            <label class="cl">Color</label>
-            <div class="cr"><input type="color" id="cc" value="#d4a054" /></div>
-          </div>
+
           <div class="st">Layout</div>
           <div class="cg">
             <label class="cl">Position</label>
@@ -642,7 +677,7 @@ Let's get started</textarea
             </div>
             <div class="step">
               <div class="step-n">2</div>
-              <div class="step-t">Preview effect</div>
+              <div class="step-t">See preview</div>
             </div>
             <div class="step">
               <div class="step-n">3</div>
@@ -654,18 +689,15 @@ Let's get started</textarea
             </div>
           </div>
           <div class="inst">
-            <strong>Usage:</strong> Adjust settings, click Preview to test, Copy
-            URL, paste into OBS Browser Source. Visual + Appearance + Disappear
-            effects combine automatically.
+            <strong>Usage:</strong> Adjust settings and the preview updates
+            automatically. Copy the URL and paste it into OBS Browser Source.
+            Visual + Appearance + Disappear effects combine automatically.
           </div>
         </div>
       </div>
       <div class="ftr">
         <label>OBS URL</label>
         <div class="ubox" id="ubox"></div>
-        <button class="btn btn2" id="bprev">
-          <i class="fas fa-eye"></i> Preview
-        </button>
         <button class="btn btn2" id="btest">
           <i class="fas fa-external-link-alt"></i> Test Tab
         </button>

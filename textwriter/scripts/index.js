@@ -131,44 +131,166 @@ const FF = [
   "Wingdings",
 ];
 
-function fillFontSel(fonts) {
-  const sel = $("fs"),
-    cur = sel.value;
-  sel.innerHTML = "";
-  fonts.forEach((n) => {
-    const o = document.createElement("option");
-    o.value = n;
-    o.textContent = n;
-    sel.appendChild(o);
-  });
-  if (fonts.includes(cur)) sel.value = cur;
-  else sel.value = fonts[0];
-  S.font = sel.value;
-  updFpv();
+/* ==================== PRESETS LOGIC ==================== */
+const PRESETS_KEY = "obsTextEffectsPresets";
+
+function getPresets() {
+  try {
+    return JSON.parse(localStorage.getItem(PRESETS_KEY) || "{}");
+  } catch (e) {
+    return {};
+  }
 }
 
-function updFpv() {
-  $("fpv").style.fontFamily = `"${$("fs").value}", sans-serif`;
+function savePreset() {
+  const nameInput = $("preset-name");
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  const presets = getPresets();
+  presets[name] = JSON.parse(JSON.stringify(S));
+  localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+
+  nameInput.value = "";
+  renderPresets();
+  $("preset-text").textContent = name;
 }
+
+function loadPreset(name) {
+  const presets = getPresets();
+  if (presets[name]) {
+    Object.assign(S, D, presets[name]);
+    writeUI();
+    onChange();
+    $("preset-text").textContent = name;
+  }
+  $("preset-wrapper").classList.remove("open");
+}
+
+function deletePreset(e, name) {
+  e.stopPropagation();
+  const presets = getPresets();
+  delete presets[name];
+  localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  renderPresets();
+  if ($("preset-text").textContent === name) {
+    $("preset-text").textContent = "Select a preset...";
+  }
+}
+
+function renderPresets() {
+  const optionsEl = $("preset-options");
+  const presets = getPresets();
+  const names = Object.keys(presets);
+
+  optionsEl.innerHTML = "";
+
+  if (names.length === 0) {
+    const emptyOpt = document.createElement("div");
+    emptyOpt.className = "cs-option cs-empty";
+    emptyOpt.style.cssText =
+      "pointer-events: none; color: var(--muted); font-style: italic;";
+    emptyOpt.textContent = "No saved presets";
+    optionsEl.appendChild(emptyOpt);
+    return;
+  }
+
+  names.forEach((name) => {
+    const opt = document.createElement("div");
+    opt.className = "cs-option preset-option-item";
+
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = name;
+    nameSpan.style.flex = "1";
+
+    const delBtn = document.createElement("i");
+    delBtn.className = "fas fa-trash-alt preset-del-btn";
+    delBtn.title = "Delete preset";
+    delBtn.addEventListener("click", (e) => deletePreset(e, name));
+
+    opt.appendChild(nameSpan);
+    opt.appendChild(delBtn);
+
+    opt.addEventListener("click", () => loadPreset(name));
+    optionsEl.appendChild(opt);
+  });
+}
+/* ==================== END PRESETS LOGIC ==================== */
+
+function fillFontSel(fonts) {
+  const textEl = $("fs-text");
+  const optionsEl = $("fs-options");
+  const cur = S.font;
+
+  optionsEl.innerHTML = "";
+  fonts.forEach((n) => {
+    const opt = document.createElement("div");
+    opt.className = "cs-option" + (n === cur ? " active" : "");
+    opt.textContent = n;
+    opt.style.fontFamily = `"${n}", sans-serif`;
+    opt.dataset.value = n;
+
+    opt.addEventListener("mouseenter", () => {
+      updFpv(n);
+    });
+
+    opt.addEventListener("click", () => {
+      S.font = n;
+      textEl.textContent = n;
+      textEl.style.fontFamily = `"${n}", sans-serif`;
+      optionsEl
+        .querySelectorAll(".cs-option")
+        .forEach((o) => o.classList.remove("active"));
+      opt.classList.add("active");
+      $("fs-wrapper").classList.remove("open");
+      updFpv(n);
+      onChange();
+    });
+
+    optionsEl.appendChild(opt);
+  });
+
+  if (fonts.includes(cur)) S.font = cur;
+  else S.font = fonts[0];
+
+  textEl.textContent = S.font;
+  textEl.style.fontFamily = `"${S.font}", sans-serif`;
+  updFpv(S.font);
+}
+
+function updFpv(font) {
+  const f = font || S.font;
+  $("fpv").style.fontFamily = `"${f}", sans-serif`;
+}
+
+const FONTS_KEY = "obsTextEffectsFonts";
 
 async function loadFonts() {
   const st = $("fst");
-  st.textContent = "Loading site fonts...";
+  st.textContent = "Loading fonts...";
   st.className = "fst";
 
-  const fonts = [...SITE_FONTS].sort((a, b) =>
-    a.localeCompare(b, undefined, { sensitivity: "base" }),
-  );
+  try {
+    const cached = localStorage.getItem(FONTS_KEY);
+    if (cached) {
+      const fonts = JSON.parse(cached);
+      fillFontSel(fonts);
+      st.textContent =
+        fonts.length + " fonts loaded (from cache). Click 'Scan' to refresh.";
+      st.className = "fst ok";
+      return; // Выходим, если есть кэш
+    }
+  } catch (e) {}
 
-  fillFontSel(fonts);
-  st.textContent = fonts.length + " site fonts loaded";
-  st.className = "fst ok";
+  // Если кэша нет, запускаем сканирование
+  await scanFonts();
 }
 
 async function scanFonts() {
   const st = $("fst");
   st.textContent = "Scanning system fonts...";
   st.className = "fst";
+  let error = null;
 
   try {
     if ("queryLocalFonts" in window) {
@@ -188,20 +310,40 @@ async function scanFonts() {
       );
 
       fillFontSel(list);
+
+      // Сохраняем в localStorage для мгновенной загрузки в следующий раз
+      try {
+        localStorage.setItem(FONTS_KEY, JSON.stringify(list));
+      } catch (e) {}
+
       const systemCount = list.length - SITE_FONTS.length;
       st.textContent = `${SITE_FONTS.length} site + ${systemCount} system fonts found`;
       st.className = "fst ok";
       return;
     }
-  } catch (e) {
-    console.error("Font scan error:", e);
+  } catch (err) {
+    error = err;
+    console.error("Font scan error:", err);
   }
 
+  // Фолбэк, если API недоступен или пользователь отклонил запрос
   const combined = [...new Set([...SITE_FONTS, ...FF])].sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" }),
   );
   fillFontSel(combined);
-  st.textContent = "Scan unavailable (HTTPS required). Showing common fonts.";
+
+  // Тоже сохраняем фолбэк в кэш, чтобы не тревожить пользователя запросами каждый раз
+  try {
+    localStorage.setItem(FONTS_KEY, JSON.stringify(combined));
+  } catch (e) {}
+
+  if (error instanceof DOMException && error.name === "NotAllowedError") {
+    st.textContent = "Permission denied. Click 'Scan' to try again.";
+  } else if (!("queryLocalFonts" in window)) {
+    st.textContent = "Scan unavailable: requires HTTPS. Showing common fonts.";
+  } else {
+    st.textContent = "Scan failed. Showing common fonts.";
+  }
   st.className = "fst err";
 }
 
@@ -210,6 +352,7 @@ function updateVisCtrls() {
     a = S.appear,
     d = S.disappear;
   $("tw-opts").style.display = v === "typewriter" ? "block" : "none";
+  $("cursor-opts").style.display = v === "typewriter" ? "block" : "none";
   $("pt-opts").style.display = v === "particles" ? "block" : "none";
   $("pc-opts").style.display = v === "particles" ? "block" : "none";
   $("pspd-opts").style.display = v === "particles" ? "block" : "none";
@@ -295,7 +438,7 @@ function renderColorList() {
 }
 
 function readUI() {
-  S.font = $("fs").value;
+  S.font = $("fs-text").textContent;
   S.visual = $("vis").value;
   S.appear = $("apr").value;
   S.disappear = $("dis").value;
@@ -346,7 +489,15 @@ function readUI() {
 }
 
 function writeUI() {
-  $("fs").value = S.font;
+  const textEl = $("fs-text");
+  const optionsEl = $("fs-options");
+  textEl.textContent = S.font;
+  textEl.style.fontFamily = `"${S.font}", sans-serif`;
+  optionsEl.querySelectorAll(".cs-option").forEach((o) => {
+    o.classList.toggle("active", o.dataset.value === S.font);
+  });
+  updFpv(S.font);
+
   $("vis").value = S.visual;
   $("apr").value = S.appear;
   $("dis").value = S.disappear;
@@ -449,9 +600,21 @@ function fmtTimeUI(sec) {
 function updURL() {
   $("ubox").textContent = fullURL();
 }
+
+let previewTimeout = null;
 function onChange() {
   readUI();
   updURL();
+
+  clearTimeout(previewTimeout);
+  previewTimeout = setTimeout(() => {
+    const isFrameActive = $("tab-btn-frame")?.classList.contains("active");
+    if (!isFrameActive) {
+      stopAutoTrigger();
+      if (S.autoTrigger) startAutoTrigger($("pt"), $("pcv"), $("psl"));
+      else playFx($("pt"), $("pcv"), $("psl"));
+    }
+  }, 150);
 }
 
 function initCfg() {
@@ -465,47 +628,41 @@ function initCfg() {
   parseHash();
   writeUI();
   updURL();
-  loadFonts();
+  renderPresets();
+  loadFonts(); // Загрузка шрифтов (с кэша или сканирование)
 
-  // --- НАЧАЛО ЛОГИКИ ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК ---
   const btnFont = $("tab-btn-font");
   const btnFrame = $("tab-btn-frame");
   const contentFont = $("tab-font");
   const contentFrame = $("tab-frame");
 
   if (btnFont && btnFrame) {
-    // Клик на вкладку Font
     btnFont.addEventListener("click", () => {
       btnFont.classList.add("active");
       btnFrame.classList.remove("active");
       contentFont.style.display = "block";
       contentFrame.style.display = "none";
 
-      // Показать текстовый превью, скрыть рамку
       const pt = $("pt");
       const pcv = $("pcv");
       if (pt) pt.style.display = "";
       if (pcv) pcv.style.display = "";
 
       destroyFrameEditor();
-
       onChange();
     });
 
-    // Клик на вкладку Frame
     btnFrame.addEventListener("click", () => {
       btnFrame.classList.add("active");
       btnFont.classList.remove("active");
       contentFrame.style.display = "block";
       contentFont.style.display = "none";
 
-      // Скрыть текстовый превью, показать рамку
       const pt = $("pt");
       const pcv = $("pcv");
       if (pt) pt.style.display = "none";
       if (pcv) pcv.style.display = "none";
 
-      // Очистить канвас текста
       const c = $("pcv");
       if (c) {
         const ctx = c.getContext("2d");
@@ -515,7 +672,6 @@ function initCfg() {
       initFrameEditor();
     });
   }
-  // --- КОНЕЦ ЛОГИКИ ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК ---
 
   document.querySelectorAll(".tg").forEach((tg) => {
     tg.addEventListener("click", () => {
@@ -577,12 +733,36 @@ function initCfg() {
     });
   });
 
-  $("fs").addEventListener("change", () => {
-    updFpv();
-    onChange();
+  $("fs-trigger").addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("fs-wrapper").classList.toggle("open");
+    $("preset-wrapper").classList.remove("open");
+  });
+
+  $("preset-trigger").addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("preset-wrapper").classList.toggle("open");
+    $("fs-wrapper").classList.remove("open");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!$("fs-wrapper").contains(e.target)) {
+      $("fs-wrapper").classList.remove("open");
+      updFpv(S.font);
+    }
+    if (!$("preset-wrapper").contains(e.target)) {
+      $("preset-wrapper").classList.remove("open");
+    }
   });
 
   $("bscan").addEventListener("click", scanFonts);
+  $("bsave-preset").addEventListener("click", savePreset);
+
+  $("preset-name").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      savePreset();
+    }
+  });
 
   ["tc", "cc", "gc", "sc", "pc", "dpc"].forEach((id) =>
     $(id).addEventListener("input", onChange),
@@ -599,12 +779,6 @@ function initCfg() {
     }
   });
 
-  $("bprev").addEventListener("click", () => {
-    onChange();
-    stopAutoTrigger();
-    if (S.autoTrigger) startAutoTrigger($("pt"), $("pcv"), $("psl"));
-    else playFx($("pt"), $("pcv"), $("psl"));
-  });
   $("btest").addEventListener("click", () => {
     onChange();
     window.open(fullURL(), "_blank");
