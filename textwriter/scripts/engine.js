@@ -8,7 +8,7 @@ function svgEl(tag) {
 
 export const D = {
   font: "IBM Plex Mono",
-  visual: "typewriter",
+  visual: "none",
   appear: "none",
   disappear: "none",
   text: "Welcome to the stream\nToday we're doing something special\nLet's get started",
