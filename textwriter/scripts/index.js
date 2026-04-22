@@ -2,13 +2,20 @@ import {
   S,
   D,
   parseHash,
+  parseFrameHash,
   fullURL,
+  fullFrameURL,
   playFx,
   stopFx,
   startAutoTrigger,
   stopAutoTrigger,
 } from "./engine.js";
-import { initFrameEditor, destroyFrameEditor } from "./frame.js";
+import {
+  initFrameEditor,
+  destroyFrameEditor,
+  renderFrameOBS,
+  destroyFrameOBS,
+} from "./frame.js";
 
 const IS_CFG =
   location.hash === "#config" || location.search.includes("config");
@@ -131,9 +138,7 @@ const FF = [
   "Wingdings",
 ];
 
-/* ==================== PRESETS LOGIC ==================== */
 const PRESETS_KEY = "obsTextEffectsPresets";
-
 function getPresets() {
   try {
     return JSON.parse(localStorage.getItem(PRESETS_KEY) || "{}");
@@ -141,21 +146,17 @@ function getPresets() {
     return {};
   }
 }
-
 function savePreset() {
   const nameInput = $("preset-name");
   const name = nameInput.value.trim();
   if (!name) return;
-
   const presets = getPresets();
   presets[name] = JSON.parse(JSON.stringify(S));
   localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
-
   nameInput.value = "";
   renderPresets();
   $("preset-text").textContent = name;
 }
-
 function loadPreset(name) {
   const presets = getPresets();
   if (presets[name]) {
@@ -166,25 +167,20 @@ function loadPreset(name) {
   }
   $("preset-wrapper").classList.remove("open");
 }
-
 function deletePreset(e, name) {
   e.stopPropagation();
   const presets = getPresets();
   delete presets[name];
   localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
   renderPresets();
-  if ($("preset-text").textContent === name) {
+  if ($("preset-text").textContent === name)
     $("preset-text").textContent = "Select a preset...";
-  }
 }
-
 function renderPresets() {
   const optionsEl = $("preset-options");
   const presets = getPresets();
   const names = Object.keys(presets);
-
   optionsEl.innerHTML = "";
-
   if (names.length === 0) {
     const emptyOpt = document.createElement("div");
     emptyOpt.className = "cs-option cs-empty";
@@ -194,34 +190,27 @@ function renderPresets() {
     optionsEl.appendChild(emptyOpt);
     return;
   }
-
   names.forEach((name) => {
     const opt = document.createElement("div");
     opt.className = "cs-option preset-option-item";
-
     const nameSpan = document.createElement("span");
     nameSpan.textContent = name;
     nameSpan.style.flex = "1";
-
     const delBtn = document.createElement("i");
     delBtn.className = "fas fa-trash-alt preset-del-btn";
     delBtn.title = "Delete preset";
     delBtn.addEventListener("click", (e) => deletePreset(e, name));
-
     opt.appendChild(nameSpan);
     opt.appendChild(delBtn);
-
     opt.addEventListener("click", () => loadPreset(name));
     optionsEl.appendChild(opt);
   });
 }
-/* ==================== END PRESETS LOGIC ==================== */
 
 function fillFontSel(fonts) {
   const textEl = $("fs-text");
   const optionsEl = $("fs-options");
   const cur = S.font;
-
   optionsEl.innerHTML = "";
   fonts.forEach((n) => {
     const opt = document.createElement("div");
@@ -229,11 +218,7 @@ function fillFontSel(fonts) {
     opt.textContent = n;
     opt.style.fontFamily = `"${n}", sans-serif`;
     opt.dataset.value = n;
-
-    opt.addEventListener("mouseenter", () => {
-      updFpv(n);
-    });
-
+    opt.addEventListener("mouseenter", () => updFpv(n));
     opt.addEventListener("click", () => {
       S.font = n;
       textEl.textContent = n;
@@ -246,30 +231,22 @@ function fillFontSel(fonts) {
       updFpv(n);
       onChange();
     });
-
     optionsEl.appendChild(opt);
   });
-
   if (fonts.includes(cur)) S.font = cur;
   else S.font = fonts[0];
-
   textEl.textContent = S.font;
   textEl.style.fontFamily = `"${S.font}", sans-serif`;
   updFpv(S.font);
 }
-
 function updFpv(font) {
-  const f = font || S.font;
-  $("fpv").style.fontFamily = `"${f}", sans-serif`;
+  $("fpv").style.fontFamily = `"${font || S.font}", sans-serif`;
 }
-
 const FONTS_KEY = "obsTextEffectsFonts";
-
 async function loadFonts() {
   const st = $("fst");
   st.textContent = "Loading fonts...";
   st.className = "fst";
-
   try {
     const cached = localStorage.getItem(FONTS_KEY);
     if (cached) {
@@ -278,44 +255,34 @@ async function loadFonts() {
       st.textContent =
         fonts.length + " fonts loaded (from cache). Click 'Scan' to refresh.";
       st.className = "fst ok";
-      return; // Выходим, если есть кэш
+      return;
     }
   } catch (e) {}
-
-  // Если кэша нет, запускаем сканирование
   await scanFonts();
 }
-
 async function scanFonts() {
   const st = $("fst");
   st.textContent = "Scanning system fonts...";
   st.className = "fst";
   let error = null;
-
   try {
     if ("queryLocalFonts" in window) {
       const raw = await window.queryLocalFonts();
       const set = new Set(SITE_FONTS);
-
       raw.forEach((f) => {
         const family = f.family.replace(
-          /\s+(Regular|Bold|Italic|Light|Medium|Semibold|Black|Thin|ExtraBold|SemiLight|DemiBold|Heavy|ExtraLight|UltraBold|UltraLight|Narrow|Condensed|SemiCondensed|ExtraCondensed)\s*$/i,
+          /\s+(Regular|Bold|Italic|Light|Medium|Semibold|Black|Thin|ExtraBold|SemiLight|DemiBold|Heavy|ExtraLight|UltraBold|Narrow|Condensed|SemiCondensed|ExtraCondensed)\s*$/i,
           "",
         );
         set.add(family);
       });
-
       const list = Array.from(set).sort((a, b) =>
         a.localeCompare(b, undefined, { sensitivity: "base" }),
       );
-
       fillFontSel(list);
-
-      // Сохраняем в localStorage для мгновенной загрузки в следующий раз
       try {
         localStorage.setItem(FONTS_KEY, JSON.stringify(list));
       } catch (e) {}
-
       const systemCount = list.length - SITE_FONTS.length;
       st.textContent = `${SITE_FONTS.length} site + ${systemCount} system fonts found`;
       st.className = "fst ok";
@@ -323,28 +290,20 @@ async function scanFonts() {
     }
   } catch (err) {
     error = err;
-    console.error("Font scan error:", err);
   }
-
-  // Фолбэк, если API недоступен или пользователь отклонил запрос
   const combined = [...new Set([...SITE_FONTS, ...FF])].sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" }),
   );
   fillFontSel(combined);
-
-  // Тоже сохраняем фолбэк в кэш, чтобы не тревожить пользователя запросами каждый раз
   try {
     localStorage.setItem(FONTS_KEY, JSON.stringify(combined));
   } catch (e) {}
-
-  if (error instanceof DOMException && error.name === "NotAllowedError") {
-    st.textContent = "Permission denied. Click 'Scan' to try again.";
-  } else if (!("queryLocalFonts" in window)) {
-    st.textContent = "Scan unavailable: requires HTTPS. Showing common fonts.";
-  } else {
-    st.textContent = "Scan failed. Showing common fonts.";
-  }
   st.className = "fst err";
+  if (error instanceof DOMException && error.name === "NotAllowedError")
+    st.textContent = "Permission denied. Click 'Scan' to try again.";
+  else if (!("queryLocalFonts" in window))
+    st.textContent = "Scan unavailable: requires HTTPS. Showing common fonts.";
+  else st.textContent = "Scan failed. Showing common fonts.";
 }
 
 function updateVisCtrls() {
@@ -360,7 +319,6 @@ function updateVisCtrls() {
   $("bd-opts").style.display = v === "blood" ? "block" : "none";
   $("bdpl-opts").style.display = v === "blood" ? "block" : "none";
   $("ns-opts").style.display = v === "neonstroke" ? "block" : "none";
-
   const SELF_ENTRANCE_UI = new Set([
     "typewriter",
     "matrix",
@@ -372,9 +330,7 @@ function updateVisCtrls() {
   ]);
   const canCombine =
     a !== "none" && !SELF_ENTRANCE_UI.has(v) && a !== "assemble";
-
   $("asp-opts").style.display = canCombine ? "block" : "none";
-
   $("dsp-opts").style.display =
     d !== "none" &&
     d !== "particle-explode" &&
@@ -382,15 +338,13 @@ function updateVisCtrls() {
     d !== "scatter"
       ? "block"
       : "none";
-
   $("dp-opts").style.display = d === "particle-explode" ? "block" : "none";
-
+  $("gs-opts").style.display = d === "glass-shatter" ? "block" : "none";
   const needsActivityTime = S.autoTrigger || (S.loop && d !== "none");
   $("at-opts").style.display = needsActivityTime ? "block" : "none";
   $("atm-label").textContent = S.autoTrigger
     ? "Activity Time"
     : "Show Duration";
-
   $("vis-note").textContent = SELF_ENTRANCE_UI.has(v)
     ? "Has built-in entrance — appearance skipped"
     : "";
@@ -398,7 +352,6 @@ function updateVisCtrls() {
     a !== "none" && SELF_ENTRANCE_UI.has(v)
       ? "Ignored — visual effect handles entrance"
       : "";
-
   if (v === "typewriter")
     $("sp-note").textContent = "Controls character typing speed";
   else if (v === "none") $("sp-note").textContent = "No active visual effect";
@@ -485,6 +438,17 @@ function readUI() {
   S.dpc = $("dpc").value;
   S.dpsz = +$("dpsz").value;
   S.dpspd = +$("dpspd").value;
+  S.glassSize = +$("gsz").value;
+  S.glassEdge = +$("ged").value;
+  S.glassSpeed = +$("gspd").value;
+  S.frSpeed = +$("fr-speed").value;
+  S.frAngle = +$("fr-angle").value;
+  S.frWidth = +$("fr-width").value;
+  S.frHeight = +$("fr-height").value;
+  S.frSize = +$("fr-size").value;
+  S.frRadius = +$("fr-radius").value;
+  S.frGlow = +$("fr-glow").value;
+  S.frGlowGradient = $("fr-glow-gradient")?.classList.contains("on") || false;
   updateVisCtrls();
 }
 
@@ -493,11 +457,10 @@ function writeUI() {
   const optionsEl = $("fs-options");
   textEl.textContent = S.font;
   textEl.style.fontFamily = `"${S.font}", sans-serif`;
-  optionsEl.querySelectorAll(".cs-option").forEach((o) => {
-    o.classList.toggle("active", o.dataset.value === S.font);
-  });
+  optionsEl
+    .querySelectorAll(".cs-option")
+    .forEach((o) => o.classList.toggle("active", o.dataset.value === S.font));
   updFpv(S.font);
-
   $("vis").value = S.visual;
   $("apr").value = S.appear;
   $("dis").value = S.disappear;
@@ -557,7 +520,7 @@ function writeUI() {
   } catch (e) {}
   $("bdpl").value = S.bdpl;
   try {
-    $("bdpl-v").textContent = S.bdpl + "px";
+    $("bdpl-v").textContent = S.bdpl;
   } catch (e) {}
   $("tg-at").classList.toggle("on", S.autoTrigger);
   $("atm").value = S.activityTime;
@@ -586,6 +549,50 @@ function writeUI() {
   try {
     $("dpspd-v").textContent = (S.dpspd / 55).toFixed(1) + "x";
   } catch (e) {}
+  $("gsz").value = S.glassSize;
+  try {
+    $("gsz-v").textContent = S.glassSize;
+  } catch (e) {}
+  $("ged").value = S.glassEdge;
+  try {
+    $("ged-v").textContent = S.glassEdge;
+  } catch (e) {}
+  $("gspd").value = S.glassSpeed;
+  try {
+    $("gspd-v").textContent = (S.glassSpeed / 55).toFixed(1) + "x";
+  } catch (e) {}
+  try {
+    $("fr-speed").value = S.frSpeed;
+    $("fr-speed-v").textContent =
+      S.frSpeed === 0 ? "Static" : (S.frSpeed / 55).toFixed(1) + "x";
+  } catch (e) {}
+  try {
+    $("fr-angle").value = S.frAngle;
+    $("fr-angle-v").textContent = S.frAngle + "deg";
+  } catch (e) {}
+  try {
+    $("fr-width").value = S.frWidth;
+    $("fr-width-v").textContent = S.frWidth + "px";
+  } catch (e) {}
+  try {
+    $("fr-height").value = S.frHeight;
+    $("fr-height-v").textContent = S.frHeight + "px";
+  } catch (e) {}
+  try {
+    $("fr-size").value = S.frSize;
+    $("fr-size-v").textContent = S.frSize + "px";
+  } catch (e) {}
+  try {
+    $("fr-radius").value = S.frRadius;
+    $("fr-radius-v").textContent = S.frRadius + "px";
+  } catch (e) {}
+  try {
+    $("fr-glow").value = S.frGlow;
+    $("fr-glow-v").textContent = S.frGlow + "px";
+  } catch (e) {}
+  try {
+    $("fr-glow-gradient").classList.toggle("on", S.frGlowGradient);
+  } catch (e) {}
   updateVisCtrls();
 }
 
@@ -596,16 +603,16 @@ function fmtTimeUI(sec) {
     s = sec % 60;
   return s > 0 ? m + "m " + s + "s" : m + "m";
 }
-
 function updURL() {
-  $("ubox").textContent = fullURL();
+  const isFrameActive = $("tab-btn-frame")?.classList.contains("active");
+  if (isFrameActive) $("ubox").textContent = fullFrameURL();
+  else $("ubox").textContent = fullURL();
 }
 
 let previewTimeout = null;
 function onChange() {
   readUI();
   updURL();
-
   clearTimeout(previewTimeout);
   previewTimeout = setTimeout(() => {
     const isFrameActive = $("tab-btn-frame")?.classList.contains("active");
@@ -613,6 +620,8 @@ function onChange() {
       stopAutoTrigger();
       if (S.autoTrigger) startAutoTrigger($("pt"), $("pcv"), $("psl"));
       else playFx($("pt"), $("pcv"), $("psl"));
+    } else {
+      if (window.updateFramePreview) window.updateFramePreview();
     }
   }, 150);
 }
@@ -626,53 +635,48 @@ function initCfg() {
         ? "Local file — limited"
         : "HTTP";
   parseHash();
+  parseFrameHash();
   writeUI();
   updURL();
   renderPresets();
-  loadFonts(); // Загрузка шрифтов (с кэша или сканирование)
-
+  loadFonts();
   const btnFont = $("tab-btn-font");
   const btnFrame = $("tab-btn-frame");
   const contentFont = $("tab-font");
   const contentFrame = $("tab-frame");
-
+  const textControls = $("text-control-container");
   if (btnFont && btnFrame) {
     btnFont.addEventListener("click", () => {
       btnFont.classList.add("active");
       btnFrame.classList.remove("active");
       contentFont.style.display = "block";
       contentFrame.style.display = "none";
-
+      textControls.style.display = "block";
       const pt = $("pt");
       const pcv = $("pcv");
       if (pt) pt.style.display = "";
       if (pcv) pcv.style.display = "";
-
       destroyFrameEditor();
       onChange();
     });
-
     btnFrame.addEventListener("click", () => {
       btnFrame.classList.add("active");
       btnFont.classList.remove("active");
       contentFrame.style.display = "block";
       contentFont.style.display = "none";
-
       const pt = $("pt");
       const pcv = $("pcv");
       if (pt) pt.style.display = "none";
       if (pcv) pcv.style.display = "none";
-
       const c = $("pcv");
       if (c) {
         const ctx = c.getContext("2d");
         ctx.clearRect(0, 0, c.width, c.height);
       }
-
       initFrameEditor();
+      updURL();
     });
   }
-
   document.querySelectorAll(".tg").forEach((tg) => {
     tg.addEventListener("click", () => {
       tg.classList.toggle("on");
@@ -687,7 +691,6 @@ function initCfg() {
       onChange();
     });
   });
-
   const rvM = {
     sp: (v) => (v / 55).toFixed(1) + "x",
     asp: (v) => (v / 55).toFixed(1) + "x",
@@ -701,7 +704,7 @@ function initCfg() {
     lp: (v) => (v / 1000).toFixed(1) + "s",
     sdns: (v) => v + "%",
     bdns: (v) => v + "%",
-    bdpl: (v) => v + "px",
+    bdpl: (v) => v,
     atm: (v) => fmtTimeUI(+v),
     btm: (v) => fmtTimeUI(+v),
     nsw: (v) => v + "px",
@@ -709,6 +712,16 @@ function initCfg() {
     nsgs: (v) => (v / 55).toFixed(1) + "x",
     dpsz: (v) => v + "px",
     dpspd: (v) => (v / 55).toFixed(1) + "x",
+    gsz: (v) => v,
+    ged: (v) => v,
+    gspd: (v) => (v / 55).toFixed(1) + "x",
+    "fr-speed": (v) => (+v === 0 ? "Static" : (v / 55).toFixed(1) + "x"),
+    "fr-angle": (v) => v + "deg",
+    "fr-width": (v) => v + "px",
+    "fr-height": (v) => v + "px",
+    "fr-size": (v) => v + "px",
+    "fr-radius": (v) => v + "px",
+    "fr-glow": (v) => v + "px",
   };
   document.querySelectorAll('input[type="range"]').forEach((r) => {
     r.addEventListener("input", () => {
@@ -717,7 +730,6 @@ function initCfg() {
       onChange();
     });
   });
-
   document.querySelectorAll(".pb").forEach((b) => {
     b.addEventListener("click", () => {
       document.querySelectorAll(".pb").forEach((x) => x.classList.remove("on"));
@@ -732,38 +744,29 @@ function initCfg() {
       onChange();
     });
   });
-
   $("fs-trigger").addEventListener("click", (e) => {
     e.stopPropagation();
     $("fs-wrapper").classList.toggle("open");
     $("preset-wrapper").classList.remove("open");
   });
-
   $("preset-trigger").addEventListener("click", (e) => {
     e.stopPropagation();
     $("preset-wrapper").classList.toggle("open");
     $("fs-wrapper").classList.remove("open");
   });
-
   document.addEventListener("click", (e) => {
     if (!$("fs-wrapper").contains(e.target)) {
       $("fs-wrapper").classList.remove("open");
       updFpv(S.font);
     }
-    if (!$("preset-wrapper").contains(e.target)) {
+    if (!$("preset-wrapper").contains(e.target))
       $("preset-wrapper").classList.remove("open");
-    }
   });
-
   $("bscan").addEventListener("click", scanFonts);
   $("bsave-preset").addEventListener("click", savePreset);
-
   $("preset-name").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      savePreset();
-    }
+    if (e.key === "Enter") savePreset();
   });
-
   ["tc", "cc", "gc", "sc", "pc", "dpc"].forEach((id) =>
     $(id).addEventListener("input", onChange),
   );
@@ -778,14 +781,14 @@ function initCfg() {
       onChange();
     }
   });
-
   $("btest").addEventListener("click", () => {
     onChange();
-    window.open(fullURL(), "_blank");
+    window.open($("ubox").textContent, "_blank");
   });
   $("bcopy").addEventListener("click", () => {
     onChange();
-    navigator.clipboard.writeText(fullURL()).then(() => {
+    const url = $("ubox").textContent;
+    navigator.clipboard.writeText(url).then(() => {
       const b = $("bcopy");
       b.innerHTML = '<i class="fas fa-check"></i> Copied';
       b.classList.add("copied");
@@ -795,7 +798,6 @@ function initCfg() {
       }, 2000);
     });
   });
-
   if (S.autoTrigger)
     setTimeout(() => startAutoTrigger($("pt"), $("pcv"), $("psl")), 400);
   else setTimeout(() => playFx($("pt"), $("pcv"), $("psl")), 300);
@@ -819,20 +821,26 @@ function waitForFont(fontName) {
     setTimeout(() => resolve(false), 3000);
   });
 }
-
 async function initOv() {
-  parseHash();
-  await waitForFont(S.font);
-  const cv = $("cv");
-  cv.width = window.innerWidth;
-  cv.height = window.innerHeight;
-  playFx($("ov"), cv, $("sl"));
-  if (S.autoTrigger)
-    setTimeout(() => startAutoTrigger($("ov"), cv, $("sl")), 300);
-  window.addEventListener("resize", () => {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const mode = params.get("mode");
+  if (mode === "frame") {
+    parseFrameHash();
+    renderFrameOBS();
+  } else {
+    parseHash();
+    await waitForFont(S.font);
+    const cv = $("cv");
     cv.width = window.innerWidth;
     cv.height = window.innerHeight;
-  });
+    playFx($("ov"), cv, $("sl"));
+    if (S.autoTrigger)
+      setTimeout(() => startAutoTrigger($("ov"), cv, $("sl")), 300);
+    window.addEventListener("resize", () => {
+      cv.width = window.innerWidth;
+      cv.height = window.innerHeight;
+    });
+  }
 }
 
 if (IS_CFG) initCfg();

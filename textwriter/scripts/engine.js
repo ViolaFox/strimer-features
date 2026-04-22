@@ -52,6 +52,18 @@ export const D = {
   dpc: "#ffffff",
   dpsz: 6,
   dpspd: 100,
+  glassSize: 50,
+  glassEdge: 50,
+  glassSpeed: 55,
+  frColors: ["#ff00ff"],
+  frSpeed: 0,
+  frAngle: 90,
+  frSize: 10,
+  frGlow: 20,
+  frGlowGradient: false,
+  frRadius: 0,
+  frWidth: 500,
+  frHeight: 200,
 };
 
 export let S = { ...D };
@@ -62,6 +74,8 @@ let playing = false,
   particles = [],
   _bloodCtx = null,
   _bloodFrontCv = null;
+let currentCv = null,
+  currentSl = null;
 
 const SELF_ENTRANCE = new Set([
   "typewriter",
@@ -97,7 +111,6 @@ const EXIT_CLS = {
   "zoom-out": "fx-zi-exit",
   "shrink-point": "fx-shrink-exit",
 };
-
 const APPEAR_DUR = {
   "slide-left": 700,
   "slide-right": 700,
@@ -136,7 +149,7 @@ export function toHash() {
     .map((x) => encodeURIComponent(x))
     .join("|");
   return (
-    "#v=" +
+    "#mode=text&v=" +
     S.visual +
     "&ap=" +
     S.appear +
@@ -225,7 +238,35 @@ export function toHash() {
     "&dpsz=" +
     S.dpsz +
     "&dpspd=" +
-    S.dpspd
+    S.dpspd +
+    "&gsz=" +
+    S.glassSize +
+    "&ged=" +
+    S.glassEdge +
+    "&gsp=" +
+    S.glassSpeed
+  );
+}
+export function toFrameHash() {
+  return (
+    "#mode=frame&frc=" +
+    S.frColors.map((c) => encodeURIComponent(c)).join("|") +
+    "&frsp=" +
+    S.frSpeed +
+    "&frdi=" +
+    S.frAngle +
+    "&frsz=" +
+    S.frSize +
+    "&frgl=" +
+    S.frGlow +
+    "&frrd=" +
+    S.frRadius +
+    "&frw=" +
+    S.frWidth +
+    "&frh=" +
+    S.frHeight +
+    "&frgg=" +
+    (S.frGlowGradient ? 1 : 0)
   );
 }
 
@@ -272,21 +313,37 @@ export function parseHash() {
   S.autoTrigger = g("atr") === "1";
   if (g("atm")) S.activityTime = +g("atm");
   if (g("btm")) S.betweenTime = +g("btm");
-  if (g("nc")) {
-    S.colors = g("nc").split("|");
-  } else if (g("nc1") && g("nc2")) {
-    S.colors = [g("nc1"), g("nc2")];
-  }
+  if (g("nc")) S.colors = g("nc").split("|");
   if (g("nsw")) S.nsw = +g("nsw");
   if (g("ngi")) S.ngi = +g("ngi");
   if (g("ngs")) S.nsGradSpeed = +g("ngs");
   if (g("dpc")) S.dpc = g("dpc");
   if (g("dpsz")) S.dpsz = +g("dpsz");
   if (g("dpspd")) S.dpspd = +g("dpspd");
+  if (g("gsz")) S.glassSize = +g("gsz");
+  if (g("ged")) S.glassEdge = +g("ged");
+  if (g("gsp")) S.glassSpeed = +g("gsp");
 }
-
+export function parseFrameHash() {
+  const h = location.hash.slice(1);
+  if (!h || h === "config") return;
+  const p = new URLSearchParams(h),
+    g = (k) => p.get(k);
+  if (g("frc")) S.frColors = g("frc").split("|");
+  if (g("frsp")) S.frSpeed = +g("frsp");
+  if (g("frdi")) S.frAngle = +g("frdi");
+  if (g("frsz")) S.frSize = +g("frsz");
+  if (g("frgl")) S.frGlow = +g("frgl");
+  if (g("frrd")) S.frRadius = +g("frrd");
+  if (g("frw")) S.frWidth = +g("frw");
+  if (g("frh")) S.frHeight = +g("frh");
+  S.frGlowGradient = g("frgg") === "1";
+}
 export function fullURL() {
   return location.href.split("#")[0].split("?")[0] + toHash();
+}
+export function fullFrameURL() {
+  return location.href.split("#")[0].split("?")[0] + toFrameHash();
 }
 
 const dynCSS = document.createElement("style");
@@ -297,7 +354,6 @@ function injCSS(c) {
 function clrCSS() {
   dynCSS.textContent = "";
 }
-
 function curH(id) {
   const c = S.cc,
     e = id || "oc";
@@ -312,7 +368,6 @@ function curH(id) {
       return "";
   }
 }
-
 function applyStyle(tgt) {
   const m = S.margin;
   let sh = "none";
@@ -367,7 +422,6 @@ function applyStyle(tgt) {
   const par = tgt.parentElement;
   if (par) tgt.style.maxWidth = `calc(${par.clientWidth}px - ${m * 2}px)`;
 }
-
 function setLines(tgt, cls, sty) {
   const lines = S.text.split("\n").filter((l) => l.trim());
   tgt.innerHTML = lines
@@ -376,13 +430,11 @@ function setLines(tgt, cls, sty) {
     )
     .join("");
 }
-
 function sizeCV(cv) {
   if (!cv || !cv.parentElement) return;
   cv.width = cv.parentElement.clientWidth;
   cv.height = cv.parentElement.clientHeight;
 }
-
 function clickSnd() {
   if (!audioCtx)
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -403,7 +455,6 @@ function clickSnd() {
   o.start(t);
   o.stop(t + 0.025);
 }
-
 function hexToRGB(hex) {
   return {
     r: parseInt(hex.slice(1, 3), 16),
@@ -411,7 +462,6 @@ function hexToRGB(hex) {
     b: parseInt(hex.slice(5, 7), 16),
   };
 }
-
 function smokeNoise(x, y, t) {
   return (
     Math.sin(x * 0.008 + t * 0.4) * Math.cos(y * 0.012 + t * 0.25) * 0.5 +
@@ -419,7 +469,6 @@ function smokeNoise(x, y, t) {
     Math.sin((x + y) * 0.005 + t * 0.5) * 0.2
   );
 }
-
 function getSVGTextMetrics(par, S) {
   const W = par.clientWidth || window.innerWidth;
   const H = par.clientHeight || window.innerHeight;
@@ -472,16 +521,18 @@ function getSVGTextMetrics(par, S) {
   }
   const anchor =
     S.align === "center" ? "middle" : S.align === "right" ? "end" : "start";
-  const lineObjs = lines.map((line, i) => ({
-    text: line,
-    x: bx,
-    y: by + fontSize * 0.82 + i * lineH,
-    anchor: anchor,
-  }));
-  return { W, H, lines: lineObjs };
+  return {
+    W,
+    H,
+    lines: lines.map((line, i) => ({
+      text: line,
+      x: bx,
+      y: by + fontSize * 0.82 + i * lineH,
+      anchor,
+    })),
+  };
 }
 
-/* ==================== EFFECTS ==================== */
 const FX = {
   typewriter(tgt) {
     playing = true;
@@ -494,9 +545,7 @@ const FX = {
     const baseDelay = Math.max(5, 3025 / S.speed);
     (function tick() {
       if (!playing) return;
-      if (li >= lines.length) {
-        return;
-      }
+      if (li >= lines.length) return;
       const ln = lines[li];
       if (!ln || !ln.trim()) {
         li++;
@@ -537,8 +586,8 @@ const FX = {
     const sm = vm(S.speed),
       dur = (2 / sm).toFixed(3);
     injCSS(`.fx-glitch::before,.fx-glitch::after{animation-duration:${dur}s`);
-    const lines = S.text.split("\n");
-    tgt.innerHTML = lines
+    tgt.innerHTML = S.text
+      .split("\n")
       .map(
         (l) => `<div class="fx-glitch" data-text="${esc(l)}">${esc(l)}</div>`,
       )
@@ -557,9 +606,9 @@ const FX = {
     (function draw() {
       if (!playing) return;
       age++;
-      const spawnCount = Math.max(1, Math.floor(2 * density));
       if (age % 2 === 0) {
-        for (let i = 0; i < spawnCount; i++) {
+        const sc = Math.max(1, Math.floor(2 * density));
+        for (let i = 0; i < sc; i++) {
           const bx = cv.width * 0.1 + Math.random() * cv.width * 0.8,
             by = cv.height * 0.1 + Math.random() * cv.height * 0.8;
           particles.push({
@@ -587,12 +636,12 @@ const FX = {
         const life = 1 - p.age / p.maxAge;
         if (life <= 0) return;
         const t = age * 0.008 * sm;
-        const nx = smokeNoise(p.baseX, p.baseY, t + p.phase) * 35 * p.drift;
-        const ny =
+        p.x =
+          p.baseX + smokeNoise(p.baseX, p.baseY, t + p.phase) * 35 * p.drift;
+        p.y =
+          p.baseY +
           smokeNoise(p.baseX + 500, p.baseY + 500, t + p.phase) * 25 * p.drift -
           p.age * 0.04 * sm;
-        p.x = p.baseX + nx;
-        p.y = p.baseY + ny;
         const curR = p.r + p.age * 0.18,
           a = life * 0.1 * smokeAlpha * density;
         if (a > 0.002) {
@@ -605,9 +654,7 @@ const FX = {
             Math.max(1, curR),
           );
           grad.addColorStop(0, `rgba(170,170,180,${a})`);
-          grad.addColorStop(0.35, `rgba(150,150,160,${a * 0.65})`);
-          grad.addColorStop(0.7, `rgba(130,130,140,${a * 0.25})`);
-          grad.addColorStop(1, `rgba(110,110,120,0)`);
+          grad.addColorStop(1, "rgba(110,110,120,0)");
           ctx.beginPath();
           ctx.arc(p.x, p.y, Math.max(1, curR), 0, Math.PI * 2);
           ctx.fillStyle = grad;
@@ -685,9 +732,6 @@ const FX = {
           ctx.strokeStyle = "rgba(200,230,255,0.5)";
           ctx.lineWidth = 1.5;
           ctx.stroke();
-          ctx.strokeStyle = "rgba(255,255,255,0.25)";
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
         });
         animFrame = requestAnimationFrame(draw);
       })();
@@ -705,13 +749,11 @@ const FX = {
   wave(tgt) {
     const sm = vm(S.speed),
       dur = (2 / sm).toFixed(3);
-    const lines = S.text.split("\n");
     let h = "";
-    lines.forEach((ln, li) => {
+    S.text.split("\n").forEach((ln, li) => {
       if (li > 0) h += "<br>";
       for (let i = 0; i < ln.length; i++) {
-        const d = (((li * 20 + i) * 0.06) / sm).toFixed(3);
-        h += `<span class="fx-wl" style="animation-delay:${d}s;animation-duration:${dur}s">${esc(ln[i])}</span>`;
+        h += `<span class="fx-wl" style="animation-delay:${(((li * 20 + i) * 0.06) / sm).toFixed(3)}s;animation-duration:${dur}s">${esc(ln[i])}</span>`;
       }
     });
     tgt.innerHTML = h;
@@ -756,67 +798,55 @@ const FX = {
     tgt.style.animation = `fxShd ${dur}s ease-in-out infinite`;
     playing = true;
   },
-
   scatter(tgt) {
     const sm = vm(S.speed),
       durS = (1.4 / sm).toFixed(3),
       delayBase = 0.03 / sm;
-    const lines = S.text.split("\n");
     let h = "",
       idx = 0;
-    lines.forEach((ln, li) => {
+    S.text.split("\n").forEach((ln, li) => {
       if (li > 0) h += "<br>";
       for (let i = 0; i < ln.length; i++) {
-        const sx = (Math.random() - 0.5) * 1200,
-          sy = (Math.random() - 0.5) * 800,
-          sr = (Math.random() - 0.5) * 1080;
-        h += `<span class="fx-scl" style="--sx:${sx}px;--sy:${sy}px;--sr:${sr}deg;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durS}s">${esc(ln[i])}</span>`;
+        h += `<span class="fx-scl" style="--sx:${(Math.random() - 0.5) * 1200}px;--sy:${(Math.random() - 0.5) * 800}px;--sr:${(Math.random() - 0.5) * 1080}deg;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durS}s">${esc(ln[i])}</span>`;
         idx++;
       }
     });
     tgt.innerHTML = h;
     playing = true;
-    const totalAnimTime = (idx * delayBase + parseFloat(durS)) * 1000 + 500;
-    timer = setTimeout(() => {
-      stopFx(tgt, $("cv"), $("sl"));
-      handleNextCycle(tgt);
-    }, totalAnimTime);
+    timer = setTimeout(
+      () => {
+        stopFx(tgt, currentCv, currentSl);
+        handleNextCycle(tgt);
+      },
+      (idx * delayBase + parseFloat(durS)) * 1000 + 500,
+    );
   },
-
   assemble(tgt) {
     const sm = vm(S.speed),
       durA = (0.7 / sm).toFixed(3),
       delayBase = 0.04 / sm;
-    const lines = S.text.split("\n");
     let h = "",
       idx = 0;
-    lines.forEach((ln, li) => {
+    S.text.split("\n").forEach((ln, li) => {
       if (li > 0) h += "<br>";
       for (let i = 0; i < ln.length; i++) {
-        const sx = (Math.random() - 0.5) * 900,
-          sy = (Math.random() - 0.5) * 600,
-          sr = (Math.random() - 0.5) * 720;
-        h += `<span class="fx-al" style="--sx:${sx}px;--sy:${sy}px;--sr:${sr}deg;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durA}s">${esc(ln[i])}</span>`;
+        h += `<span class="fx-al" style="--sx:${(Math.random() - 0.5) * 900}px;--sy:${(Math.random() - 0.5) * 600}px;--sr:${(Math.random() - 0.5) * 720}deg;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durA}s">${esc(ln[i])}</span>`;
         idx++;
       }
     });
     tgt.innerHTML = h;
     playing = true;
   },
-
   pour(tgt) {
     const sm = vm(S.speed),
       durP = (0.9 / sm).toFixed(3),
       delayBase = 0.05 / sm;
-    const lines = S.text.split("\n");
     let h = "",
       idx = 0;
-    lines.forEach((ln, li) => {
+    S.text.split("\n").forEach((ln, li) => {
       if (li > 0) h += "<br>";
       for (let i = 0; i < ln.length; i++) {
-        const pr = (Math.random() - 0.5) * 25,
-          px = (Math.random() - 0.5) * 50;
-        h += `<span class="fx-pour" style="--pr:${pr}deg;--px:${px}px;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durP}s">${esc(ln[i])}</span>`;
+        h += `<span class="fx-pour" style="--pr:${(Math.random() - 0.5) * 25}deg;--px:${(Math.random() - 0.5) * 50}px;animation-delay:${(idx * delayBase).toFixed(3)}s;animation-duration:${durP}s">${esc(ln[i])}</span>`;
         idx++;
       }
     });
@@ -832,9 +862,7 @@ const FX = {
     playing = true;
     (function go() {
       if (!playing) return;
-      if (li >= lines.length) {
-        return;
-      }
+      if (li >= lines.length) return;
       const d = document.createElement("div");
       d.className = "fx-stamp";
       d.textContent = lines[li];
@@ -910,9 +938,7 @@ const FX = {
         }
       });
       round++;
-      if (allDone) {
-        return;
-      } else timer = setTimeout(tick, baseDelay);
+      if (!allDone) timer = setTimeout(tick, baseDelay);
     })();
   },
   water(tgt) {
@@ -1031,19 +1057,14 @@ const FX = {
       animFrame = requestAnimationFrame(draw);
     })();
   },
-
-  /* ==================== BLOOD DRIP EFFECT ==================== */
   blood(tgt, cv) {
     setLines(tgt);
     sizeCV(cv);
     const ctx = cv.getContext("2d");
     _bloodCtx = { cv, ctx };
     playing = true;
-
     const sm = vm(S.speed);
     const density = (S.bdns || 60) / 60;
-
-    // Create a second canvas in front of the text for random front drips
     let frontCv = null;
     let frontCtx = null;
     const par = cv.parentElement || tgt.parentElement;
@@ -1058,41 +1079,26 @@ const FX = {
       frontCtx = frontCv.getContext("2d");
       _bloodFrontCv = frontCv;
     }
-
-    // Add blood-themed glow to text
     tgt.style.textShadow =
       "0 0 8px rgba(139,0,0,0.5), 0 0 20px rgba(100,0,0,0.25)";
-
-    // We need to find text pixel edges using an offscreen canvas
     const rect = tgt.getBoundingClientRect();
     const cvR = cv.getBoundingClientRect();
-
     if (rect.width === 0 || rect.height === 0) {
-      // Fallback: try after a frame
       requestAnimationFrame(() => FX.blood(tgt, cv));
       return;
     }
-
     const offscreen = document.createElement("canvas");
     offscreen.width = Math.ceil(rect.width);
     offscreen.height = Math.ceil(rect.height);
     const offCtx = offscreen.getContext("2d");
-
-    // Render text to offscreen canvas for edge detection
     const fontSize = S.size;
     const lineH = (fontSize * S.lh) / 100;
     const lines = S.text.split("\n").filter((l) => l.trim());
-
     offCtx.font = `${S.italic ? "italic " : ""}${S.bold ? "900 " : "400 "}${fontSize}px "${S.font}", sans-serif`;
     offCtx.textAlign = S.align;
     offCtx.textBaseline = "top";
     offCtx.fillStyle = "#ffffff";
-
-    // CSS centers text vertically within the line-height box.
-    // Canvas "top" baseline starts at the em square top, which is higher.
-    // Compensate with the half-leading offset to match browser rendering.
     const yOffset = (lineH - fontSize) / 2;
-
     lines.forEach((line, i) => {
       let x =
         S.align === "center"
@@ -1102,7 +1108,6 @@ const FX = {
             : 0;
       offCtx.fillText(line, x, yOffset + i * lineH);
     });
-
     const imgData = offCtx.getImageData(
       0,
       0,
@@ -1112,8 +1117,6 @@ const FX = {
     const pxData = imgData.data;
     const oW = offscreen.width;
     const oH = offscreen.height;
-
-    // Find top edges of text (first opaque pixel per column, scanning top→bottom)
     const topEdges = [];
     for (let x = 0; x < oW; x += 2) {
       for (let y = 0; y < oH; y++) {
@@ -1124,8 +1127,6 @@ const FX = {
         }
       }
     }
-
-    // Find bottom edges of text (first opaque pixel per column, scanning bottom→top)
     const bottomEdges = [];
     for (let x = 0; x < oW; x += 2) {
       for (let y = oH - 1; y >= 0; y--) {
@@ -1136,102 +1137,73 @@ const FX = {
         }
       }
     }
-
     const offsetX = rect.left - cvR.left;
     const offsetY = rect.top - cvR.top;
-
-    // Blood drip data
     const drips = [];
     const pools = [];
     let lastSpawnTop = 0;
     let lastSpawnBottom = 0;
-
     function makeDrip(ex, ey) {
       const dripWidth = 2 + Math.random() * 6;
       const dripLen = (S.bdpl || 50) / 50;
       const maxLen = (15 + Math.random() * 60) * dripLen;
       const numSegs = 4 + Math.floor(Math.random() * 6);
       const shape = [];
-      for (let i = 0; i <= numSegs; i++) {
-        shape.push(0.5 + Math.random() * 0.8);
-      }
-
+      for (let i = 0; i <= numSegs; i++) shape.push(0.5 + Math.random() * 0.8);
       const vy = (0.3 + Math.random() * 0.6) * sm;
-
       return {
         x: ex + offsetX + (Math.random() * 4 - 2),
         y: ey + offsetY,
         width: dripWidth,
         maxLength: maxLen,
         currentLength: 0,
-        vy: vy,
+        vy,
         wobble: (Math.random() - 0.5) * 1.2,
         wobbleSpeed: 0.015 + Math.random() * 0.03,
         opacity: 0.65 + Math.random() * 0.35,
         growing: true,
         phase: Math.random() * Math.PI * 2,
-        shape: shape,
+        shape,
         front: Math.random() > 0.5,
       };
     }
-
     function drawDrip(d, drawCtx) {
       const len = d.currentLength;
       if (len < 1.5) return;
-
       const segs = d.shape.length - 1;
       const segLen = len / segs;
-
       drawCtx.save();
       drawCtx.globalAlpha = d.opacity;
-
-      // Calculate direction unit vector
-      // Drips go straight down
       const cosA = 0;
       const sinA = 1;
-
       drawCtx.beginPath();
-
-      // Start point
       const sx = d.x;
       const sy = d.y;
       drawCtx.moveTo(sx, sy);
-
-      // Build drip path along the flow direction
       const points = [];
       for (let i = 0; i <= segs; i++) {
         const t = i / segs;
         const dist = i * segLen;
-        // Wobble perpendicular to flow
         const wobbleOffset = Math.sin(d.phase + i * 0.6) * d.wobble * 1.5;
         const px = sx + cosA * dist + -sinA * wobbleOffset;
         const py = sy + sinA * dist + cosA * wobbleOffset;
         points.push({ x: px, y: py, t });
       }
-
-      // Left contour (going forward)
       for (let i = 0; i <= segs; i++) {
         const p = points[i];
         const perpX = -sinA;
         const perpY = cosA;
         const halfW =
           (d.width * d.shape[i] * (0.5 + 0.5 * (1 - p.t * 0.35))) / 2;
-        if (i === 0) {
-          drawCtx.moveTo(p.x + perpX * halfW, p.y + perpY * halfW);
-        } else {
-          drawCtx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
-        }
+        if (i === 0) drawCtx.moveTo(p.x + perpX * halfW, p.y + perpY * halfW);
+        else drawCtx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
       }
-
-      // Tip
       const tip = points[segs];
       const tipExtend = d.width * 0.35;
       const tipX = tip.x + cosA * tipExtend;
       const tipY = tip.y + sinA * tipExtend;
       drawCtx.quadraticCurveTo(tipX + -sinA * 1, tipY + cosA * 1, tipX, tipY);
       drawCtx.quadraticCurveTo(tipX + sinA * 1, tipY - cosA * 1, tipX, tipY);
-
-      // Right contour (going backward)
       for (let i = segs; i >= 0; i--) {
         const p = points[i];
         const perpX = sinA;
@@ -1240,10 +1212,7 @@ const FX = {
           (d.width * d.shape[i] * (0.5 + 0.5 * (1 - p.t * 0.35))) / 2;
         drawCtx.lineTo(p.x + perpX * halfW, p.y + perpY * halfW);
       }
-
       drawCtx.closePath();
-
-      // Blood gradient along drip direction
       const grad = drawCtx.createLinearGradient(sx, sy, sx, sy + len);
       grad.addColorStop(0, "#BB0000");
       grad.addColorStop(0.15, "#990000");
@@ -1252,8 +1221,6 @@ const FX = {
       grad.addColorStop(1, "#550000");
       drawCtx.fillStyle = grad;
       drawCtx.fill();
-
-      // Subtle highlight on one side
       drawCtx.beginPath();
       for (let i = 0; i <= segs; i++) {
         const p = points[i];
@@ -1266,10 +1233,8 @@ const FX = {
       drawCtx.strokeStyle = "rgba(255,100,100,0.18)";
       drawCtx.lineWidth = 0.8;
       drawCtx.stroke();
-
       drawCtx.restore();
     }
-
     function drawPool(p, poolCtx) {
       poolCtx.save();
       poolCtx.globalAlpha = p.opacity;
@@ -1291,8 +1256,6 @@ const FX = {
       poolCtx.fill();
       poolCtx.restore();
     }
-
-    // Pre-seed some drips for immediate visual
     for (let i = 0; i < 12; i++) {
       if (topEdges.length > 0) {
         const pt = topEdges[Math.floor(Math.random() * topEdges.length)];
@@ -1309,18 +1272,13 @@ const FX = {
         drips.push(d);
       }
     }
-
     function frame() {
       if (!playing) return;
-
       const time = performance.now();
       ctx.clearRect(0, 0, cv.width, cv.height);
       if (frontCtx) frontCtx.clearRect(0, 0, frontCv.width, frontCv.height);
-
-      // Spawn intervals scale with density
       const topInterval = Math.max(60, 180 / density);
       const bottomInterval = Math.max(200, 500 / density);
-      // Spawn from top edges
       if (time - lastSpawnTop > topInterval) {
         if (topEdges.length > 0) {
           const pt = topEdges[Math.floor(Math.random() * topEdges.length)];
@@ -1328,8 +1286,6 @@ const FX = {
           lastSpawnTop = time;
         }
       }
-
-      // Spawn from bottom edges (less frequently)
       if (time - lastSpawnBottom > bottomInterval) {
         if (bottomEdges.length > 0 && Math.random() > 0.4) {
           const pt =
@@ -1338,37 +1294,24 @@ const FX = {
           lastSpawnBottom = time;
         }
       }
-
-      // Update & draw drips
       for (let i = drips.length - 1; i >= 0; i--) {
         const d = drips[i];
         d.phase += d.wobbleSpeed;
-
         if (d.growing) {
           d.currentLength += d.vy;
           d.y += d.vy;
-
-          // Gravity acceleration
           d.vy += 0.005 * sm;
-
-          if (d.currentLength >= d.maxLength) {
-            d.growing = false;
-          }
+          if (d.currentLength >= d.maxLength) d.growing = false;
         }
-
-        // Draw on front or back canvas depending on random assignment
         const dCtx = d.front && frontCtx ? frontCtx : ctx;
         drawDrip(d, dCtx);
-
-        // Create pool at tip when done growing
         if (!d.growing && d.currentLength >= d.maxLength * 0.8) {
           const tipX = d.x;
           const tipY = d.y + d.currentLength;
-
           const poolExists = pools.some(
             (p) => Math.abs(p.x - tipX) < 18 && Math.abs(p.y - tipY) < 12,
           );
-          if (!poolExists && pools.length < 30) {
+          if (!poolExists && pools.length < 30)
             pools.push({
               x: tipX,
               y: tipY,
@@ -1377,17 +1320,11 @@ const FX = {
               opacity: 0.35 + Math.random() * 0.25,
               front: d.front,
             });
-          }
           d.opacity -= 0.003;
         }
-
         if (d.opacity <= 0) drips.splice(i, 1);
       }
-
-      // Cap drips to prevent performance issues
       if (drips.length > 40) drips.splice(0, drips.length - 40);
-
-      // Draw & update pools
       for (let i = pools.length - 1; i >= 0; i--) {
         const p = pools[i];
         p.width += 0.02;
@@ -1397,13 +1334,10 @@ const FX = {
         p.opacity -= 0.0006;
         if (p.opacity <= 0) pools.splice(i, 1);
       }
-
       animFrame = requestAnimationFrame(frame);
     }
-
     frame();
   },
-
   neonstroke(tgt) {
     let stage = tgt.parentElement;
     while (
@@ -1421,13 +1355,11 @@ const FX = {
     const glow = S.ngi || 0;
     const colors = S.colors || ["#ff00ff", "#00ffff"];
     const gradSpeed = S.nsGradSpeed || 0;
-
     const svg = svgEl("svg");
     svg.setAttribute("width", W);
     svg.setAttribute("height", H);
     svg.style.cssText =
       "position:absolute;top:0;left:0;pointer-events:none;z-index:3;";
-
     const defs = svgEl("defs");
     const grad = svgEl("linearGradient");
     grad.id = "nsG" + uid;
@@ -1435,18 +1367,15 @@ const FX = {
     grad.setAttribute("y1", "0%");
     grad.setAttribute("x2", "100%");
     grad.setAttribute("y2", "0%");
-
     if (gradSpeed > 0) {
       const gSm = vm(gradSpeed);
       const animDur = (4 / gSm).toFixed(2);
-
       const animX1 = svgEl("animate");
       animX1.setAttribute("attributeName", "x1");
       animX1.setAttribute("values", "-100%;100%");
       animX1.setAttribute("dur", animDur + "s");
       animX1.setAttribute("repeatCount", "indefinite");
       grad.appendChild(animX1);
-
       const animX2 = svgEl("animate");
       animX2.setAttribute("attributeName", "x2");
       animX2.setAttribute("values", "0%;200%");
@@ -1454,7 +1383,6 @@ const FX = {
       animX2.setAttribute("repeatCount", "indefinite");
       grad.appendChild(animX2);
     }
-
     colors.forEach((col, i) => {
       const stop = svgEl("stop");
       stop.setAttribute("offset", (i / (colors.length - 1)) * 100 + "%");
@@ -1462,7 +1390,6 @@ const FX = {
       grad.appendChild(stop);
     });
     defs.appendChild(grad);
-
     if (glow > 0) {
       const filter = svgEl("filter");
       filter.id = "nsF" + uid;
@@ -1484,14 +1411,11 @@ const FX = {
       defs.appendChild(filter);
     }
     svg.appendChild(defs);
-
     const filtRef = glow > 0 ? `url(#${"nsF" + uid})` : "";
     const gradRef = `url(#${"nsG" + uid})`;
-
     injCSS(
       `@keyframes ${"nsD" + uid}{0%{stroke-dashoffset:${dashLen}}100%{stroke-dashoffset:0}}.nsA${uid}{animation:${"nsD" + uid} ${dashDur}s linear forwards;}`,
     );
-
     lines.forEach((line) => {
       const text = svgEl("text");
       text.setAttribute("x", line.x);
@@ -1510,40 +1434,31 @@ const FX = {
       text.setAttribute("stroke-linecap", "round");
       text.setAttribute("stroke-linejoin", "round");
       if (filtRef) text.setAttribute("filter", filtRef);
-
       text.classList.add("nsA" + uid);
-
       text.textContent = line.text;
       svg.appendChild(text);
     });
-
     stage.appendChild(svg);
     tgt.style.display = "none";
     tgt._nsSvg = svg;
     tgt._nsUid = uid;
     tgt._nsDashLen = dashLen;
-
     playing = true;
-
     if (!S.autoTrigger) {
       const stay = Math.max(2000, 5000 / sm);
       timer = setTimeout(() => triggerCycleEnd(tgt), dashDur * 1000 + stay);
     }
   },
-
   exitNeonStroke(tgt) {
     const svg = tgt._nsSvg;
     const dashLen = tgt._nsDashLen || 5000;
-
     if (!svg) {
-      stopFx(tgt, $("cv"), $("sl"));
+      stopFx(tgt, currentCv, currentSl);
       handleNextCycle(tgt);
       return;
     }
-
     const sm = vm(S.speed);
     const dur = Math.max(400, 3000 / sm);
-
     svg.querySelectorAll("text").forEach((t) => {
       t.style.animation = "none";
       t.style.strokeDashoffset = "0";
@@ -1551,46 +1466,36 @@ const FX = {
       t.style.transition = `stroke-dashoffset ${dur}ms linear`;
       t.style.strokeDashoffset = String(dashLen);
     });
-
     timer = setTimeout(() => {
-      stopFx(tgt, $("cv"), $("sl"));
+      stopFx(tgt, currentCv, currentSl);
       handleNextCycle(tgt);
     }, dur + 100);
   },
-
   exitFire: function (tgt, cv) {
     const rect = tgt.getBoundingClientRect();
     const cvR = cv.getBoundingClientRect();
-
     const x = rect.left - cvR.left;
     const y = rect.top - cvR.top;
     const w = rect.width;
     const h = rect.height;
-
     if (w === 0 || h === 0) {
       tgt.style.opacity = "0";
       timer = setTimeout(() => {
-        stopFx(tgt, cv, $("sl"));
+        stopFx(tgt, cv, currentSl);
         handleNextCycle(tgt);
       }, 50);
       return;
     }
-
     sizeCV(cv);
     const ctx = cv.getContext("2d");
-
     tgt.style.opacity = "1";
     tgt.style.clipPath = "inset(0 0 0% 0)";
-
     const fireParticles = [];
     const sparks = [];
-
     const sm = vm(S.dspeed);
     const baseDur = 2500;
     const dur = Math.max(500, baseDur / sm);
-
     const startTime = Date.now();
-
     class FireParticle {
       constructor(px, py) {
         this.x = px;
@@ -1601,14 +1506,12 @@ const FX = {
         this.decay = Math.random() * 0.02 + 0.01;
         this.size = Math.random() * 15 + 5;
       }
-
       update() {
         this.x += this.vx;
         this.y += this.vy;
         this.life -= this.decay;
         this.size *= 0.96;
       }
-
       draw(context) {
         if (this.life <= 0) return;
         let r, g, b;
@@ -1625,7 +1528,6 @@ const FX = {
           g = 20;
           b = 0;
         }
-
         context.beginPath();
         context.fillStyle = `rgba(${r}, ${g}, ${b}, ${this.life})`;
         context.shadowBlur = 20;
@@ -1635,7 +1537,6 @@ const FX = {
         context.shadowBlur = 0;
       }
     }
-
     class Spark {
       constructor(px, py) {
         this.x = px;
@@ -1646,14 +1547,12 @@ const FX = {
         this.decay = Math.random() * 0.03 + 0.02;
         this.size = Math.random() * 2 + 1;
       }
-
       update() {
         this.x += this.vx;
         this.y += this.vy;
         this.vy += 0.1;
         this.life -= this.decay;
       }
-
       draw(context) {
         if (this.life <= 0) return;
         context.beginPath();
@@ -1665,61 +1564,46 @@ const FX = {
         context.shadowBlur = 0;
       }
     }
-
     function draw() {
       if (!playing) return;
-
       const elapsed = Date.now() - startTime;
       const progress = Math.min(1, elapsed / dur);
-
       ctx.clearRect(0, 0, cv.width, cv.height);
       tgt.style.clipPath = `inset(0 0 ${progress * 100}% 0)`;
-
       if (progress < 1) {
         const currentLineY = y + h - h * progress;
         const spawnCount = Math.ceil((w / 20) * Math.max(1, sm));
-
         for (let i = 0; i < spawnCount; i++) {
           const px = x + Math.random() * w;
           const py = currentLineY + (Math.random() - 0.5) * 10;
           fireParticles.push(new FireParticle(px, py));
         }
-
-        if (Math.random() < 0.3) {
-          const sx = x + Math.random() * w;
-          sparks.push(new Spark(sx, currentLineY));
-        }
+        if (Math.random() < 0.3)
+          sparks.push(new Spark(x + Math.random() * w, currentLineY));
       }
-
       for (let i = fireParticles.length - 1; i >= 0; i--) {
         fireParticles[i].update();
         fireParticles[i].draw(ctx);
         if (fireParticles[i].life <= 0) fireParticles.splice(i, 1);
       }
-
       for (let i = sparks.length - 1; i >= 0; i--) {
         sparks[i].update();
         sparks[i].draw(ctx);
         if (sparks[i].life <= 0) sparks.splice(i, 1);
       }
-
-      if (
-        elapsed < dur + 1000 ||
-        fireParticles.length > 0 ||
-        sparks.length > 0
-      ) {
+      if (elapsed < dur + 1000 || fireParticles.length > 0 || sparks.length > 0)
         requestAnimationFrame(draw);
-      } else {
+      else {
         tgt.style.clipPath = "";
         tgt.style.opacity = "0";
-        stopFx(tgt, cv, $("sl"));
+        stopFx(tgt, cv, currentSl);
         handleNextCycle(tgt);
       }
     }
-
     draw();
   },
 
+  /* ==================== GLASS SHATTER EXIT EFFECT ==================== */
   exitShatter: function (tgt, cv) {
     let effTgt = tgt;
     if (
@@ -1730,17 +1614,16 @@ const FX = {
       const txt = effTgt.querySelector("div");
       if (txt) effTgt = txt;
     }
-
     const rect = effTgt.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
       tgt.style.opacity = "0";
       timer = setTimeout(() => {
-        stopFx(tgt, cv, $("sl"));
+        stopFx(tgt, cv, currentSl);
         handleNextCycle(tgt);
       }, 100);
       return;
     }
-    if (!cv) cv = $("cv");
+    if (!cv) cv = currentCv;
     if (!cv) {
       tgt.style.opacity = "0";
       return;
@@ -1767,6 +1650,7 @@ const FX = {
       let x = S.align === "center" ? W / 2 : S.align === "right" ? W : 0;
       offCtx.fillText(line, x, i * lineH);
     });
+
     const imgData = offCtx.getImageData(0, 0, W, H);
     const pixels = imgData.data;
 
@@ -1775,7 +1659,6 @@ const FX = {
     srcCanvas.height = H;
     const srcCtx = srcCanvas.getContext("2d");
     const tc = hexToRGB(S.color || "#ffffff");
-
     const grad = srcCtx.createLinearGradient(0, 0, W, H);
     grad.addColorStop(
       0,
@@ -1797,8 +1680,22 @@ const FX = {
       let x = S.align === "center" ? W / 2 : S.align === "right" ? W : 0;
       srcCtx.fillText(line, x, i * lineH);
     });
+    srcCtx.globalCompositeOperation = "lighter";
+    const hlGrad = srcCtx.createLinearGradient(0, 0, W * 0.5, H * 0.5);
+    hlGrad.addColorStop(0, "rgba(255,255,255,0.25)");
+    hlGrad.addColorStop(0.5, "rgba(255,255,255,0.0)");
+    hlGrad.addColorStop(1, "rgba(200,220,255,0.1)");
+    srcCtx.fillStyle = hlGrad;
+    lines.forEach((line, i) => {
+      let x = S.align === "center" ? W / 2 : S.align === "right" ? W : 0;
+      srcCtx.fillText(line, x, i * lineH);
+    });
+    srcCtx.globalCompositeOperation = "source-over";
 
-    const spacing = Math.max(6, fontSize * 0.11);
+    const sizeMul = (S.glassSize || 50) / 50;
+    const spacing = Math.max(6, fontSize * 0.11 * sizeMul);
+    const edgeMul = (S.glassEdge || 50) / 50;
+
     const shardCenters = [];
     for (let y = 0; y < H; y += spacing) {
       for (let x = 0; x < W; x += spacing) {
@@ -1814,28 +1711,24 @@ const FX = {
         });
       }
     }
-
     if (shardCenters.length < 3) {
       tgt.style.opacity = "0";
       timer = setTimeout(() => {
-        stopFx(tgt, cv, $("sl"));
+        stopFx(tgt, cv, currentSl);
         handleNextCycle(tgt);
       }, 200);
       return;
     }
-
     const cvRect = cv.getBoundingClientRect();
     const offsetX = rect.left - cvRect.left;
     const offsetY = rect.top - cvRect.top;
     const shards = [];
-
     for (const center of shardCenters) {
       const numVerts = 3 + Math.floor(Math.random() * 2);
       const avgR = spacing * (0.5 + Math.random() * 0.7);
       const pts = [];
       const baseAngle = Math.random() * Math.PI * 2;
       const elongation = 1.3 + Math.random() * 2.0;
-
       for (let i = 0; i < numVerts; i++) {
         const angle = baseAngle + (i / numVerts) * Math.PI * 2;
         let r = avgR * (0.3 + Math.random() * 0.7);
@@ -1846,7 +1739,6 @@ const FX = {
           y: center.y + Math.sin(angle + jitter) * r,
         });
       }
-
       let mnX = Infinity,
         mnY = Infinity,
         mxX = -Infinity,
@@ -1861,7 +1753,6 @@ const FX = {
         sw = Math.ceil(mxX - mnX + pad * 2),
         sh = Math.ceil(mxY - mnY + pad * 2);
       if (sw <= 0 || sh <= 0) continue;
-
       const tc2 = document.createElement("canvas");
       tc2.width = sw;
       tc2.height = sh;
@@ -1873,19 +1764,33 @@ const FX = {
       tx.closePath();
       tx.clip();
       tx.drawImage(srcCanvas, 0, 0);
-
       tx.strokeStyle = `rgba(${Math.min(255, tc.r + 80)},${Math.min(255, tc.g + 80)},255,0.6)`;
-      tx.lineWidth = 0.5 + Math.random() * 0.8;
+      tx.lineWidth = (0.5 + Math.random() * 0.8) * edgeMul;
       tx.lineJoin = "bevel";
       tx.stroke();
-
+      tx.strokeStyle = `rgba(255,255,255,${0.25 + Math.random() * 0.15})`;
+      tx.lineWidth = 0.3 * edgeMul;
+      tx.stroke();
+      tx.globalCompositeOperation = "lighter";
+      tx.strokeStyle = `rgba(255,255,255,${0.05 + Math.random() * 0.1})`;
+      tx.lineWidth = 0.3;
+      if (pts.length >= 3) {
+        const a = Math.floor(Math.random() * pts.length);
+        const b = (a + 1) % pts.length;
+        tx.beginPath();
+        tx.moveTo(
+          pts[a].x + (Math.random() - 0.5) * 3,
+          pts[a].y + (Math.random() - 0.5) * 3,
+        );
+        tx.lineTo(
+          pts[b].x + (Math.random() - 0.5) * 3,
+          pts[b].y + (Math.random() - 0.5) * 3,
+        );
+        tx.stroke();
+      }
+      tx.globalCompositeOperation = "source-over";
       const cx = (mnX + mxX) / 2;
       const cy = (mnY + mxY) / 2;
-      const dx = cx - W / 2,
-        dy = cy - H / 2;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxDist = Math.sqrt((W / 2) ** 2 + (H / 2) ** 2);
-
       shards.push({
         cx: cx + offsetX,
         cy: cy + offsetY,
@@ -1895,7 +1800,7 @@ const FX = {
         rotSpd: 0,
         opacity: 1,
         released: false,
-        delay: (dist / maxDist) * 120 + Math.random() * 60,
+        delay: 0,
         img: tc2,
         w: sw,
         h: sh,
@@ -1903,27 +1808,15 @@ const FX = {
       });
     }
 
+    /* ===== SPEED: scale all physics by speedMul ===== */
+    const speedMul = vm(S.glassSpeed || 55);
     const baseDur = EXIT_DUR["glass-shatter"] || 1800;
-    const dur = Math.max(300, baseDur / vm(S.dspeed));
-    const gravity = 0.12;
+    const dur = Math.max(300, baseDur / speedMul);
+    const gravity = 0.12 * speedMul;
     const impactX = offsetX + W / 2;
     const impactY = offsetY + H / 2;
     const sparks = [];
     const startTime = Date.now();
-
-    for (let i = 0; i < 20; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const spd = 2 + Math.random() * 6;
-      sparks.push({
-        x: impactX,
-        y: impactY,
-        vx: Math.cos(a) * spd,
-        vy: Math.sin(a) * spd - 2,
-        life: 1,
-        maxLife: 200 + Math.random() * 300,
-      });
-    }
-
     const gc_r = Math.min(255, tc.r + 80);
     const gc_g = Math.min(255, tc.g + 80);
     const gc_b = 255;
@@ -1938,23 +1831,8 @@ const FX = {
         W + clearPad * 2,
         H + clearPad * 2,
       );
-
       for (const s of shards) {
         const dt = elapsed - s.delay;
-        if (dt < 0) {
-          const vi = Math.min(2, Math.max(0, 1 + dt / 50)) * 1.5;
-          ctx.save();
-          ctx.globalAlpha = s.opacity;
-          ctx.translate(
-            s.cx + (Math.random() - 0.5) * vi,
-            s.cy + (Math.random() - 0.5) * vi * 0.5,
-          );
-          ctx.shadowColor = `rgba(${gc_r},${gc_g},${gc_b},0.6)`;
-          ctx.shadowBlur = 8;
-          if (s.img) ctx.drawImage(s.img, -s.w / 2, -s.h / 2);
-          ctx.restore();
-          continue;
-        }
         if (!s.released) {
           s.released = true;
           const dx = s.cx - impactX,
@@ -1963,17 +1841,20 @@ const FX = {
           const force = Math.max(4, 40 / (dist * 0.01 + 1));
           const angle = Math.atan2(dy, dx);
           const spread = (Math.random() - 0.5) * 0.7;
-          s.vx = Math.cos(angle + spread) * force + (Math.random() - 0.5) * 5;
-          s.vy = Math.sin(angle + spread) * force - Math.random() * 4;
-          s.rotSpd = (Math.random() - 0.5) * 0.2;
+          s.vx =
+            (Math.cos(angle + spread) * force + (Math.random() - 0.5) * 5) *
+            speedMul;
+          s.vy =
+            (Math.sin(angle + spread) * force - Math.random() * 4) * speedMul;
+          s.rotSpd = (Math.random() - 0.5) * 0.2 * speedMul;
           for (let i = 0; i < 2; i++)
             sparks.push({
               x: s.cx,
               y: s.cy,
-              vx: (Math.random() - 0.5) * 4,
-              vy: (Math.random() - 0.5) * 4 - 1.5,
+              vx: (Math.random() - 0.5) * 4 * speedMul,
+              vy: ((Math.random() - 0.5) * 4 - 1.5) * speedMul,
               life: 1,
-              maxLife: 150 + Math.random() * 250,
+              maxLife: (150 + Math.random() * 250) / speedMul,
             });
         }
         s.vy += gravity;
@@ -1982,7 +1863,6 @@ const FX = {
         s.rot += s.rotSpd;
         s.vx *= 0.998;
         s.rotSpd *= 0.9995;
-
         if (elapsed < dur * 0.6 && s.trail.length < 5)
           s.trail.push({ x: s.cx, y: s.cy, alpha: 0.2 });
         for (const t of s.trail) t.alpha *= 0.88;
@@ -1990,7 +1870,6 @@ const FX = {
         if (dt > dur * 0.35)
           s.opacity = Math.max(0, 1 - (dt - dur * 0.35) / (dur * 0.65));
         if (s.opacity <= 0) continue;
-
         for (const t of s.trail) {
           ctx.save();
           ctx.globalAlpha = t.alpha * s.opacity * 0.12;
@@ -2003,21 +1882,14 @@ const FX = {
         ctx.globalAlpha = s.opacity;
         ctx.translate(s.cx, s.cy);
         ctx.rotate(s.rot);
-        if (dt < 250) {
-          const heat = (1 - dt / 250) * 0.4;
-          ctx.shadowColor = `rgba(${gc_r},${gc_g},${gc_b},${heat})`;
-          ctx.shadowBlur = 10;
-        } else {
-          ctx.shadowColor = `rgba(${gc_r},${gc_g},${gc_b},0.25)`;
-          ctx.shadowBlur = 5;
-        }
+        ctx.shadowColor = `rgba(${gc_r},${gc_g},${gc_b},0.25)`;
+        ctx.shadowBlur = 5;
         if (s.img) ctx.drawImage(s.img, -s.w / 2, -s.h / 2);
         ctx.restore();
       }
-
       for (let i = sparks.length - 1; i >= 0; i--) {
         const sp = sparks[i];
-        sp.vy += 0.04;
+        sp.vy += 0.04 * speedMul;
         sp.x += sp.vx;
         sp.y += sp.vy;
         sp.vx *= 0.99;
@@ -2036,35 +1908,10 @@ const FX = {
         ctx.fill();
         ctx.restore();
       }
-
-      if (elapsed < 120) {
-        const fo = 1 - elapsed / 120;
-        ctx.save();
-        const rg = ctx.createRadialGradient(
-          impactX,
-          impactY,
-          0,
-          impactX,
-          impactY,
-          elapsed * 1.5,
-        );
-        rg.addColorStop(0, `rgba(255,255,255,${fo * 0.7})`);
-        rg.addColorStop(0.3, `rgba(${gc_r},${gc_g},${gc_b},${fo * 0.4})`);
-        rg.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = rg;
-        ctx.fillRect(
-          offsetX - clearPad,
-          offsetY - clearPad,
-          W + clearPad * 2,
-          H + clearPad * 2,
-        );
-        ctx.restore();
-      }
-
       if (elapsed < dur + 200) animFrame = requestAnimationFrame(animate);
       else {
         ctx.clearRect(0, 0, cv.width, cv.height);
-        stopFx(tgt, cv, $("sl"));
+        stopFx(tgt, cv, currentSl);
         handleNextCycle(tgt);
       }
     }
@@ -2107,7 +1954,7 @@ const FX = {
       if (!playing) return;
       const elapsed = Date.now() - startTime;
       if (elapsed > dur + 500) {
-        stopFx(tgt, cv, $("sl"));
+        stopFx(tgt, cv, currentSl);
         handleNextCycle(tgt);
         return;
       }
@@ -2130,16 +1977,12 @@ const FX = {
   },
 };
 
-/* ==================== TRIGGER CYCLE END ==================== */
 function triggerCycleEnd(tgt) {
   if (!playing) return;
-
   if (S.visual === "neonstroke") {
     FX.exitNeonStroke(tgt);
     return;
   }
-
-  // Stop blood canvas animation immediately when cycle ends
   if (S.visual === "blood") {
     if (animFrame) {
       cancelAnimationFrame(animFrame);
@@ -2156,27 +1999,21 @@ function triggerCycleEnd(tgt) {
       _bloodFrontCv = null;
     }
   }
-
   if (S.disappear === "none" && !S.loop && !S.autoTrigger) {
-    stopFx(tgt, $("cv"), $("sl"));
+    stopFx(tgt, currentCv, currentSl);
     return;
   }
-
-  if (S.disappear === "glass-shatter") {
-    FX.exitShatter(tgt, $("cv"));
-  } else if (S.disappear === "particle-explode") {
-    FX.exitParticles(tgt, $("cv"));
-  } else if (S.disappear === "scatter") {
-    FX.scatter(tgt);
-  } else if (S.disappear === "fire-out") {
-    FX.exitFire(tgt, $("cv"));
-  } else if (S.disappear === "shrink-point") {
+  if (S.disappear === "glass-shatter") FX.exitShatter(tgt, currentCv);
+  else if (S.disappear === "particle-explode") FX.exitParticles(tgt, currentCv);
+  else if (S.disappear === "scatter") FX.scatter(tgt);
+  else if (S.disappear === "fire-out") FX.exitFire(tgt, currentCv);
+  else if (S.disappear === "shrink-point") {
     const baseDur = EXIT_DUR["shrink-point"] || 600;
     const dur = Math.max(80, baseDur / vm(S.dspeed));
     tgt.classList.add(EXIT_CLS["shrink-point"]);
     tgt.style.animationDuration = dur + "ms";
     timer = setTimeout(() => {
-      stopFx(tgt, $("cv"), $("sl"));
+      stopFx(tgt, currentCv, currentSl);
       handleNextCycle(tgt);
     }, dur + 100);
   } else if (S.disappear !== "none") {
@@ -2186,11 +2023,11 @@ function triggerCycleEnd(tgt) {
     tgt.classList.add(exitClass);
     tgt.style.animationDuration = dur + "ms";
     timer = setTimeout(() => {
-      stopFx(tgt, $("cv"), $("sl"));
+      stopFx(tgt, currentCv, currentSl);
       handleNextCycle(tgt);
     }, dur + 100);
   } else {
-    stopFx(tgt, $("cv"), $("sl"));
+    stopFx(tgt, currentCv, currentSl);
     handleNextCycle(tgt);
   }
 }
@@ -2199,11 +2036,9 @@ function handleNextCycle(tgt) {
   if (S.autoTrigger) {
     setAutoStatus("waiting", "Waiting (" + fmtTime(S.betweenTime) + ")");
     autoT2 = setTimeout(() => {
-      autoTriggerLoop(tgt, $("cv"), $("sl"));
+      autoTriggerLoop(tgt, currentCv, currentSl);
     }, S.betweenTime * 1000);
-  } else if (S.loop) {
-    playFx(tgt, $("cv"), $("sl"));
-  }
+  } else if (S.loop) playFx(tgt, currentCv, currentSl);
 }
 
 export function stopFx(tgt, cv, sl) {
@@ -2249,13 +2084,14 @@ export function stopFx(tgt, cv, sl) {
 
 export function playFx(tgt, cv, sl) {
   stopFx(tgt, cv, sl);
+  currentCv = cv;
+  currentSl = sl;
   applyStyle(tgt);
   if (cv) sizeCV(cv);
   const vis = S.visual,
     apr = S.appear;
   const canCombine = apr !== "none" && !SELF_ENTRANCE.has(vis);
   let effectTarget = tgt;
-
   if (canCombine) {
     const aw = document.createElement("div");
     aw.style.display = "inline-block";
@@ -2268,7 +2104,6 @@ export function playFx(tgt, cv, sl) {
     tgt.appendChild(aw);
     effectTarget = aw;
   }
-
   if (vis === "none") {
     setLines(effectTarget);
     playing = true;

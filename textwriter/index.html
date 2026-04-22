@@ -70,8 +70,9 @@
             </div>
           </div>
 
+          <!-- FONT TAB CONTENT -->
           <div id="tab-font">
-            <!-- НАЧАЛО БЛОКА ПРЕСЕТОВ -->
+            <!-- PRESETS -->
             <div class="st">Presets</div>
             <div class="cg">
               <div class="cr">
@@ -106,7 +107,6 @@
                 </div>
               </div>
             </div>
-            <!-- КОНЕЦ БЛОКА ПРЕСЕТОВ -->
 
             <div class="st">Font Family</div>
             <div class="cg">
@@ -125,541 +125,595 @@
               </div>
               <div class="fst" id="fst"></div>
             </div>
-          </div>
 
-          <div id="tab-frame" style="display: none">
-            <div class="cg">
-              <label class="cl">Neon Color</label>
-              <div class="cr">
-                <input type="color" id="frame-color" value="#ff00ff" />
-                <span class="rv" id="frame-color-val">#ff00ff</span>
-              </div>
-              <div class="color-preset-list">
-                <div
-                  class="color-preset"
-                  style="background: #ff0055"
-                  onclick="setFrameColor('#ff0055')"
-                ></div>
-                <div
-                  class="color-preset"
-                  style="background: #00f2ff"
-                  onclick="setFrameColor('#00f2ff')"
-                ></div>
-                <div
-                  class="color-preset"
-                  style="background: #39ff14"
-                  onclick="setFrameColor('#39ff14')"
-                ></div>
-                <div
-                  class="color-preset"
-                  style="background: #ffea00"
-                  onclick="setFrameColor('#ffea00')"
-                ></div>
-                <div
-                  class="color-preset"
-                  style="background: #ffffff"
-                  onclick="setFrameColor('#ffffff')"
-                ></div>
-              </div>
-            </div>
-
-            <hr
-              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
-            />
-
-            <div class="cg">
-              <label class="cl">Width</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="frame-width"
-                  min="100"
-                  max="800"
-                  value="300"
-                />
-                <span class="rv" id="frame-width-val">300px</span>
-              </div>
-            </div>
-            <div class="cg">
-              <label class="cl">Height</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="frame-height"
-                  min="100"
-                  max="600"
-                  value="200"
-                />
-                <span class="rv" id="frame-height-val">200px</span>
-              </div>
-            </div>
-            <div class="cg">
-              <label class="cl">Tube Size</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="frame-size"
-                  min="1"
-                  max="20"
-                  value="4"
-                />
-                <span class="rv" id="frame-size-val">4px</span>
-              </div>
-            </div>
-            <div class="cg">
-              <label class="cl">Corner Radius</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="frame-radius"
-                  min="0"
-                  max="100"
-                  value="0"
-                />
-                <span class="rv" id="frame-radius-val">0px</span>
-              </div>
-            </div>
-
-            <hr
-              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
-            />
-
-            <div class="cg">
-              <label class="cl">Glow Intensity</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="frame-glow"
-                  min="0"
-                  max="100"
-                  value="20"
-                />
-                <span class="rv" id="frame-glow-val">20px</span>
-              </div>
-            </div>
-            <div class="cg">
-              <label class="cl">Flicker Effect</label>
-              <div class="cr">
-                <div class="tg" id="frame-flicker"></div>
-              </div>
-            </div>
-
-            <button
-              class="btn btn1"
-              style="width: 100%; margin-top: 10px"
-              onclick="copyFrameCSS(this)"
-            >
-              <i class="fas fa-copy"></i> Copy CSS
-            </button>
-            <div class="code-block" id="frame-code-output">
-              /* CSS code will appear here */
-            </div>
-          </div>
-
-          <div class="st">Content</div>
-          <div class="cg">
-            <label class="cl">Text (one line per entry)</label>
-            <textarea id="ti">
+            <!-- TEXT CONTROL CONTAINER (Hidden in Frame Mode) -->
+            <div id="text-control-container">
+              <div class="st">Content</div>
+              <div class="cg">
+                <label class="cl">Text (one line per entry)</label>
+                <textarea id="ti">
 Welcome to the stream
 Today we're doing something special
 Let's get started</textarea
-            >
-          </div>
-          <div class="st">Effects</div>
-          <div class="cg">
-            <label class="cl">Visual Effect</label>
-            <div class="sw">
-              <select id="vis">
-                <option value="none">None (static text)</option>
-                <option value="typewriter">Typewriter</option>
-                <option value="neon">Neon Flicker</option>
-                <option value="glitch">Glitch (RGB Shift)</option>
-                <option value="smoke">Smoke / Fog</option>
-                <option value="fire">Fire (Text Flicker)</option>
-                <option value="ice">Ice (Frozen + Cracks)</option>
-                <option value="chrome">Gold / Chrome</option>
-                <option value="wave">Wave</option>
-                <option value="shake">Shaking (Alert)</option>
-                <option value="ripple">Ripple</option>
-                <option value="glowpulse">Glow Pulse</option>
-                <option value="shadow">Moving Shadow</option>
-                <option value="pour">Pour (Letters Fall Into Place)</option>
-                <option value="stamp">Print Stamp</option>
-                <option value="scanner">Scanner Line</option>
-                <option value="rainbow">Rainbow</option>
-                <option value="matrix">Matrix Code</option>
-                <option value="water">Water Distortion</option>
-                <option value="particles">Falling Particles</option>
-                <option value="neonstroke">Neon Stroke (Flowing Light)</option>
-                <option value="blood">Blood Drip</option>
-              </select>
-            </div>
-            <div class="note" id="vis-note"></div>
-          </div>
-          <div class="cg">
-            <label class="cl">Visual Effect Speed</label>
-            <div class="cr">
-              <input type="range" id="sp" min="10" max="200" value="55" />
-              <span class="rv" id="sp-v">1.0x</span>
-            </div>
-            <div class="note" id="sp-note"></div>
-          </div>
-          <div class="cg">
-            <label class="cl">Appearance Effect</label>
-            <div class="sw">
-              <select id="apr">
-                <option value="none">None</option>
-                <option value="assemble">Assembling Text</option>
-                <option value="slide-left">From Left</option>
-                <option value="slide-right">From Right</option>
-                <option value="fall-down">Falling from Above</option>
-                <option value="rise-up">Rising from Below</option>
-                <option value="rotate-in">Rotate In</option>
-                <option value="blur-in">Through Blur</option>
-                <option value="pixel-in">Through Pixels</option>
-                <option value="fade-in">Fade In</option>
-                <option value="mask-stripe">Mask Stripe</option>
-                <option value="zoom-in">Zoom In</option>
-              </select>
-            </div>
-            <div class="note" id="apr-note"></div>
-          </div>
-          <div class="cg" id="asp-opts" style="display: none">
-            <label class="cl">Appearance Effect Speed</label>
-            <div class="cr">
-              <input type="range" id="asp" min="10" max="200" value="55" />
-              <span class="rv" id="asp-v">1.0x</span>
-            </div>
-          </div>
+                >
+              </div>
+              <div class="st">Effects</div>
+              <div class="cg">
+                <label class="cl">Visual Effect</label>
+                <div class="sw">
+                  <select id="vis">
+                    <option value="none">None (static text)</option>
+                    <option value="typewriter">Typewriter</option>
+                    <option value="neon">Neon Flicker</option>
+                    <option value="glitch">Glitch (RGB Shift)</option>
+                    <option value="smoke">Smoke / Fog</option>
+                    <option value="fire">Fire (Text Flicker)</option>
+                    <option value="ice">Ice (Frozen + Cracks)</option>
+                    <option value="chrome">Gold / Chrome</option>
+                    <option value="wave">Wave</option>
+                    <option value="shake">Shaking (Alert)</option>
+                    <option value="ripple">Ripple</option>
+                    <option value="glowpulse">Glow Pulse</option>
+                    <option value="shadow">Moving Shadow</option>
+                    <option value="pour">Pour (Letters Fall Into Place)</option>
+                    <option value="stamp">Print Stamp</option>
+                    <option value="scanner">Scanner Line</option>
+                    <option value="rainbow">Rainbow</option>
+                    <option value="matrix">Matrix Code</option>
+                    <option value="water">Water Distortion</option>
+                    <option value="particles">Falling Particles</option>
+                    <option value="neonstroke">
+                      Neon Stroke (Flowing Light)
+                    </option>
+                    <option value="blood">Blood Drip</option>
+                  </select>
+                </div>
+                <div class="note" id="vis-note"></div>
+              </div>
+              <div class="cg">
+                <label class="cl">Visual Effect Speed</label>
+                <div class="cr">
+                  <input type="range" id="sp" min="10" max="200" value="55" />
+                  <span class="rv" id="sp-v">1.0x</span>
+                </div>
+                <div class="note" id="sp-note"></div>
+              </div>
+              <div class="cg">
+                <label class="cl">Appearance Effect</label>
+                <div class="sw">
+                  <select id="apr">
+                    <option value="none">None</option>
+                    <option value="assemble">Assembling Text</option>
+                    <option value="slide-left">From Left</option>
+                    <option value="slide-right">From Right</option>
+                    <option value="fall-down">Falling from Above</option>
+                    <option value="rise-up">Rising from Below</option>
+                    <option value="rotate-in">Rotate In</option>
+                    <option value="blur-in">Through Blur</option>
+                    <option value="pixel-in">Through Pixels</option>
+                    <option value="fade-in">Fade In</option>
+                    <option value="mask-stripe">Mask Stripe</option>
+                    <option value="zoom-in">Zoom In</option>
+                  </select>
+                </div>
+                <div class="note" id="apr-note"></div>
+              </div>
+              <div class="cg" id="asp-opts" style="display: none">
+                <label class="cl">Appearance Effect Speed</label>
+                <div class="cr">
+                  <input type="range" id="asp" min="10" max="200" value="55" />
+                  <span class="rv" id="asp-v">1.0x</span>
+                </div>
+              </div>
 
-          <div class="cg">
-            <label class="cl">Disappearing Effect</label>
-            <div class="sw">
-              <select id="dis">
-                <option value="none">None (Instant)</option>
-                <option value="scatter">Scattering Letters</option>
-                <option value="slide-left">Slide Left</option>
-                <option value="slide-right">Slide Right</option>
-                <option value="fall-down">Fall Down</option>
-                <option value="rise-up">Rise Up</option>
-                <option value="rotate-out">Rotate Out</option>
-                <option value="blur-out">Through Blur</option>
-                <option value="pixel-out">Through Pixels</option>
-                <option value="fade-out">Fade Out</option>
-                <option value="mask-stripe-exit">Mask Stripe</option>
-                <option value="zoom-out">Zoom Out</option>
-                <option value="glass-shatter">Breaks like Glass</option>
-                <option value="shrink-point">Shrinks to a Point</option>
-                <option value="particle-explode">
-                  Transforms into Particles
-                </option>
-                <option value="fire-out">Burn / Fire</option>
-              </select>
-            </div>
-          </div>
-          <div class="cg" id="dsp-opts" style="display: none">
-            <label class="cl">Disappearing Effect Speed</label>
-            <div class="cr">
-              <input type="range" id="dsp" min="10" max="200" value="55" />
-              <span class="rv" id="dsp-v">1.0x</span>
-            </div>
-          </div>
+              <div class="cg">
+                <label class="cl">Disappearing Effect</label>
+                <div class="sw">
+                  <select id="dis">
+                    <option value="none">None (Instant)</option>
+                    <option value="scatter">Scattering Letters</option>
+                    <option value="slide-left">Slide Left</option>
+                    <option value="slide-right">Slide Right</option>
+                    <option value="fall-down">Fall Down</option>
+                    <option value="rise-up">Rise Up</option>
+                    <option value="rotate-out">Rotate Out</option>
+                    <option value="blur-out">Through Blur</option>
+                    <option value="pixel-out">Through Pixels</option>
+                    <option value="fade-out">Fade Out</option>
+                    <option value="mask-stripe-exit">Mask Stripe</option>
+                    <option value="zoom-out">Zoom Out</option>
+                    <option value="glass-shatter">Breaks like Glass</option>
+                    <option value="shrink-point">Shrinks to a Point</option>
+                    <option value="particle-explode">
+                      Transforms into Particles
+                    </option>
+                    <option value="fire-out">Burn / Fire</option>
+                  </select>
+                </div>
+              </div>
+              <div class="cg" id="dsp-opts" style="display: none">
+                <label class="cl">Disappearing Effect Speed</label>
+                <div class="cr">
+                  <input type="range" id="dsp" min="10" max="200" value="55" />
+                  <span class="rv" id="dsp-v">1.0x</span>
+                </div>
+              </div>
 
-          <div id="dp-opts" style="display: none">
-            <div class="cg">
-              <label class="cl">Particle Color</label>
-              <div class="cr">
-                <input type="color" id="dpc" value="#ffffff" />
+              <div id="dp-opts" style="display: none">
+                <div class="cg">
+                  <label class="cl">Particle Color</label>
+                  <div class="cr">
+                    <input type="color" id="dpc" value="#ffffff" />
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl">Particle Size</label>
+                  <div class="cr">
+                    <input type="range" id="dpsz" min="2" max="20" value="6" />
+                    <span class="rv" id="dpsz-v">6px</span>
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl">Explosion Speed</label>
+                  <div class="cr">
+                    <input
+                      type="range"
+                      id="dpspd"
+                      min="10"
+                      max="200"
+                      value="100"
+                    />
+                    <span class="rv" id="dpspd-v">1.0x</span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="gs-opts" style="display: none">
+                <div class="cg">
+                  <label class="cl">Shard Size</label>
+                  <div class="cr">
+                    <input
+                      type="range"
+                      id="gsz"
+                      min="10"
+                      max="100"
+                      value="50"
+                    />
+                    <span class="rv" id="gsz-v">50</span>
+                  </div>
+                  <div class="note">Larger = bigger shards, fewer pieces</div>
+                </div>
+                <div class="cg">
+                  <label class="cl">Edge Thickness</label>
+                  <div class="cr">
+                    <input type="range" id="ged" min="0" max="100" value="50" />
+                    <span class="rv" id="ged-v">50</span>
+                  </div>
+                  <div class="note">Brightness and width of shard edges</div>
+                </div>
+                <div class="cg">
+                  <label class="cl">Glass Speed</label>
+                  <div class="cr">
+                    <input
+                      type="range"
+                      id="gspd"
+                      min="10"
+                      max="200"
+                      value="55"
+                    />
+                    <span class="rv" id="gspd-v">1.0x</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cg" id="pt-opts" style="display: none">
+                <label class="cl">Particle Type</label>
+                <div class="sw">
+                  <select id="ptyp">
+                    <option value="snow">Snow</option>
+                    <option value="petals">Petals</option>
+                    <option value="sparks">Sparks</option>
+                  </select>
+                </div>
+              </div>
+              <div class="cg" id="pc-opts" style="display: none">
+                <label class="cl">Particle Color</label>
+                <div class="cr">
+                  <input type="color" id="pc" value="#ffffff" />
+                </div>
+              </div>
+              <div class="cg" id="pspd-opts" style="display: none">
+                <label class="cl">Particle Fall Speed</label>
+                <div class="cr">
+                  <input type="range" id="pspd" min="10" max="200" value="55" />
+                  <span class="rv" id="pspd-v">1.0x</span>
+                </div>
+              </div>
+
+              <div class="cg" id="sd-opts" style="display: none">
+                <label class="cl">Smoke Density</label>
+                <div class="cr">
+                  <input type="range" id="sdns" min="10" max="100" value="50" />
+                  <span class="rv" id="sdns-v">50%</span>
+                </div>
+              </div>
+
+              <div class="cg" id="bd-opts" style="display: none">
+                <label class="cl">Blood Density</label>
+                <div class="cr">
+                  <input type="range" id="bdns" min="10" max="100" value="60" />
+                  <span class="rv" id="bdns-v">60%</span>
+                </div>
+                <div class="note">Controls drip spawn rate</div>
+              </div>
+              <div class="cg" id="bdpl-opts" style="display: none">
+                <label class="cl">Drip Length</label>
+                <div class="cr">
+                  <input type="range" id="bdpl" min="5" max="150" value="50" />
+                  <span class="rv" id="bdpl-v">50</span>
+                </div>
+                <div class="note">Max height blood can drip down</div>
+              </div>
+
+              <div id="ns-opts" style="display: none">
+                <div class="cg">
+                  <label class="cl">Gradient Colors</label>
+                  <div id="nc-list" class="cr"></div>
+                  <button
+                    class="ab"
+                    id="nc-add"
+                    style="margin-top: 4px; width: 100%"
+                  >
+                    <i class="fas fa-plus"></i> Add Color
+                  </button>
+                </div>
+                <div class="cg">
+                  <label class="cl">Stroke Width</label>
+                  <div class="cr">
+                    <input type="range" id="nsw" min="1" max="10" value="3" />
+                    <span class="rv" id="nsw-v">3px</span>
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl">Glow Intensity</label>
+                  <div class="cr">
+                    <input type="range" id="ngi" min="0" max="15" value="4" />
+                    <span class="rv" id="ngi-v">4</span>
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl">Gradient Animation Speed</label>
+                  <div class="cr">
+                    <input
+                      type="range"
+                      id="nsgs"
+                      min="0"
+                      max="200"
+                      value="55"
+                    />
+                    <span class="rv" id="nsgs-v">1.0x</span>
+                  </div>
+                  <div class="note">0 = Static Gradient</div>
+                </div>
+              </div>
+              <div id="tw-opts" style="display: none">
+                <div class="cg">
+                  <label class="cl">Pause Between Lines</label>
+                  <div class="cr">
+                    <input
+                      type="range"
+                      id="lp"
+                      min="100"
+                      max="4000"
+                      value="700"
+                      step="50"
+                    />
+                    <span class="rv" id="lp-v">0.7s</span>
+                  </div>
+                </div>
+                <div class="cg">
+                  <div class="tw">
+                    <label class="cl" style="margin-bottom: 0">Sound</label>
+                    <div class="tg" id="tg-sn"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0">Loop</label>
+                  <div class="tg" id="tg-lo"></div>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0"
+                    >Auto Trigger</label
+                  >
+                  <div class="tg" id="tg-at"></div>
+                </div>
+              </div>
+              <div id="at-opts" class="auto-sub" style="display: none">
+                <div class="cg">
+                  <label class="cl" id="atm-label">Activity Time</label>
+                  <div class="cr">
+                    <input type="range" id="atm" min="1" max="120" value="10" />
+                    <span class="rv" id="atm-v">10s</span>
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl">Time Between Activations</label>
+                  <div class="cr">
+                    <input
+                      type="range"
+                      id="btm"
+                      min="0"
+                      max="1800"
+                      value="60"
+                      step="1"
+                    />
+                    <span class="rv" id="btm-v">1m</span>
+                  </div>
+                </div>
+                <div class="auto-status" id="at-status">
+                  <span class="dot"></span><span id="at-label">Idle</span>
+                </div>
+              </div>
+              <div class="st">Style</div>
+              <div class="cg">
+                <label class="cl">Size</label>
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="sz"
+                    min="14"
+                    max="128"
+                    value="42"
+                  /><span class="rv" id="sz-v">42px</span>
+                </div>
+              </div>
+              <div class="cg">
+                <label class="cl">Line Height</label>
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="lh"
+                    min="100"
+                    max="260"
+                    value="140"
+                    step="5"
+                  /><span class="rv" id="lh-v">1.4</span>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0">Bold</label>
+                  <div class="tg on" id="tg-b"></div>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0">Italic</label>
+                  <div class="tg" id="tg-i"></div>
+                </div>
+              </div>
+              <div class="cg">
+                <label class="cl">Color</label>
+                <div class="cr">
+                  <input type="color" id="tc" value="#ffffff" />
+                </div>
+              </div>
+              <div class="cg">
+                <label class="cl">Align</label>
+                <div class="ag">
+                  <button class="ab on" data-a="left">L</button
+                  ><button class="ab" data-a="center">C</button
+                  ><button class="ab" data-a="right">R</button>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0">Glow</label>
+                  <div class="tg" id="tg-gl"></div>
+                </div>
+                <div class="gsg" id="gs-gl" style="display: none">
+                  <div class="cr" style="margin-top: 4px">
+                    <input type="color" id="gc" value="#d4a054" /><input
+                      type="range"
+                      id="gi"
+                      min="2"
+                      max="40"
+                      value="12"
+                      style="flex: 1"
+                    /><span class="rv" id="gi-v">12px</span>
+                  </div>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0">Stroke</label>
+                  <div class="tg" id="tg-st"></div>
+                </div>
+                <div class="gsg" id="gs-st" style="display: none">
+                  <div class="cr" style="margin-top: 4px">
+                    <input type="color" id="sc" value="#000000" /><input
+                      type="range"
+                      id="sw"
+                      min="1"
+                      max="8"
+                      value="2"
+                      style="flex: 1"
+                    /><span class="rv" id="sw-v">2px</span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="cursor-opts" style="display: none">
+                <div class="st">Cursor (Typewriter only)</div>
+                <div class="cg">
+                  <label class="cl">Style</label>
+                  <div class="sw">
+                    <select id="cs">
+                      <option value="block">Block</option>
+                      <option value="line">Line</option>
+                      <option value="underscore">Underscore</option>
+                      <option value="none">None</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl">Color</label>
+                  <div class="cr">
+                    <input type="color" id="cc" value="#d4a054" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="st">Layout</div>
+              <div class="cg">
+                <label class="cl">Position</label>
+                <div class="pg">
+                  <div class="pb" data-p="tl"></div>
+                  <div class="pb" data-p="tc"></div>
+                  <div class="pb" data-p="tr"></div>
+                  <div class="pb" data-p="ml"></div>
+                  <div class="pb" data-p="mc"></div>
+                  <div class="pb" data-p="mr"></div>
+                  <div class="pb on" data-p="bl"></div>
+                  <div class="pb" data-p="bc"></div>
+                  <div class="pb" data-p="br"></div>
+                </div>
+              </div>
+              <div class="cg">
+                <label class="cl">Margin</label>
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="mg"
+                    min="8"
+                    max="160"
+                    value="40"
+                  /><span class="rv" id="mg-v">40px</span>
+                </div>
               </div>
             </div>
+            <!-- END TEXT CONTROL CONTAINER -->
+          </div>
+
+          <!-- FRAME TAB CONTENT -->
+          <div id="tab-frame" style="display: none">
+            <div class="st">Frame Appearance</div>
+
             <div class="cg">
-              <label class="cl">Particle Size</label>
-              <div class="cr">
-                <input type="range" id="dpsz" min="2" max="20" value="6" />
-                <span class="rv" id="dpsz-v">6px</span>
-              </div>
-            </div>
-            <div class="cg">
-              <label class="cl">Explosion Speed</label>
-              <div class="cr">
-                <input type="range" id="dpspd" min="10" max="200" value="100" />
-                <span class="rv" id="dpspd-v">1.0x</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="cg" id="pt-opts" style="display: none">
-            <label class="cl">Particle Type</label>
-            <div class="sw">
-              <select id="ptyp">
-                <option value="snow">Snow</option>
-                <option value="petals">Petals</option>
-                <option value="sparks">Sparks</option>
-              </select>
-            </div>
-          </div>
-          <div class="cg" id="pc-opts" style="display: none">
-            <label class="cl">Particle Color</label>
-            <div class="cr"><input type="color" id="pc" value="#ffffff" /></div>
-          </div>
-          <div class="cg" id="pspd-opts" style="display: none">
-            <label class="cl">Particle Fall Speed</label>
-            <div class="cr">
-              <input type="range" id="pspd" min="10" max="200" value="55" />
-              <span class="rv" id="pspd-v">1.0x</span>
-            </div>
-          </div>
-
-          <div class="cg" id="sd-opts" style="display: none">
-            <label class="cl">Smoke Density</label>
-            <div class="cr">
-              <input type="range" id="sdns" min="10" max="100" value="50" />
-              <span class="rv" id="sdns-v">50%</span>
-            </div>
-          </div>
-
-          <div class="cg" id="bd-opts" style="display: none">
-            <label class="cl">Blood Density</label>
-            <div class="cr">
-              <input type="range" id="bdns" min="10" max="100" value="60" />
-              <span class="rv" id="bdns-v">60%</span>
-            </div>
-            <div class="note">Controls drip spawn rate</div>
-          </div>
-          <div class="cg" id="bdpl-opts" style="display: none">
-            <label class="cl">Drip Length</label>
-            <div class="cr">
-              <input type="range" id="bdpl" min="5" max="150" value="50" />
-              <span class="rv" id="bdpl-v">50</span>
-            </div>
-            <div class="note">Max height blood can drip down</div>
-          </div>
-
-          <div id="ns-opts" style="display: none">
-            <div class="cg">
-              <label class="cl">Gradient Colors</label>
-              <div id="nc-list" class="cr"></div>
+              <label class="cl">Gradient Colors (Max 5)</label>
+              <div id="fc-list" class="cr"></div>
               <button
                 class="ab"
-                id="nc-add"
+                id="fc-add"
                 style="margin-top: 4px; width: 100%"
               >
                 <i class="fas fa-plus"></i> Add Color
               </button>
             </div>
+
+            <hr
+              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
+            />
+
             <div class="cg">
-              <label class="cl">Stroke Width</label>
+              <label class="cl">Gradient Speed</label>
               <div class="cr">
-                <input type="range" id="nsw" min="1" max="10" value="3" />
-                <span class="rv" id="nsw-v">3px</span>
+                <input type="range" id="fr-speed" min="0" max="200" value="0" />
+                <span class="rv" id="fr-speed-v">Static</span>
               </div>
+              <div class="note">0 = Static</div>
             </div>
+
             <div class="cg">
-              <label class="cl">Glow Intensity</label>
-              <div class="cr">
-                <input type="range" id="ngi" min="0" max="15" value="4" />
-                <span class="rv" id="ngi-v">4</span>
-              </div>
-            </div>
-            <div class="cg">
-              <label class="cl">Gradient Animation Speed</label>
-              <div class="cr">
-                <input type="range" id="nsgs" min="0" max="200" value="55" />
-                <span class="rv" id="nsgs-v">1.0x</span>
-              </div>
-              <div class="note">0 = Static Gradient</div>
-            </div>
-          </div>
-          <div id="tw-opts" style="display: none">
-            <div class="cg">
-              <label class="cl">Pause Between Lines</label>
+              <label class="cl">Gradient Direction</label>
               <div class="cr">
                 <input
                   type="range"
-                  id="lp"
-                  min="100"
-                  max="4000"
-                  value="700"
-                  step="50"
+                  id="fr-angle"
+                  min="0"
+                  max="360"
+                  value="90"
                 />
-                <span class="rv" id="lp-v">0.7s</span>
+                <span class="rv" id="fr-angle-v">90deg</span>
+              </div>
+            </div>
+
+            <hr
+              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
+            />
+
+            <div class="cg">
+              <label class="cl">Tube Size (Border Width)</label>
+              <div class="cr">
+                <input type="range" id="fr-size" min="1" max="50" value="10" />
+                <span class="rv" id="fr-size-v">10px</span>
+              </div>
+            </div>
+
+            <div class="cg">
+              <label class="cl">Corner Radius</label>
+              <div class="cr">
+                <input
+                  type="range"
+                  id="fr-radius"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+                <span class="rv" id="fr-radius-v">0px</span>
+              </div>
+            </div>
+
+            <div class="cg">
+              <label class="cl">Glow Intensity</label>
+              <div class="cr">
+                <input type="range" id="fr-glow" min="0" max="100" value="20" />
+                <span class="rv" id="fr-glow-v">20px</span>
               </div>
             </div>
             <div class="cg">
               <div class="tw">
-                <label class="cl" style="margin-bottom: 0">Sound</label>
-                <div class="tg" id="tg-sn"></div>
+                <label class="cl" style="margin-bottom: 0">Gradient Glow</label>
+                <div class="tg" id="fr-glow-gradient"></div>
               </div>
+              <div class="note">Syncs glow color with gradient movement</div>
             </div>
-          </div>
-          <div class="cg">
-            <div class="tw">
-              <label class="cl" style="margin-bottom: 0">Loop</label>
-              <div class="tg" id="tg-lo"></div>
-            </div>
-          </div>
-          <div class="cg">
-            <div class="tw">
-              <label class="cl" style="margin-bottom: 0">Auto Trigger</label>
-              <div class="tg" id="tg-at"></div>
-            </div>
-          </div>
-          <div id="at-opts" class="auto-sub" style="display: none">
+
+            <hr
+              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
+            />
+
+            <div class="st">Dimensions</div>
             <div class="cg">
-              <label class="cl" id="atm-label">Activity Time</label>
-              <div class="cr">
-                <input type="range" id="atm" min="1" max="120" value="10" />
-                <span class="rv" id="atm-v">10s</span>
-              </div>
-            </div>
-            <div class="cg">
-              <label class="cl">Time Between Activations</label>
+              <label class="cl">Frame Width</label>
               <div class="cr">
                 <input
                   type="range"
-                  id="btm"
-                  min="0"
-                  max="1800"
-                  value="60"
-                  step="1"
+                  id="fr-width"
+                  min="100"
+                  max="1920"
+                  value="600"
                 />
-                <span class="rv" id="btm-v">1m</span>
+                <span class="rv" id="fr-width-v">600px</span>
               </div>
             </div>
-            <div class="auto-status" id="at-status">
-              <span class="dot"></span><span id="at-label">Idle</span>
-            </div>
-          </div>
-          <div class="st">Style</div>
-          <div class="cg">
-            <label class="cl">Size</label>
-            <div class="cr">
-              <input type="range" id="sz" min="14" max="128" value="42" /><span
-                class="rv"
-                id="sz-v"
-                >42px</span
-              >
-            </div>
-          </div>
-          <div class="cg">
-            <label class="cl">Line Height</label>
-            <div class="cr">
-              <input
-                type="range"
-                id="lh"
-                min="100"
-                max="260"
-                value="140"
-                step="5"
-              /><span class="rv" id="lh-v">1.4</span>
-            </div>
-          </div>
-          <div class="cg">
-            <div class="tw">
-              <label class="cl" style="margin-bottom: 0">Bold</label>
-              <div class="tg on" id="tg-b"></div>
-            </div>
-          </div>
-          <div class="cg">
-            <div class="tw">
-              <label class="cl" style="margin-bottom: 0">Italic</label>
-              <div class="tg" id="tg-i"></div>
-            </div>
-          </div>
-          <div class="cg">
-            <label class="cl">Color</label>
-            <div class="cr"><input type="color" id="tc" value="#ffffff" /></div>
-          </div>
-          <div class="cg">
-            <label class="cl">Align</label>
-            <div class="ag">
-              <button class="ab on" data-a="left">L</button
-              ><button class="ab" data-a="center">C</button
-              ><button class="ab" data-a="right">R</button>
-            </div>
-          </div>
-          <div class="cg">
-            <div class="tw">
-              <label class="cl" style="margin-bottom: 0">Glow</label>
-              <div class="tg" id="tg-gl"></div>
-            </div>
-            <div class="gsg" id="gs-gl" style="display: none">
-              <div class="cr" style="margin-top: 4px">
-                <input type="color" id="gc" value="#d4a054" /><input
-                  type="range"
-                  id="gi"
-                  min="2"
-                  max="40"
-                  value="12"
-                  style="flex: 1"
-                /><span class="rv" id="gi-v">12px</span>
-              </div>
-            </div>
-          </div>
-          <div class="cg">
-            <div class="tw">
-              <label class="cl" style="margin-bottom: 0">Stroke</label>
-              <div class="tg" id="tg-st"></div>
-            </div>
-            <div class="gsg" id="gs-st" style="display: none">
-              <div class="cr" style="margin-top: 4px">
-                <input type="color" id="sc" value="#000000" /><input
-                  type="range"
-                  id="sw"
-                  min="1"
-                  max="8"
-                  value="2"
-                  style="flex: 1"
-                /><span class="rv" id="sw-v">2px</span>
-              </div>
-            </div>
-          </div>
 
-          <!-- ИЗМЕНЕНО: Блок курсора обернут в div для скрытия -->
-          <div id="cursor-opts" style="display: none">
-            <div class="st">Cursor (Typewriter only)</div>
             <div class="cg">
-              <label class="cl">Style</label>
-              <div class="sw">
-                <select id="cs">
-                  <option value="block">Block</option>
-                  <option value="line">Line</option>
-                  <option value="underscore">Underscore</option>
-                  <option value="none">None</option>
-                </select>
-              </div>
-            </div>
-            <div class="cg">
-              <label class="cl">Color</label>
+              <label class="cl">Frame Height</label>
               <div class="cr">
-                <input type="color" id="cc" value="#d4a054" />
+                <input
+                  type="range"
+                  id="fr-height"
+                  min="100"
+                  max="1080"
+                  value="400"
+                />
+                <span class="rv" id="fr-height-v">400px</span>
               </div>
-            </div>
-          </div>
-
-          <div class="st">Layout</div>
-          <div class="cg">
-            <label class="cl">Position</label>
-            <div class="pg">
-              <div class="pb" data-p="tl"></div>
-              <div class="pb" data-p="tc"></div>
-              <div class="pb" data-p="tr"></div>
-              <div class="pb" data-p="ml"></div>
-              <div class="pb" data-p="mc"></div>
-              <div class="pb" data-p="mr"></div>
-              <div class="pb on" data-p="bl"></div>
-              <div class="pb" data-p="bc"></div>
-              <div class="pb" data-p="br"></div>
-            </div>
-          </div>
-          <div class="cg">
-            <label class="cl">Margin</label>
-            <div class="cr">
-              <input type="range" id="mg" min="8" max="160" value="40" /><span
-                class="rv"
-                id="mg-v"
-                >40px</span
-              >
             </div>
           </div>
         </div>
@@ -689,9 +743,8 @@ Let's get started</textarea
             </div>
           </div>
           <div class="inst">
-            <strong>Usage:</strong> Adjust settings and the preview updates
-            automatically. Copy the URL and paste it into OBS Browser Source.
-            Visual + Appearance + Disappear effects combine automatically.
+            <strong>Usage:</strong> Adjust settings and preview updates
+            automatically. Frame settings are saved in the OBS URL.
           </div>
         </div>
       </div>

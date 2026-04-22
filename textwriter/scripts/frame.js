@@ -1,145 +1,318 @@
-/* frame.js - Логика редактора Neon Frame */
+/* frame.js - Logic for Neon Frame Editor */
 
-let frameInputs = {};
+import { S } from "./engine.js";
+
 let framePreview = null;
-let frameCodeBlock = null;
+let frameBorder = null;
 
-// Инициализация редактора (вызывается при открытии вкладки)
+let frameAnimId = null;
+let frameStartTime = 0;
+
+/* ===== Color Math ===== */
+
+function hexToRgbObj(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 255, g: 0, b: 255 };
+}
+
+function rgbToHex(r, g, b) {
+  return (
+    "#" +
+    [r, g, b]
+      .map((x) => {
+        const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      })
+      .join("")
+  );
+}
+
+function lerpColor(hex1, hex2, t) {
+  const c1 = hexToRgbObj(hex1);
+  const c2 = hexToRgbObj(hex2);
+  return rgbToHex(
+    c1.r + (c2.r - c1.r) * t,
+    c1.g + (c2.g - c1.g) * t,
+    c1.b + (c2.b - c1.b) * t,
+  );
+}
+
+/* ===== Shared style logic ===== */
+
+function applyFrameStyles(container, borderEl) {
+  const colors =
+    S.frColors && S.frColors.length >= 1 ? S.frColors : ["#ff00ff"];
+  const angle = S.frAngle != null ? S.frAngle : 90;
+  const width = S.frWidth || 600;
+  const height = S.frHeight || 400;
+  const size = S.frSize || 10;
+  const radius = S.frRadius || 0;
+  const glow = S.frGlow != null ? S.frGlow : 20;
+
+  /* Container: dimensions, radius, glow */
+  container.style.width = width + "px";
+  container.style.height = height + "px";
+  container.style.borderRadius = radius + "px";
+  container.style.background = "transparent";
+
+  const n = colors.length;
+
+  if (glow > 0) {
+    /* If gradient glow is OFF, or speed is 0, or only 1 color — use static first color */
+    if (!S.frGlowGradient || S.frSpeed === 0 || n === 1) {
+      const glowColor = colors[0];
+      container.style.boxShadow =
+        "0 0 " +
+        glow +
+        "px " +
+        glowColor +
+        ", 0 0 " +
+        glow * 2 +
+        "px " +
+        glowColor;
+    } else {
+      /* Gradient glow is ON and animating — JS will handle it, set initial */
+      container.style.boxShadow =
+        "0 0 " +
+        glow +
+        "px " +
+        colors[0] +
+        ", 0 0 " +
+        glow * 2 +
+        "px " +
+        colors[0];
+    }
+  } else {
+    container.style.boxShadow = "none";
+  }
+
+  /* Border element: gradient + mask cutout */
+  borderEl.style.borderRadius = radius + "px";
+  borderEl.style.padding = size + "px";
+
+  const speed = S.frSpeed || 0;
+
+  /* Set initial static gradient */
+  if (n === 1 || speed === 0) {
+    borderEl.style.background =
+      "linear-gradient(" + angle + "deg, " + colors.join(", ") + ")";
+    borderEl.style.backgroundSize = "100% 100%";
+  }
+
+  /* Mask: content-box cutout leaves only padding (=tube) visible */
+  borderEl.style.webkitMask =
+    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)";
+  borderEl.style.webkitMaskComposite = "xor";
+  borderEl.style.mask =
+    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)";
+  borderEl.style.maskComposite = "exclude";
+}
+
+/* ===== JS Gradient Animation (smooth for any angle + glow sync) ===== */
+
+function startFrameAnimation() {
+  stopFrameAnimation();
+  if (S.frSpeed > 0 && S.frColors && S.frColors.length > 1) {
+    frameStartTime = performance.now();
+    frameAnimId = requestAnimationFrame(animateFrameGradient);
+  }
+}
+
+function stopFrameAnimation() {
+  if (frameAnimId) {
+    cancelAnimationFrame(frameAnimId);
+    frameAnimId = null;
+  }
+}
+
+function ensureFrameAnimation() {
+  if (S.frSpeed > 0 && S.frColors && S.frColors.length > 1) {
+    if (!frameAnimId) {
+      frameStartTime = performance.now();
+      frameAnimId = requestAnimationFrame(animateFrameGradient);
+    }
+  } else {
+    stopFrameAnimation();
+  }
+}
+
+function animateFrameGradient(timestamp) {
+  const borderEl = frameBorder || document.getElementById("obs-frame-border");
+  const containerEl = framePreview || document.getElementById("obs-frame");
+  if (!borderEl) {
+    stopFrameAnimation();
+    return;
+  }
+
+  const speed = S.frSpeed || 0;
+  const colors = S.frColors;
+  const n = colors ? colors.length : 0;
+
+  if (speed === 0 || n <= 1) {
+    stopFrameAnimation();
+    return;
+  }
+
+  if (!frameStartTime) frameStartTime = timestamp;
+  const elapsed = timestamp - frameStartTime;
+
+  const duration = (200 / speed) * 1000; // ms for one full cycle
+  const progress = (elapsed % duration) / duration; // 0 to 1
+
+  const angle = S.frAngle != null ? S.frAngle : 90;
+
+  /* Build shifted gradient stops */
+  const allColors = [...colors, ...colors, colors[0]];
+  let stops = [];
+
+  for (let i = 0; i < allColors.length; i++) {
+    const pos = (i / n - progress) * 100;
+    stops.push(allColors[i] + " " + pos.toFixed(2) + "%");
+  }
+
+  borderEl.style.background =
+    "linear-gradient(" + angle + "deg, " + stops.join(", ") + ")";
+  borderEl.style.backgroundSize = "100% 100%";
+
+  /* Animate glow color if enabled */
+  if (S.frGlowGradient && S.frGlow > 0 && containerEl) {
+    const glowProgress = (progress * n) % 1;
+    const glowIndex = Math.floor(progress * n) % n;
+    const nextGlowIndex = (glowIndex + 1) % n;
+    const currentGlowColor = lerpColor(
+      colors[glowIndex],
+      colors[nextGlowIndex],
+      glowProgress,
+    );
+
+    containerEl.style.boxShadow =
+      "0 0 " +
+      S.frGlow +
+      "px " +
+      currentGlowColor +
+      ", 0 0 " +
+      S.frGlow * 2 +
+      "px " +
+      currentGlowColor;
+  }
+
+  frameAnimId = requestAnimationFrame(animateFrameGradient);
+}
+
+/* ===== CONFIG MODE ===== */
+
 export function initFrameEditor() {
-  if (document.getElementById("editor-frame-preview")) return; // Уже инициализирован
+  if (document.getElementById("editor-frame-preview")) return;
 
   const previewStage = document.getElementById("pstage");
   if (!previewStage) return;
 
-  // 1. Создаем и добавляем элемент превью в область предпросмотра
   framePreview = document.createElement("div");
   framePreview.id = "editor-frame-preview";
-  // Применяем начальные стили
-  updateFrameStyles();
+
+  frameBorder = document.createElement("div");
+  frameBorder.id = "editor-frame-border";
+  framePreview.appendChild(frameBorder);
+
   previewStage.appendChild(framePreview);
 
-  // 2. Кэшируем элементы управления
-  frameInputs = {
-    color: document.getElementById("frame-color"),
-    width: document.getElementById("frame-width"),
-    height: document.getElementById("frame-height"),
-    size: document.getElementById("frame-size"),
-    radius: document.getElementById("frame-radius"),
-    glow: document.getElementById("frame-glow"),
-    flicker: document.getElementById("frame-flicker"),
-  };
+  renderFrameColors();
 
-  frameCodeBlock = document.getElementById("frame-code-output");
-
-  // 3. Навешиваем обработчики событий
-  Object.values(frameInputs).forEach((input) => {
-    if (input) {
-      input.addEventListener("input", updateFrameStyles);
-      if (input.type === "checkbox") {
-        input.addEventListener("change", updateFrameStyles);
+  const addBtn = document.getElementById("fc-add");
+  if (addBtn) {
+    addBtn.addEventListener("click", () => {
+      if (S.frColors.length < 5) {
+        S.frColors.push(S.frColors[S.frColors.length - 1] || "#ffffff");
+        renderFrameColors();
+        updateFramePreview();
+        if (window.onChange) window.onChange();
       }
-    }
-  });
+    });
+  }
 
-  // Первое обновление
-  updateFrameStyles();
+  updateFramePreview();
 }
 
-// Удаление превью (при закрытии вкладки)
 export function destroyFrameEditor() {
+  stopFrameAnimation();
   const preview = document.getElementById("editor-frame-preview");
   if (preview) preview.remove();
+  framePreview = null;
+  frameBorder = null;
 }
 
-// Основная функция обновления
-function updateFrameStyles() {
-  if (!framePreview) return;
+export function renderFrameColors() {
+  const container = document.getElementById("fc-list");
+  if (!container) return;
 
-  // Получаем значения
-  const color = frameInputs.color ? frameInputs.color.value : "#ff00ff";
-  const width = frameInputs.width ? frameInputs.width.value : 300;
-  const height = frameInputs.height ? frameInputs.height.value : 200;
-  const size = frameInputs.size ? frameInputs.size.value : 4;
-  const radius = frameInputs.radius ? frameInputs.radius.value : 0;
-  const glow = frameInputs.glow ? frameInputs.glow.value : 20;
-  const isFlicker = frameInputs.flicker ? frameInputs.flicker.checked : false;
-
-  // Обновляем текстовые метки значений
-  const updateLabel = (id, val, unit = "") => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val + unit;
-  };
-
-  updateLabel("frame-color-val", color);
-  updateLabel("frame-width-val", width, "px");
-  updateLabel("frame-height-val", height, "px");
-  updateLabel("frame-size-val", size, "px");
-  updateLabel("frame-radius-val", radius, "px");
-  updateLabel("frame-glow-val", glow, "px");
-
-  // Применяем стили к превью
-  framePreview.style.width = width + "px";
-  framePreview.style.height = height + "px";
-  framePreview.style.border = `${size}px solid ${color}`;
-  framePreview.style.borderRadius = radius + "px";
-
-  // Эффект свечения (Box Shadow)
-  framePreview.style.boxShadow = `
-    0 0 ${glow}px ${color},
-    0 0 ${glow * 2}px ${color},
-    inset 0 0 ${glow}px ${color}
-  `;
-
-  // Класс анимации
-  if (isFlicker) {
-    framePreview.classList.add("flicker-anim");
-  } else {
-    framePreview.classList.remove("flicker-anim");
-  }
-
-  // Генерация CSS кода
-  if (frameCodeBlock) {
-    let css = `.my-neon-frame {\n`;
-    css += `  width: ${width}px;\n`;
-    css += `  height: ${height}px;\n`;
-    css += `  border: ${size}px solid ${color};\n`;
-    css += `  border-radius: ${radius}px;\n`;
-    css += `  box-shadow: \n    0 0 ${glow}px ${color},\n`;
-    css += `    0 0 ${glow * 2}px ${color},\n`;
-    css += `    inset 0 0 ${glow}px ${color};\n`;
-
-    if (isFlicker) {
-      css += `  animation: flicker 1.5s infinite alternate;\n}\n\n`;
-      css += `@keyframes flicker {\n  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }\n  20%, 24%, 55% { opacity: 0.4; }\n}`;
-    } else {
-      css += `}`;
-    }
-
-    frameCodeBlock.textContent = css;
-  }
-}
-
-// Функция для быстрой установки цвета из пресета (глобальная)
-window.setFrameColor = function (color) {
-  const input = document.getElementById("frame-color");
-  if (input) {
+  container.innerHTML = "";
+  S.frColors.forEach((color, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "ns-item";
+    const input = document.createElement("input");
+    input.type = "color";
     input.value = color;
-    updateFrameStyles();
-  }
-};
-
-// Функция копирования CSS (глобальная)
-window.copyFrameCSS = function (btn) {
-  const code = document.getElementById("frame-code-output").textContent;
-  if (!code) return;
-
-  navigator.clipboard.writeText(code).then(() => {
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    btn.classList.add("copied");
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.classList.remove("copied");
-    }, 2000);
+    input.className = "ns-color-in";
+    input.addEventListener("input", (e) => {
+      S.frColors[index] = e.target.value;
+      updateFramePreview();
+      if (window.onChange) window.onChange();
+    });
+    wrapper.appendChild(input);
+    if (S.frColors.length > 1) {
+      const btn = document.createElement("button");
+      btn.className = "ns-rem-btn";
+      btn.innerHTML = "&times;";
+      btn.title = "Remove Color";
+      btn.onclick = () => {
+        S.frColors.splice(index, 1);
+        renderFrameColors();
+        updateFramePreview();
+        if (window.onChange) window.onChange();
+      };
+      wrapper.appendChild(btn);
+    }
+    container.appendChild(wrapper);
   });
+
+  const addBtn = document.getElementById("fc-add");
+  if (addBtn) {
+    addBtn.style.display = S.frColors.length < 5 ? "block" : "none";
+  }
+}
+
+window.updateFramePreview = function () {
+  if (!framePreview || !frameBorder) return;
+  applyFrameStyles(framePreview, frameBorder);
+  ensureFrameAnimation();
 };
+
+/* ===== OBS OVERLAY MODE ===== */
+
+export function renderFrameOBS() {
+  const colors = S.frColors;
+  if (!colors || colors.length < 1) return;
+
+  const container = document.createElement("div");
+  container.id = "obs-frame";
+
+  const border = document.createElement("div");
+  border.id = "obs-frame-border";
+  container.appendChild(border);
+
+  document.body.appendChild(container);
+  applyFrameStyles(container, border);
+  ensureFrameAnimation();
+}
+
+export function destroyFrameOBS() {
+  stopFrameAnimation();
+  const el = document.getElementById("obs-frame");
+  if (el) el.remove();
+}
