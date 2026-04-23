@@ -1808,7 +1808,6 @@ const FX = {
       });
     }
 
-    /* ===== SPEED: scale all physics by speedMul ===== */
     const speedMul = vm(S.glassSpeed || 55);
     const baseDur = EXIT_DUR["glass-shatter"] || 1800;
     const dur = Math.max(300, baseDur / speedMul);
@@ -1824,13 +1823,7 @@ const FX = {
     function animate() {
       if (!playing) return;
       const elapsed = Date.now() - startTime;
-      const clearPad = 300;
-      ctx.clearRect(
-        offsetX - clearPad,
-        offsetY - clearPad,
-        W + clearPad * 2,
-        H + clearPad * 2,
-      );
+      ctx.clearRect(0, 0, cv.width, cv.height);
       for (const s of shards) {
         const dt = elapsed - s.delay;
         if (!s.released) {
@@ -1916,64 +1909,6 @@ const FX = {
       }
     }
     animate();
-  },
-
-  exitParticles: function (tgt, cv) {
-    const baseDur = EXIT_DUR["particle-explode"] || 1000;
-    const dur = Math.max(200, baseDur / vm(S.dspeed));
-    const pColor = hexToRGB(S.dpc || "#ffffff");
-    const pSize = S.dpsz || 4;
-    const pSpeed = vm(S.dpspd || 100);
-    const rect = tgt.getBoundingClientRect();
-    const cvR = cv.getBoundingClientRect();
-    tgt.style.opacity = "0";
-    const ctx = cv.getContext("2d");
-    const count = 100;
-    const newParticles = [];
-    for (let i = 0; i < count; i++) {
-      const px = rect.left - cvR.left + Math.random() * rect.width;
-      const py = rect.top - cvR.top + Math.random() * rect.height;
-      const cx = rect.left - cvR.left + rect.width / 2;
-      const cy = rect.top - cvR.top + rect.height / 2;
-      const angle = Math.atan2(py - cy, px - cx);
-      const force = 2 + Math.random() * 5 * pSpeed;
-      newParticles.push({
-        x: px,
-        y: py,
-        vx: Math.cos(angle) * force,
-        vy: Math.sin(angle) * force,
-        r: pSize * (0.5 + Math.random()),
-        a: 1,
-        life: 1,
-        decay: 1 / (dur / 16),
-        color: pColor,
-      });
-    }
-    let startTime = Date.now();
-    function pDraw() {
-      if (!playing) return;
-      const elapsed = Date.now() - startTime;
-      if (elapsed > dur + 500) {
-        stopFx(tgt, cv, currentSl);
-        handleNextCycle(tgt);
-        return;
-      }
-      ctx.clearRect(0, 0, cv.width, cv.height);
-      newParticles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.2;
-        p.life -= p.decay;
-        if (p.life > 0) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${p.color.r},${p.color.g},${p.color.b},${p.life})`;
-          ctx.fill();
-        }
-      });
-      requestAnimationFrame(pDraw);
-    }
-    pDraw();
   },
 };
 
