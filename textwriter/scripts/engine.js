@@ -85,6 +85,7 @@ const SELF_ENTRANCE = new Set([
   "pour",
   "neonstroke",
   "assemble",
+  "laser",
 ]);
 const APPEAR_CLS = {
   "slide-left": "fx-sl",
@@ -381,6 +382,7 @@ function applyStyle(tgt) {
       "ice",
       "neonstroke",
       "blood",
+      "laser",
     ].includes(S.visual)
   )
     sh = `0 0 ${S.gi}px ${S.gc}, 0 0 ${S.gi * 2.5}px ${S.gc}`;
@@ -1449,28 +1451,628 @@ const FX = {
       timer = setTimeout(() => triggerCycleEnd(tgt), dashDur * 1000 + stay);
     }
   },
-  exitNeonStroke(tgt) {
-    const svg = tgt._nsSvg;
-    const dashLen = tgt._nsDashLen || 5000;
-    if (!svg) {
-      stopFx(tgt, currentCv, currentSl);
-      handleNextCycle(tgt);
+
+  /* ==================== LASER WRITING EFFECT (CONTOUR TRACING) ==================== */
+  /* ==================== LASER WRITING EFFECT (CONTOUR TRACING) ==================== */
+  /* ==================== LASER WRITING EFFECT (CONTOUR TRACING) ==================== */
+  /* ==================== LASER WRITING EFFECT (CONTOUR TRACING) ==================== */
+  /* ==================== LASER WRITING EFFECT (PERMANENT NEON TRAIL) ==================== */
+  laser(tgt, cv) {
+    if (!cv) {
+      setLines(tgt);
+      playing = true;
       return;
     }
+    sizeCV(cv);
+    if (cv.width === 0 || cv.height === 0) {
+      setLines(tgt);
+      playing = true;
+      return;
+    }
+    const ctx = cv.getContext("2d");
+    playing = true;
+
+    setLines(tgt);
+    tgt.style.opacity = "0"; // Скрываем HTML-текст
+
+    const stage = cv.parentElement || document.body;
+    const { W, H, lines } = getSVGTextMetrics(stage, S);
+    const lc = hexToRGB(S.color || "#ff2020");
     const sm = vm(S.speed);
-    const dur = Math.max(400, 3000 / sm);
-    svg.querySelectorAll("text").forEach((t) => {
-      t.style.animation = "none";
-      t.style.strokeDashoffset = "0";
-      void t.getBoundingClientRect();
-      t.style.transition = `stroke-dashoffset ${dur}ms linear`;
-      t.style.strokeDashoffset = String(dashLen);
+
+    const fontStr = `${S.italic ? "italic " : ""}${S.bold ? "900 " : "400 "}${S.size}px "${S.font}", sans-serif`;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    // ---- Холст для постоянного следа ----
+    const permCv = document.createElement("canvas");
+    permCv.width = cv.width;
+    permCv.height = cv.height;
+    const permCtx = permCv.getContext("2d");
+
+    // ---- Character positions ----
+    const measureCv = document.createElement("canvas");
+    const measureCtx = measureCv.getContext("2d");
+    measureCtx.font = fontStr;
+    measureCtx.textBaseline = "alphabetic";
+
+    const charPositions = [];
+    lines.forEach((line) => {
+      measureCtx.textAlign = S.align;
+      const metrics = measureCtx.measureText(line.text);
+      let startX = line.x;
+      if (S.align === "center") startX -= metrics.width / 2;
+      else if (S.align === "right") startX -= metrics.width;
+
+      measureCtx.textAlign = "left";
+      let curX = startX;
+      for (let i = 0; i < line.text.length; i++) {
+        const ch = line.text[i];
+        const chW = measureCtx.measureText(ch).width;
+        charPositions.push({ ch, x: curX, y: line.y, w: chW });
+        curX += chW;
+      }
     });
-    timer = setTimeout(() => {
-      stopFx(tgt, currentCv, currentSl);
-      handleNextCycle(tgt);
-    }, dur + 100);
+
+    // ---- Contour extraction ----
+    const STEP_PX = Math.max(2, Math.round(S.size / 30));
+
+    function getContourPts(ch, charX, charY) {
+      if (ch.trim() === "") return [];
+
+      const padX = 8,
+        padY = 8;
+      measureCtx.font = fontStr;
+      const m = measureCtx.measureText(ch);
+      const cw = Math.ceil((m.width || S.size * 0.6) + padX * 2);
+      const ch_h = Math.ceil(S.size * 1.8 + padY * 2);
+
+      const tCv = document.createElement("canvas");
+      tCv.width = Math.ceil(cw * dpr);
+      tCv.height = Math.ceil(ch_h * dpr);
+      const tCtx = tCv.getContext("2d");
+      tCtx.scale(dpr, dpr);
+
+      tCtx.font = fontStr;
+      tCtx.textBaseline = "alphabetic";
+      tCtx.textAlign = "left";
+      tCtx.fillStyle = "#fff";
+
+      const baselineY = ch_h - padY - S.size * 0.3;
+      tCtx.fillText(ch, padX, baselineY);
+
+      const imgD = tCtx.getImageData(0, 0, tCv.width, tCv.height);
+      const d = imgD.data;
+      const tw = tCv.width,
+        th = tCv.height;
+
+      const raw = [];
+      const step = Math.max(1, Math.round(1.2 * dpr));
+
+      for (let py = 0; py < th; py += step) {
+        for (let px = 0; px < tw; px += step) {
+          const idx = (py * tw + px) * 4;
+          if (d[idx + 3] < 100) continue;
+
+          let isEdge = false;
+          const checks = [
+            [px - step, py],
+            [px + step, py],
+            [px, py - step],
+            [px, py + step],
+          ];
+          for (const [cx, cy] of checks) {
+            if (cx < 0 || cy < 0 || cx >= tw || cy >= th) continue;
+            const ni = (cy * tw + cx) * 4;
+            if (d[ni + 3] < 40) {
+              isEdge = true;
+              break;
+            }
+          }
+          if (isEdge) {
+            raw.push({
+              x: px / dpr - padX + charX,
+              y: py / dpr - baselineY + charY,
+            });
+          }
+        }
+      }
+
+      if (raw.length < 3) return [];
+
+      const used = new Uint8Array(raw.length);
+      const sorted = [raw[0]];
+      used[0] = 1;
+
+      for (let i = 1; i < raw.length; i++) {
+        const last = sorted[sorted.length - 1];
+        let bestD = 1e9,
+          bestJ = -1;
+        for (let j = 0; j < raw.length; j++) {
+          if (used[j]) continue;
+          const dx = raw[j].x - last.x,
+            dy = raw[j].y - last.y;
+          const dd = dx * dx + dy * dy;
+          if (dd < bestD) {
+            bestD = dd;
+            bestJ = j;
+          }
+        }
+        if (bestJ >= 0 && bestD < 900) {
+          sorted.push(raw[bestJ]);
+          used[bestJ] = 1;
+        } else {
+          bestD = 1e9;
+          bestJ = -1;
+          for (let k = 0; k < raw.length; k++) {
+            if (used[k]) continue;
+            const dx2 = raw[k].x - last.x,
+              dy2 = raw[k].y - last.y;
+            const dd2 = dx2 * dx2 + dy2 * dy2;
+            if (dd2 < bestD) {
+              bestD = dd2;
+              bestJ = k;
+            }
+          }
+          if (bestJ >= 0) {
+            sorted.push({ x: raw[bestJ].x, y: raw[bestJ].y, jump: true });
+            sorted.push(raw[bestJ]);
+            used[bestJ] = 1;
+          }
+        }
+      }
+      return sorted;
+    }
+
+    // ---- Build path from contour points ----
+    const allPts = [];
+    const segs = [];
+    let prevEndIdx = -1;
+    const charBoundsArr = [];
+
+    charPositions.forEach((cp, ci) => {
+      charBoundsArr.push({
+        minX: cp.x,
+        maxX: cp.x + cp.w,
+        minY: cp.y - S.size,
+        maxY: cp.y + S.size * 0.3,
+        cx: cp.x + cp.w / 2,
+        cy: cp.y - S.size * 0.35,
+      });
+
+      const pts = getContourPts(cp.ch, cp.x, cp.y);
+
+      if (pts.length === 0) {
+        if (allPts.length > 0 && ci < charPositions.length - 1) {
+          allPts.push({ x: cp.x + cp.w, y: cp.y, jump: true, ci });
+        }
+        return;
+      }
+
+      const sampled = [];
+      let accum = 0;
+      for (let s = 0; s < pts.length; s++) {
+        if (pts[s].jump) {
+          sampled.push({ ...pts[s], ci });
+          accum = 0;
+          continue;
+        }
+        accum++;
+        if (accum >= STEP_PX || s === 0 || s === pts.length - 1) {
+          sampled.push({ ...pts[s], ci });
+          accum = 0;
+        }
+      }
+
+      const startIdx = allPts.length;
+      for (const p of sampled) allPts.push({ ...p, ci });
+
+      if (
+        prevEndIdx >= 0 &&
+        startIdx > prevEndIdx &&
+        prevEndIdx < allPts.length
+      ) {
+        segs.push({
+          x0: allPts[prevEndIdx].x,
+          y0: allPts[prevEndIdx].y,
+          x1: allPts[startIdx].x,
+          y1: allPts[startIdx].y,
+          ci,
+          jump: true,
+        });
+      }
+
+      for (let m = startIdx; m < allPts.length - 1; m++) {
+        segs.push({
+          x0: allPts[m].x,
+          y0: allPts[m].y,
+          x1: allPts[m + 1].x,
+          y1: allPts[m + 1].y,
+          ci,
+          jump: !!allPts[m + 1].jump,
+        });
+      }
+
+      prevEndIdx = allPts.length - 1;
+    });
+
+    if (segs.length === 0) {
+      tgt.style.opacity = "1";
+      playing = true;
+      return;
+    }
+
+    // ---- Animation state ----
+    const SPEED = 350 * sm;
+    let curSeg = 0,
+      curProg = 0;
+    let parts = [];
+    let animDone = false;
+    let animEndTime = 0;
+    let cycleHandled = false;
+    let prevT = performance.now();
+    let lastPos = null;
+
+    const srcX = W / 2,
+      srcY = -5;
+
+    function _rgba(r, g, b, a) {
+      return `rgba(${r},${g},${b},${a})`;
+    }
+
+    function beamPos() {
+      if (curSeg >= segs.length) {
+        const last = segs[segs.length - 1];
+        return { x: last.x1, y: last.y1 };
+      }
+      const s = segs[curSeg];
+      return {
+        x: s.x0 + (s.x1 - s.x0) * curProg,
+        y: s.y0 + (s.y1 - s.y0) * curProg,
+      };
+    }
+
+    function spawnP(x, y, n, inten) {
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const sp = (0.3 + Math.random() * 2.8) * inten;
+        parts.push({
+          x,
+          y,
+          vx: Math.cos(a) * sp + (Math.random() - 0.5) * 0.6,
+          vy: Math.sin(a) * sp - Math.random() * 1.8 * inten,
+          life: 1,
+          decay: 0.012 + Math.random() * 0.028,
+          sz: 0.5 + Math.random() * 2.2 * inten,
+        });
+      }
+    }
+
+    function drawSource(t) {
+      const pulse = 0.7 + Math.sin(t * 0.004) * 0.3;
+      const r = lc.r,
+        g = lc.g,
+        b = lc.b;
+      const gr = ctx.createRadialGradient(
+        srcX,
+        srcY + 6,
+        0,
+        srcX,
+        srcY + 6,
+        30,
+      );
+      gr.addColorStop(0, _rgba(r, g, b, 0.5 * pulse));
+      gr.addColorStop(0.5, _rgba(r, g, b, 0.12 * pulse));
+      gr.addColorStop(1, _rgba(r, g, b, 0));
+      ctx.fillStyle = gr;
+      ctx.beginPath();
+      ctx.arc(srcX, srcY + 6, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = _rgba(255, 255, 255, 0.7 * pulse);
+      ctx.beginPath();
+      ctx.arc(srcX, srcY + 6, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawBeamLine(fx, fy, tx, ty, inten) {
+      if (inten < 0.01) return;
+      const r = lc.r,
+        g = lc.g,
+        b = lc.b;
+      inten *= 0.93 + Math.random() * 0.14;
+
+      ctx.save();
+      ctx.strokeStyle = _rgba(r, g, b, 0.04 * inten);
+      ctx.lineWidth = 24;
+      ctx.shadowColor = _rgba(r, g, b, 0.15 * inten);
+      ctx.shadowBlur = 40;
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = _rgba(r, g, b, 0.14 * inten);
+      ctx.lineWidth = 5;
+      ctx.shadowColor = _rgba(r, g, b, 0.35 * inten);
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = _rgba(
+        Math.min(255, r + 80),
+        Math.min(255, g + 80),
+        Math.min(255, b + 80),
+        0.5 * inten,
+      );
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = _rgba(r, g, b, 0.5 * inten);
+      ctx.shadowBlur = 5;
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = _rgba(255, 255, 255, 0.3 * inten);
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawContact(x, y, inten) {
+      if (inten < 0.01) return;
+      const r = lc.r,
+        g = lc.g,
+        b = lc.b;
+      const g1 = ctx.createRadialGradient(x, y, 0, x, y, 35 * inten);
+      g1.addColorStop(0, _rgba(r, g, b, 0.45 * inten));
+      g1.addColorStop(0.4, _rgba(r, g, b, 0.1 * inten));
+      g1.addColorStop(1, _rgba(r, g, b, 0));
+      ctx.fillStyle = g1;
+      ctx.beginPath();
+      ctx.arc(x, y, 35 * inten, 0, Math.PI * 2);
+      ctx.fill();
+
+      const g2 = ctx.createRadialGradient(x, y, 0, x, y, 8);
+      g2.addColorStop(0, _rgba(255, 255, 255, 0.85 * inten));
+      g2.addColorStop(
+        0.4,
+        _rgba(
+          Math.min(255, r + 100),
+          Math.min(255, g + 100),
+          Math.min(255, b + 100),
+          0.6 * inten,
+        ),
+      );
+      g2.addColorStop(1, _rgba(r, g, b, 0));
+      ctx.fillStyle = g2;
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawBurnedChars(t) {
+      if (charBoundsArr.length === 0) return;
+      const r = lc.r,
+        g = lc.g,
+        b = lc.b;
+      const curCI =
+        curSeg < segs.length ? segs[curSeg].ci : charPositions.length - 1;
+
+      for (let i = 0; i < charBoundsArr.length; i++) {
+        const cb = charBoundsArr[i];
+        const isDone = i < curCI || (i === curCI && animDone);
+        if (!isDone && i > curCI) continue;
+
+        const pulse = 0.6 + Math.sin(t * 0.0015 + i * 1.2) * 0.15;
+        const alpha = isDone ? 0.08 * pulse : 0.04 * pulse;
+        const cx = (cb.minX + cb.maxX) / 2;
+        const cy = (cb.minY + cb.maxY) / 2;
+        const rad = Math.max(cb.maxX - cb.minX, cb.maxY - cb.minY) * 0.7;
+
+        const gr = ctx.createRadialGradient(
+          cx,
+          cy,
+          0,
+          cx,
+          cy,
+          Math.max(1, rad),
+        );
+        gr.addColorStop(0, _rgba(r, g, b, alpha));
+        gr.addColorStop(1, _rgba(r, g, b, 0));
+        ctx.fillStyle = gr;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(1, rad), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // ---- Main Animation Loop ----
+    function draw(t) {
+      if (!playing) return;
+      const dt = Math.min(t - prevT, 50);
+      prevT = t;
+
+      // Update progress
+      if (!animDone) {
+        let segsToMove = (SPEED * dt) / 1000;
+        while (segsToMove > 0 && curSeg < segs.length) {
+          const seg = segs[curSeg];
+          const segLen = Math.sqrt(
+            (seg.x1 - seg.x0) ** 2 + (seg.y1 - seg.y0) ** 2,
+          );
+          const progNeeded = segLen > 0.01 ? 1 / segLen : 1;
+          const progRemaining = (1 - curProg) / progNeeded;
+
+          if (segsToMove >= progRemaining) {
+            segsToMove -= progRemaining;
+            curSeg++;
+            curProg = 0;
+          } else {
+            curProg += segsToMove * progNeeded * (segLen > 0.01 ? segLen : 1);
+            curProg = Math.min(curProg, 1);
+            segsToMove = 0;
+          }
+        }
+
+        if (curSeg >= segs.length) {
+          animDone = true;
+          animEndTime = t;
+        }
+      }
+
+      const bp = beamPos();
+
+      // Spawn particles only while drawing
+      if (!animDone && curSeg < segs.length && !segs[curSeg].jump) {
+        if (Math.random() < 0.5) spawnP(bp.x, bp.y, 1, 0.8);
+        if (Math.random() < 0.12) spawnP(bp.x, bp.y, 3, 1.3);
+      }
+
+      // Рисуем постоянный след на отдельном холсте (ОНИ НЕ ИСЧЕЗНУТ)
+      if (!animDone && lastPos) {
+        const dx = bp.x - lastPos.x,
+          dy = bp.y - lastPos.y;
+        const dist = dx * dx + dy * dy;
+        // Рисуем линию, только если это не прыжок (расстояние < 30px)
+        if (dist < 900 && dist > 0.01) {
+          // Layer 1: wide glow
+          permCtx.save();
+          permCtx.lineCap = "round";
+          permCtx.lineJoin = "round";
+          permCtx.strokeStyle = _rgba(lc.r, lc.g, lc.b, 0.06);
+          permCtx.lineWidth = 20;
+          permCtx.shadowColor = _rgba(lc.r, lc.g, lc.b, 0.25);
+          permCtx.shadowBlur = 40;
+          permCtx.beginPath();
+          permCtx.moveTo(lastPos.x, lastPos.y);
+          permCtx.lineTo(bp.x, bp.y);
+          permCtx.stroke();
+          permCtx.restore();
+          // Layer 2: medium
+          permCtx.save();
+          permCtx.lineCap = "round";
+          permCtx.lineJoin = "round";
+          permCtx.strokeStyle = _rgba(lc.r, lc.g, lc.b, 0.2);
+          permCtx.lineWidth = 5;
+          permCtx.shadowColor = _rgba(lc.r, lc.g, lc.b, 0.5);
+          permCtx.shadowBlur = 14;
+          permCtx.beginPath();
+          permCtx.moveTo(lastPos.x, lastPos.y);
+          permCtx.lineTo(bp.x, bp.y);
+          permCtx.stroke();
+          permCtx.restore();
+          // Layer 3: core
+          permCtx.save();
+          permCtx.lineCap = "round";
+          permCtx.lineJoin = "round";
+          permCtx.strokeStyle = _rgba(
+            Math.min(255, lc.r + 80),
+            Math.min(255, lc.g + 80),
+            Math.min(255, lc.b + 80),
+            0.6,
+          );
+          permCtx.lineWidth = 1.8;
+          permCtx.shadowColor = _rgba(lc.r, lc.g, lc.b, 0.6);
+          permCtx.shadowBlur = 6;
+          permCtx.beginPath();
+          permCtx.moveTo(lastPos.x, lastPos.y);
+          permCtx.lineTo(bp.x, bp.y);
+          permCtx.stroke();
+          permCtx.restore();
+        }
+      }
+      lastPos = bp;
+
+      // Update particles
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.04;
+        p.vx *= 0.985;
+        p.life -= p.decay;
+        if (p.life <= 0) parts.splice(i, 1);
+      }
+      if (parts.length > 500) parts.splice(0, parts.length - 500);
+
+      // Draw
+      ctx.clearRect(0, 0, cv.width, cv.height);
+
+      // 1. Выводим накопленный постоянный след
+      ctx.drawImage(permCv, 0, 0);
+
+      // 2. Свечение уже нарисованных символов
+      drawBurnedChars(t);
+
+      // 3. Рисуем активный лазер и искры
+      const srcPt = { x: srcX, y: srcY + 6 };
+
+      if (!animDone) {
+        drawSource(t);
+        drawBeamLine(srcPt.x, srcPt.y, bp.x, bp.y, 1);
+        drawContact(bp.x, bp.y, 1);
+      } else if (animEndTime > 0) {
+        const fadeP = Math.max(0, 1 - (t - animEndTime) / 1000 / 0.5);
+        if (fadeP > 0) {
+          drawSource(t);
+          drawBeamLine(srcPt.x, srcPt.y, bp.x, bp.y, fadeP);
+          drawContact(bp.x, bp.y, fadeP);
+        }
+      }
+
+      // Draw sparks/particles
+      for (const p of parts) {
+        const a = p.life;
+        ctx.save();
+        ctx.fillStyle = _rgba(lc.r, lc.g, lc.b, a * 0.9);
+        ctx.shadowColor = _rgba(lc.r, lc.g, lc.b, a * 0.4);
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(0.3, p.sz * p.life), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Handle completion
+      if (animDone && !cycleHandled) {
+        const elapsed = (t - animEndTime) / 1000;
+        if (elapsed > 0.5 && parts.length === 0) {
+          cycleHandled = true;
+          if (S.autoTrigger) {
+            timer = setTimeout(
+              () => triggerCycleEnd(tgt),
+              S.activityTime * 1000,
+            );
+          } else if (S.loop) {
+            timer = setTimeout(() => triggerCycleEnd(tgt), 3000);
+          }
+          // Если auto trigger и loop выключены — таймер не ставится, светящийся текст остаётся навсегда!
+        }
+      }
+
+      // Продолжаем цикл, пока рисуем или есть искры
+      if (
+        playing &&
+        (!animDone ||
+          parts.length > 0 ||
+          (animDone && (t - animEndTime) / 1000 < 0.5))
+      ) {
+        animFrame = requestAnimationFrame(draw);
+      } else if (playing) {
+        // Останавливаем цикл для экономии ресурсов, но НЕ очищаем экран. Текст останется.
+      }
+    }
+
+    animFrame = requestAnimationFrame(draw);
   },
+
   exitFire: function (tgt, cv) {
     const rect = tgt.getBoundingClientRect();
     const cvR = cv.getBoundingClientRect();
@@ -1602,8 +2204,6 @@ const FX = {
     }
     draw();
   },
-
-  /* ==================== GLASS SHATTER EXIT EFFECT ==================== */
   exitShatter: function (tgt, cv) {
     let effTgt = tgt;
     if (
@@ -1631,12 +2231,10 @@ const FX = {
     sizeCV(cv);
     const ctx = cv.getContext("2d");
     effTgt.style.opacity = "0";
-
     const W = rect.width,
       H = rect.height;
     const fontSize = S.size;
     const lineH = (fontSize * S.lh) / 100;
-
     const offscreen = document.createElement("canvas");
     offscreen.width = W;
     offscreen.height = H;
@@ -1650,10 +2248,8 @@ const FX = {
       let x = S.align === "center" ? W / 2 : S.align === "right" ? W : 0;
       offCtx.fillText(line, x, i * lineH);
     });
-
     const imgData = offCtx.getImageData(0, 0, W, H);
     const pixels = imgData.data;
-
     const srcCanvas = document.createElement("canvas");
     srcCanvas.width = W;
     srcCanvas.height = H;
@@ -1691,11 +2287,9 @@ const FX = {
       srcCtx.fillText(line, x, i * lineH);
     });
     srcCtx.globalCompositeOperation = "source-over";
-
     const sizeMul = (S.glassSize || 50) / 50;
     const spacing = Math.max(6, fontSize * 0.11 * sizeMul);
     const edgeMul = (S.glassEdge || 50) / 50;
-
     const shardCenters = [];
     for (let y = 0; y < H; y += spacing) {
       for (let x = 0; x < W; x += spacing) {
@@ -1807,19 +2401,17 @@ const FX = {
         trail: [],
       });
     }
-
     const speedMul = vm(S.glassSpeed || 55);
     const baseDur = EXIT_DUR["glass-shatter"] || 1800;
     const dur = Math.max(300, baseDur / speedMul);
     const gravity = 0.12 * speedMul;
     const impactX = offsetX + W / 2;
     const impactY = offsetY + H / 2;
-    const sparks = [];
+    const sparkArr = [];
     const startTime = Date.now();
     const gc_r = Math.min(255, tc.r + 80);
     const gc_g = Math.min(255, tc.g + 80);
     const gc_b = 255;
-
     function animate() {
       if (!playing) return;
       const elapsed = Date.now() - startTime;
@@ -1841,7 +2433,7 @@ const FX = {
             (Math.sin(angle + spread) * force - Math.random() * 4) * speedMul;
           s.rotSpd = (Math.random() - 0.5) * 0.2 * speedMul;
           for (let i = 0; i < 2; i++)
-            sparks.push({
+            sparkArr.push({
               x: s.cx,
               y: s.cy,
               vx: (Math.random() - 0.5) * 4 * speedMul,
@@ -1880,15 +2472,15 @@ const FX = {
         if (s.img) ctx.drawImage(s.img, -s.w / 2, -s.h / 2);
         ctx.restore();
       }
-      for (let i = sparks.length - 1; i >= 0; i--) {
-        const sp = sparks[i];
+      for (let i = sparkArr.length - 1; i >= 0; i--) {
+        const sp = sparkArr[i];
         sp.vy += 0.04 * speedMul;
         sp.x += sp.vx;
         sp.y += sp.vy;
         sp.vx *= 0.99;
         sp.life -= 16 / sp.maxLife;
         if (sp.life <= 0) {
-          sparks.splice(i, 1);
+          sparkArr.splice(i, 1);
           continue;
         }
         ctx.save();
@@ -1914,10 +2506,25 @@ const FX = {
 
 function triggerCycleEnd(tgt) {
   if (!playing) return;
+
+  // КРИТИЧЕСКИ ВАЖНО: Принудительно обрываем Canvas-анимации и начисто стираем холст
+  if (S.visual === "laser" || S.visual === "smoke") {
+    if (animFrame) {
+      cancelAnimationFrame(animFrame);
+      animFrame = null;
+    } // Останавливаем цикл
+    if (currentCv) {
+      const ctx = currentCv.getContext("2d");
+      ctx.clearRect(0, 0, currentCv.width, currentCv.height);
+    }
+    if (tgt) tgt.style.opacity = "1"; // Убеждаемся, что HTML текст виден для анимации исчезновения
+  }
+
   if (S.visual === "neonstroke") {
     FX.exitNeonStroke(tgt);
     return;
   }
+
   if (S.visual === "blood") {
     if (animFrame) {
       cancelAnimationFrame(animFrame);
@@ -1996,6 +2603,10 @@ export function stopFx(tgt, cv, sl) {
   if (tgt._nsSvg) {
     tgt._nsSvg.remove();
     tgt._nsSvg = null;
+  }
+  if (tgt._laserSvg) {
+    tgt._laserSvg.remove();
+    tgt._laserSvg = null;
   }
   if (tgt._ldSvg) {
     tgt._ldSvg.remove();

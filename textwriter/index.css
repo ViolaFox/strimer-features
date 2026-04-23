@@ -372,7 +372,7 @@ input[type="color"]::-webkit-color-swatch {
   border-color: var(--accent);
 }
 
-/* Custom Select (Fonts & Presets) */
+/* Custom Select */
 .cs-wrapper {
   position: relative;
   flex: 1;
@@ -452,7 +452,7 @@ input[type="color"]::-webkit-color-swatch {
   border-radius: 2px;
 }
 
-/* Preset Dropdown Specifics */
+/* Preset Dropdown */
 .preset-option-item {
   display: flex;
   align-items: center;
@@ -596,12 +596,10 @@ input[type="color"]::-webkit-color-swatch {
   align-items: center;
   gap: 6px;
 }
-
 .btn1 {
   background: var(--accent);
   color: #1a1410;
 }
-
 .btn1:hover {
   background: #e0b06a;
   transform: translateY(-1px);
@@ -1222,6 +1220,7 @@ input[type="color"]::-webkit-color-swatch {
   background: rgba(255, 50, 50, 0.25);
   border-color: #ff6b6b;
 }
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
