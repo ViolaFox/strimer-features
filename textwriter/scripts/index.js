@@ -138,44 +138,383 @@ const FF = [
   "Wingdings",
 ];
 
-const PRESETS_KEY = "obsTextEffectsPresets";
+// ===== СИСТЕМА ПЕРЕКЛЮЧЕНИЯ ЯЗЫКОВ =====
+const LANG = {
+  ru: {
+    btnLang: "RU",
+    sTextPresets: "Пресеты текста",
+    sFramePresets: "Пресеты рамки",
+    presetName: "Имя пресета...",
+    presetSelect: "Выбрать пресет...",
+    presetEmpty: "Нет сохранённых пресетов",
+    sFont: "Шрифт",
+    sContent: "Контент",
+    lText: "Текст (строка = запись)",
+    sAnimation: "Анимация",
+    lVisualEffect: "Визуальный эффект",
+    visNone: "Нет (статичный)",
+    visTypewriter: "Печатная машинка",
+    visNeon: "Неон мерцание",
+    visGlitch: "Глитч (RGB сдвиг)",
+    visSmoke: "Дым / Туман",
+    visFire: "Огонь (мерцание)",
+    visIce: "Лёд (заморозка + трещины)",
+    visChrome: "Золото / Хром",
+    visWave: "Волна",
+    visShake: "Тряска (алерт)",
+    visRipple: "Рябь",
+    visGlowpulse: "Пульсация свечения",
+    visShadow: "Движущаяся тень",
+    visPour: "Выливание (буквы падают)",
+    visStamp: "Штамп печати",
+    visScanner: "Сканер",
+    visRainbow: "Радуга",
+    visMatrix: "Матрица",
+    visWater: "Искажение водой",
+    visParticles: "Падающие частицы",
+    visNeonstroke: "Неоновый штрих",
+    visBlood: "Кровь",
+    visLaser: "Лазерное письмо",
+    lVisualSpeed: "Скорость визуального эффекта",
+    lAppearance: "Эффект появления",
+    aprNone: "Нет",
+    aprAssemble: "Сборка текста",
+    aprSlideL: "Слева",
+    aprSlideR: "Справа",
+    aprFallDown: "Сверху",
+    aprRiseUp: "Снизу",
+    aprRotateIn: "Вращение",
+    aprBlurIn: "Через блюр",
+    aprPixelIn: "Через пиксели",
+    aprFadeIn: "Плавное появление",
+    aprMaskStripe: "Маска-полоса",
+    aprZoomIn: "Масштаб",
+    lAppearSpeed: "Скорость появления",
+    lDisappear: "Эффект исчезновения",
+    disNone: "Нет (мгновенно)",
+    disScatter: "Рассеивание букв",
+    disSlideL: "Влево",
+    disSlideR: "Вправо",
+    disFallDown: "Вниз",
+    disRiseUp: "Вверх",
+    disRotateOut: "Вращение",
+    disBlurOut: "Через блюр",
+    disPixelOut: "Через пиксели",
+    disFadeOut: "Плавное исчезновение",
+    disMaskStripe: "Маска-полоса",
+    disZoomOut: "Масштаб",
+    disGlass: "Стекло",
+    disShrink: "Сжатие в точку",
+    disParticles: "Взрыв частицами",
+    disFire: "Огонь",
+    lDisappearSpeed: "Скорость исчезновения",
+    lPartColor: "Цвет частиц",
+    lPartSize: "Размер частиц",
+    lExpSpeed: "Скорость взрыва",
+    lShardSize: "Размер осколков",
+    lEdgeThick: "Толщина краёв",
+    lGlassSpeed: "Скорость стекла",
+    lPartType: "Тип частиц",
+    ptSnow: "Снег",
+    ptPetals: "Лепестки",
+    ptSparks: "Искры",
+    lPartFallColor: "Цвет частиц",
+    lPartFallSpeed: "Скорость падения",
+    lSmokeDensity: "Плотность дыма",
+    lBloodDensity: "Плотность крови",
+    lDripLength: "Длина капель",
+    lGradColors: "Градиентные цвета",
+    btnAddColor: "Добавить цвет",
+    lStrokeWidth: "Толщина штриха",
+    lGlowInt: "Интенсивность свечения",
+    lGradSpeed: "Скорость градиента",
+    lPause: "Пауза между строками",
+    tSound: "Звук",
+    tLoop: "Зациклить",
+    tAuto: "Автозапуск",
+    lShowDur: "Время показа",
+    lPauseBetween: "Пауза между запусками",
+    autoIdle: "Ожидание",
+    sFrameAppearance: "Внешний вид",
+    lFrameGradColors: "Градиентные цвета (макс. 5)",
+    lFrameGradSpeed: "Скорость градиента",
+    note0Static: "0 = Статичный",
+    lFrameGradDir: "Направление градиента",
+    lFrameTubeSize: "Размер трубки (толщина рамки)",
+    lFrameCorner: "Радиус углов",
+    lFrameGlow: "Интенсивность свечения",
+    tFrameGradGlow: "Градиентное свечение",
+    noteSyncGlow: "Синхронизация цвета свечения с градиентом",
+    sDimensions: "Размеры",
+    lFrameWidth: "Ширина рамки",
+    lFrameHeight: "Высота рамки",
+    navText: "Текст",
+    navFrame: "Рамка",
+    sColors: "Цвета",
+    lTextColor: "Цвет текста",
+    tGlow: "Свечение",
+    tStroke: "Обводка",
+    sCursor: "Курсор",
+    lCursorStyle: "Стиль",
+    csBlock: "Блок",
+    csLine: "Линия",
+    csUnder: "Подчёркивание",
+    csNone: "Нет",
+    lCursorColor: "Цвет курсора",
+    sStyle: "Стиль",
+    lSize: "Размер",
+    lLineHeight: "Высота строки",
+    tBold: "Жирный",
+    tItalic: "Курсив",
+    lAlign: "Выравнивание",
+    sLayout: "Расположение",
+    lPosition: "Позиция",
+    lMargin: "Отступ",
+    sPreview: "Предпросмотр",
+    tPlay: "Воспроизвести",
+    tStop: "Остановить",
+    tDarkBg: "Тёмный фон",
+    tLightBg: "Светлый фон",
+    sObsUrl: "OBS Ссылка",
+  },
+  en: {
+    btnLang: "EN",
+    sTextPresets: "Text Presets",
+    sFramePresets: "Frame Presets",
+    presetName: "Preset name...",
+    presetSelect: "Select a preset...",
+    presetEmpty: "No saved presets",
+    sFont: "Font",
+    sContent: "Content",
+    lText: "Text (one line per entry)",
+    sAnimation: "Animation",
+    lVisualEffect: "Visual Effect",
+    visNone: "None (static)",
+    visTypewriter: "Typewriter",
+    visNeon: "Neon Flicker",
+    visGlitch: "Glitch (RGB Shift)",
+    visSmoke: "Smoke / Fog",
+    visFire: "Fire (Text Flicker)",
+    visIce: "Ice (Frozen + Cracks)",
+    visChrome: "Gold / Chrome",
+    visWave: "Wave",
+    visShake: "Shaking (Alert)",
+    visRipple: "Ripple",
+    visGlowpulse: "Glow Pulse",
+    visShadow: "Moving Shadow",
+    visPour: "Pour (Letters Fall Into Place)",
+    visStamp: "Print Stamp",
+    visScanner: "Scanner Line",
+    visRainbow: "Rainbow",
+    visMatrix: "Matrix Code",
+    visWater: "Water Distortion",
+    visParticles: "Falling Particles",
+    visNeonstroke: "Neon Stroke (Flowing Light)",
+    visBlood: "Blood Drip",
+    visLaser: "Laser Writing",
+    lVisualSpeed: "Visual Effect Speed",
+    lAppearance: "Appearance Effect",
+    aprNone: "None",
+    aprAssemble: "Assembling Text",
+    aprSlideL: "From Left",
+    aprSlideR: "From Right",
+    aprFallDown: "Falling from Above",
+    aprRiseUp: "Rising from Below",
+    aprRotateIn: "Rotate In",
+    aprBlurIn: "Through Blur",
+    aprPixelIn: "Through Pixels",
+    aprFadeIn: "Fade In",
+    aprMaskStripe: "Mask Stripe",
+    aprZoomIn: "Zoom In",
+    lAppearSpeed: "Appearance Speed",
+    lDisappear: "Disappearing Effect",
+    disNone: "None (Instant)",
+    disScatter: "Scattering Letters",
+    disSlideL: "Slide Left",
+    disSlideR: "Slide Right",
+    disFallDown: "Fall Down",
+    disRiseUp: "Rise Up",
+    disRotateOut: "Rotate Out",
+    disBlurOut: "Through Blur",
+    disPixelOut: "Through Pixels",
+    disFadeOut: "Fade Out",
+    disMaskStripe: "Mask Stripe",
+    disZoomOut: "Zoom Out",
+    disGlass: "Breaks like Glass",
+    disShrink: "Shrinks to a Point",
+    disParticles: "Transforms into Particles",
+    disFire: "Burn / Fire",
+    lDisappearSpeed: "Disappearing Speed",
+    lPartColor: "Particle Color",
+    lPartSize: "Particle Size",
+    lExpSpeed: "Explosion Speed",
+    lShardSize: "Shard Size",
+    lEdgeThick: "Edge Thickness",
+    lGlassSpeed: "Glass Speed",
+    lPartType: "Particle Type",
+    ptSnow: "Snow",
+    ptPetals: "Petals",
+    ptSparks: "Sparks",
+    lPartFallColor: "Particle Color",
+    lPartFallSpeed: "Particle Fall Speed",
+    lSmokeDensity: "Smoke Density",
+    lBloodDensity: "Blood Density",
+    lDripLength: "Drip Length",
+    lGradColors: "Gradient Colors",
+    btnAddColor: "Add Color",
+    lStrokeWidth: "Stroke Width",
+    lGlowInt: "Glow Intensity",
+    lGradSpeed: "Gradient Speed",
+    lPause: "Pause Between Lines",
+    tSound: "Sound",
+    tLoop: "Loop",
+    tAuto: "Auto Trigger",
+    lShowDur: "Activity Time",
+    lPauseBetween: "Time Between Activations",
+    autoIdle: "Idle",
+    sFrameAppearance: "Frame Appearance",
+    lFrameGradColors: "Gradient Colors (Max 5)",
+    lFrameGradSpeed: "Gradient Speed",
+    note0Static: "0 = Static",
+    lFrameGradDir: "Gradient Direction",
+    lFrameTubeSize: "Tube Size (Border Width)",
+    lFrameCorner: "Corner Radius",
+    lFrameGlow: "Glow Intensity",
+    tFrameGradGlow: "Gradient Glow",
+    noteSyncGlow: "Syncs glow color with gradient movement",
+    sDimensions: "Dimensions",
+    lFrameWidth: "Frame Width",
+    lFrameHeight: "Frame Height",
+    navText: "Font",
+    navFrame: "Frame",
+    sColors: "Colors",
+    lTextColor: "Color",
+    tGlow: "Glow",
+    tStroke: "Stroke",
+    sCursor: "Cursor",
+    lCursorStyle: "Style",
+    csBlock: "Block",
+    csLine: "Line",
+    csUnder: "Underscore",
+    csNone: "None",
+    lCursorColor: "Cursor Color",
+    sStyle: "Style",
+    lSize: "Size",
+    lLineHeight: "Line Height",
+    tBold: "Bold",
+    tItalic: "Italic",
+    lAlign: "Align",
+    sLayout: "Layout",
+    lPosition: "Position",
+    lMargin: "Margin",
+    sPreview: "Preview",
+    tPlay: "Play",
+    tStop: "Stop",
+    tDarkBg: "Dark background",
+    tLightBg: "Light background",
+    sObsUrl: "OBS URL",
+  },
+};
+
+let currentLang = "ru";
+
+function applyLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (LANG[lang][key]) el.textContent = LANG[lang][key];
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (LANG[lang][key]) el.placeholder = LANG[lang][key];
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-title");
+    if (LANG[lang][key]) el.title = LANG[lang][key];
+  });
+  const emptyOpt = document.querySelector("#preset-options .cs-empty");
+  if (emptyOpt) emptyOpt.textContent = LANG[lang].presetEmpty;
+
+  const isFrameActive = $("tab-btn-frame")?.classList.contains("active");
+  const presetsTitle = $("presets-title");
+  if (presetsTitle) {
+    presetsTitle.textContent =
+      LANG[lang][isFrameActive ? "sFramePresets" : "sTextPresets"];
+  }
+}
+
+// ===== РАЗДЕЛЬНЫЕ ПРЕСЕТЫ =====
+const PRESETS_KEY_TEXT = "obsTextEffectsPresets";
+const PRESETS_KEY_FRAME = "obsFrameEffectsPresets";
+
+function getPresetsKey() {
+  return $("tab-btn-frame")?.classList.contains("active")
+    ? PRESETS_KEY_FRAME
+    : PRESETS_KEY_TEXT;
+}
+
 function getPresets() {
   try {
-    return JSON.parse(localStorage.getItem(PRESETS_KEY) || "{}");
+    return JSON.parse(localStorage.getItem(getPresetsKey()) || "{}");
   } catch (e) {
     return {};
   }
 }
+
 function savePreset() {
   const nameInput = $("preset-name");
   const name = nameInput.value.trim();
   if (!name) return;
   const presets = getPresets();
-  presets[name] = JSON.parse(JSON.stringify(S));
-  localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  const isFrame = $("tab-btn-frame")?.classList.contains("active");
+  if (isFrame) {
+    presets[name] = {
+      frColors: S.frColors,
+      frSpeed: S.frSpeed,
+      frAngle: S.frAngle,
+      frSize: S.frSize,
+      frGlow: S.frGlow,
+      frGlowGradient: S.frGlowGradient,
+      frRadius: S.frRadius,
+      frWidth: S.frWidth,
+      frHeight: S.frHeight,
+    };
+  } else {
+    presets[name] = JSON.parse(JSON.stringify(S));
+  }
+  localStorage.setItem(getPresetsKey(), JSON.stringify(presets));
   nameInput.value = "";
   renderPresets();
   $("preset-text").textContent = name;
 }
+
 function loadPreset(name) {
   const presets = getPresets();
   if (presets[name]) {
-    Object.assign(S, D, presets[name]);
+    const isFrame = $("tab-btn-frame")?.classList.contains("active");
+    if (isFrame) {
+      Object.assign(S, presets[name]);
+    } else {
+      Object.assign(S, D, presets[name]);
+    }
     writeUI();
     onChange();
     $("preset-text").textContent = name;
   }
   $("preset-wrapper").classList.remove("open");
 }
+
 function deletePreset(e, name) {
   e.stopPropagation();
   const presets = getPresets();
   delete presets[name];
-  localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  localStorage.setItem(getPresetsKey(), JSON.stringify(presets));
   renderPresets();
   if ($("preset-text").textContent === name)
-    $("preset-text").textContent = "Select a preset...";
+    $("preset-text").textContent = LANG[currentLang].presetSelect;
 }
+
 function renderPresets() {
   const optionsEl = $("preset-options");
   const presets = getPresets();
@@ -186,7 +525,7 @@ function renderPresets() {
     emptyOpt.className = "cs-option cs-empty";
     emptyOpt.style.cssText =
       "pointer-events: none; color: var(--muted); font-style: italic;";
-    emptyOpt.textContent = "No saved presets";
+    emptyOpt.textContent = LANG[currentLang].presetEmpty;
     optionsEl.appendChild(emptyOpt);
     return;
   }
@@ -207,6 +546,7 @@ function renderPresets() {
   });
 }
 
+// ===== ШРИФТЫ =====
 function fillFontSel(fonts) {
   const textEl = $("fs-text");
   const optionsEl = $("fs-options");
@@ -239,9 +579,11 @@ function fillFontSel(fonts) {
   textEl.style.fontFamily = `"${S.font}", sans-serif`;
   updFpv(S.font);
 }
+
 function updFpv(font) {
   $("fpv").style.fontFamily = `"${font || S.font}", sans-serif`;
 }
+
 const FONTS_KEY = "obsTextEffectsFonts";
 async function loadFonts() {
   const st = $("fst");
@@ -252,8 +594,7 @@ async function loadFonts() {
     if (cached) {
       const fonts = JSON.parse(cached);
       fillFontSel(fonts);
-      st.textContent =
-        fonts.length + " fonts loaded (from cache). Click 'Scan' to refresh.";
+      st.textContent = fonts.length + " fonts loaded (from cache).";
       st.className = "fst ok";
       return;
     }
@@ -300,10 +641,10 @@ async function scanFonts() {
   } catch (e) {}
   st.className = "fst err";
   if (error instanceof DOMException && error.name === "NotAllowedError")
-    st.textContent = "Permission denied. Click 'Scan' to try again.";
+    st.textContent = "Permission denied.";
   else if (!("queryLocalFonts" in window))
-    st.textContent = "Scan unavailable: requires HTTPS. Showing common fonts.";
-  else st.textContent = "Scan failed. Showing common fonts.";
+    st.textContent = "Scan unavailable: requires HTTPS.";
+  else st.textContent = "Scan failed.";
 }
 
 function updateVisCtrls() {
@@ -373,7 +714,7 @@ function renderColorList() {
       onChange();
     });
     wrapper.appendChild(input);
-    if (S.colors.length > 2) {
+    if (S.colors.length > 1) {
       const btn = document.createElement("button");
       btn.className = "ns-rem-btn";
       btn.innerHTML = "&times;";
@@ -387,7 +728,7 @@ function renderColorList() {
     }
     container.appendChild(wrapper);
   });
-  $("nc-add").style.display = S.colors.length < 4 ? "block" : "none";
+  $("nc-add").style.display = S.colors.length < 5 ? "block" : "none"; // Лимит 5 цветов
 }
 
 function readUI() {
@@ -429,9 +770,12 @@ function readUI() {
   S.autoTrigger = $("tg-at").classList.contains("on");
   S.activityTime = +$("atm").value;
   S.betweenTime = +$("btm").value;
-  const colorInputs = document.querySelectorAll(".ns-color-in");
+
+  // Баг-фикс: берем цвета только из списка неонового штриха (игнорируем рамку)
+  const colorInputs = document.querySelectorAll("#nc-list .ns-color-in");
   if (colorInputs.length > 0)
     S.colors = Array.from(colorInputs).map((inp) => inp.value);
+
   S.nsw = +$("nsw").value;
   S.ngi = +$("ngi").value;
   S.nsGradSpeed = +$("nsgs").value;
@@ -630,9 +974,9 @@ function initCfg() {
   $("cp").classList.add("on");
   $("host-info").textContent =
     location.protocol === "https:"
-      ? "HTTPS — full scan available"
+      ? "HTTPS"
       : location.protocol === "file:"
-        ? "Local file — limited"
+        ? "Local"
         : "HTTP";
   parseHash();
   parseFrameHash();
@@ -640,18 +984,22 @@ function initCfg() {
   updURL();
   renderPresets();
   loadFonts();
+
+  // ===== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК =====
   const btnFont = $("tab-btn-font");
   const btnFrame = $("tab-btn-frame");
-  const contentFont = $("tab-font");
-  const contentFrame = $("tab-frame");
-  const textControls = $("text-control-container");
+
   if (btnFont && btnFrame) {
     btnFont.addEventListener("click", () => {
       btnFont.classList.add("active");
       btnFrame.classList.remove("active");
-      contentFont.style.display = "block";
-      contentFrame.style.display = "none";
-      textControls.style.display = "block";
+      $("tab-font").style.display = "block";
+      $("tab-frame").style.display = "none";
+      $("font-section").style.display = "block";
+      $("text-control-container").style.display = "block";
+      $("presets-title").textContent = LANG[currentLang].sTextPresets;
+      renderPresets();
+      $("preset-text").textContent = LANG[currentLang].presetSelect;
       const pt = $("pt");
       const pcv = $("pcv");
       if (pt) pt.style.display = "";
@@ -662,8 +1010,18 @@ function initCfg() {
     btnFrame.addEventListener("click", () => {
       btnFrame.classList.add("active");
       btnFont.classList.remove("active");
-      contentFrame.style.display = "block";
-      contentFont.style.display = "none";
+      $("tab-font").style.display = "none";
+      $("tab-frame").style.display = "block";
+      $("font-section").style.display = "none";
+      $("text-control-container").style.display = "none";
+
+      // Баг-фикс: полностью останавливаем эффекты превью, чтобы SVG и Canvas очищались
+      stopFx($("pt"), $("pcv"), $("psl"));
+      stopAutoTrigger();
+
+      $("presets-title").textContent = LANG[currentLang].sFramePresets;
+      renderPresets();
+      $("preset-text").textContent = LANG[currentLang].presetSelect;
       const pt = $("pt");
       const pcv = $("pcv");
       if (pt) pt.style.display = "none";
@@ -677,6 +1035,7 @@ function initCfg() {
       updURL();
     });
   }
+
   document.querySelectorAll(".tg").forEach((tg) => {
     tg.addEventListener("click", () => {
       tg.classList.toggle("on");
@@ -691,6 +1050,7 @@ function initCfg() {
       onChange();
     });
   });
+
   const rvM = {
     sp: (v) => (v / 55).toFixed(1) + "x",
     asp: (v) => (v / 55).toFixed(1) + "x",
@@ -744,6 +1104,7 @@ function initCfg() {
       onChange();
     });
   });
+
   $("fs-trigger").addEventListener("click", (e) => {
     e.stopPropagation();
     $("fs-wrapper").classList.toggle("open");
@@ -762,6 +1123,7 @@ function initCfg() {
     if (!$("preset-wrapper").contains(e.target))
       $("preset-wrapper").classList.remove("open");
   });
+
   $("bscan").addEventListener("click", scanFonts);
   $("bsave-preset").addEventListener("click", savePreset);
   $("preset-name").addEventListener("keydown", (e) => {
@@ -774,13 +1136,15 @@ function initCfg() {
     $(id).addEventListener("change", onChange),
   );
   $("ti").addEventListener("input", onChange);
+  // Фикс добавления цветов по одному
   $("nc-add").addEventListener("click", () => {
-    if (S.colors.length < 4) {
-      S.colors.push(S.colors[S.colors.length - 1]);
+    if (S.colors.length < 5) {
+      S.colors.push("#ffffff");
       renderColorList();
       onChange();
     }
   });
+
   $("btest").addEventListener("click", () => {
     onChange();
     window.open($("ubox").textContent, "_blank");
@@ -798,6 +1162,33 @@ function initCfg() {
       }, 2000);
     });
   });
+
+  $("blang").addEventListener("click", () => {
+    const newLang = currentLang === "ru" ? "en" : "ru";
+    applyLang(newLang);
+  });
+  $("bbg-dark").addEventListener("click", () => {
+    $("pstage").classList.remove("light-bg");
+    $("bbg-dark").classList.add("active");
+    $("bbg-light").classList.remove("active");
+  });
+  $("bbg-light").addEventListener("click", () => {
+    $("pstage").classList.add("light-bg");
+    $("bbg-light").classList.add("active");
+    $("bbg-dark").classList.remove("active");
+  });
+  $("bplay").addEventListener("click", () => {
+    onChange();
+  });
+  $("bstop").addEventListener("click", () => {
+    stopFx($("pt"), $("pcv"), $("psl"));
+    stopAutoTrigger();
+  });
+  $("tc").addEventListener("input", (e) => {
+    const hex = $("tc-hex");
+    if (hex) hex.textContent = e.target.value;
+  });
+
   if (S.autoTrigger)
     setTimeout(() => startAutoTrigger($("pt"), $("pcv"), $("psl")), 400);
   else setTimeout(() => playFx($("pt"), $("pcv"), $("psl")), 300);

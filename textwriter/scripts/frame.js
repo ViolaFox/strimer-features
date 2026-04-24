@@ -258,7 +258,7 @@ export function renderFrameColors() {
     const input = document.createElement("input");
     input.type = "color";
     input.value = color;
-    input.className = "ns-color-in";
+    input.className = "fc-color-in";
     input.addEventListener("input", (e) => {
       S.frColors[index] = e.target.value;
       updateFramePreview();

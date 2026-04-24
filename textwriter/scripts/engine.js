@@ -1357,6 +1357,7 @@ const FX = {
     const glow = S.ngi || 0;
     const colors = S.colors || ["#ff00ff", "#00ffff"];
     const gradSpeed = S.nsGradSpeed || 0;
+
     const svg = svgEl("svg");
     svg.setAttribute("width", W);
     svg.setAttribute("height", H);
@@ -1369,28 +1370,56 @@ const FX = {
     grad.setAttribute("y1", "0%");
     grad.setAttribute("x2", "100%");
     grad.setAttribute("y2", "0%");
-    if (gradSpeed > 0) {
-      const gSm = vm(gradSpeed);
-      const animDur = (4 / gSm).toFixed(2);
-      const animX1 = svgEl("animate");
-      animX1.setAttribute("attributeName", "x1");
-      animX1.setAttribute("values", "-100%;100%");
-      animX1.setAttribute("dur", animDur + "s");
-      animX1.setAttribute("repeatCount", "indefinite");
-      grad.appendChild(animX1);
-      const animX2 = svgEl("animate");
-      animX2.setAttribute("attributeName", "x2");
-      animX2.setAttribute("values", "0%;200%");
-      animX2.setAttribute("dur", animDur + "s");
-      animX2.setAttribute("repeatCount", "indefinite");
-      grad.appendChild(animX2);
+
+    const stopElements = [];
+
+    if (colors.length === 1) {
+      // Статичный один цвет
+      const s1 = svgEl("stop");
+      s1.setAttribute("offset", "0%");
+      s1.setAttribute("stop-color", colors[0]);
+      grad.appendChild(s1);
+      const s2 = svgEl("stop");
+      s2.setAttribute("offset", "100%");
+      s2.setAttribute("stop-color", colors[0]);
+      grad.appendChild(s2);
+    } else if (gradSpeed === 0) {
+      // Статичный градиент
+      colors.forEach((col, i) => {
+        const stop = svgEl("stop");
+        stop.setAttribute("offset", (i / (colors.length - 1)) * 100 + "%");
+        stop.setAttribute("stop-color", col);
+        grad.appendChild(stop);
+      });
+    } else {
+      // Плавный анимированный градиент (точно как в рамке)
+      const allColors = [...colors, ...colors, colors[0]];
+      const n = colors.length;
+      allColors.forEach((col) => {
+        const stop = svgEl("stop");
+        stop.setAttribute("offset", "0%"); // Будет обновляться в JS
+        stop.setAttribute("stop-color", col);
+        grad.appendChild(stop);
+        stopElements.push(stop);
+      });
+
+      let nsStartTime = performance.now();
+      function animNsGrad(ts) {
+        if (!playing) return;
+        const gSm = vm(gradSpeed);
+        const duration = (4 / gSm) * 1000; // мс на один цикл
+        const elapsed = ts - nsStartTime;
+        const progress = (elapsed % duration) / duration; // от 0 до 1
+
+        for (let i = 0; i < stopElements.length; i++) {
+          const pos = (i / n - progress) * 100;
+          stopElements[i].setAttribute("offset", pos.toFixed(2) + "%");
+        }
+        tgt._nsAnimFrame = requestAnimationFrame(animNsGrad);
+      }
+      tgt._nsAnimFrame = requestAnimationFrame(animNsGrad);
     }
-    colors.forEach((col, i) => {
-      const stop = svgEl("stop");
-      stop.setAttribute("offset", (i / (colors.length - 1)) * 100 + "%");
-      stop.setAttribute("stop-color", col);
-      grad.appendChild(stop);
-    });
+
     defs.appendChild(grad);
     if (glow > 0) {
       const filter = svgEl("filter");
@@ -1452,11 +1481,41 @@ const FX = {
     }
   },
 
-  /* ==================== LASER WRITING EFFECT (CONTOUR TRACING) ==================== */
-  /* ==================== LASER WRITING EFFECT (CONTOUR TRACING) ==================== */
-  /* ==================== LASER WRITING EFFECT (CONTOUR TRACING) ==================== */
-  /* ==================== LASER WRITING EFFECT (CONTOUR TRACING) ==================== */
-  /* ==================== LASER WRITING EFFECT (PERMANENT NEON TRAIL) ==================== */
+  exitNeonStroke(tgt) {
+    if (!tgt._nsSvg || !tgt._nsUid) return;
+    const uid = tgt._nsUid;
+    const dashLen = tgt._nsDashLen || 5000;
+    // Используем скорость исчезновения, если она задана, иначе скорость эффекта
+    const sm = vm(S.dspeed !== 55 ? S.dspeed : S.speed);
+    const dur = Math.max(0.4, 3 / sm).toFixed(2);
+
+    // Анимация втягивания штриха (стирание с конца к началу)
+    injCSS(
+      `@keyframes nsDRev${uid}{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-${dashLen}}}.nsARev${uid}{animation:nsDRev${uid} ${dur}s linear forwards;}`,
+    );
+
+    // Заменяем класс анимации на всех текстовых элементах SVG
+    tgt._nsSvg.querySelectorAll(".nsA" + uid).forEach((el) => {
+      el.classList.remove("nsA" + uid);
+      el.classList.add("nsARev" + uid);
+    });
+
+    // Останавливаем анимацию градиента, если она была
+    if (tgt._nsAnimFrame) {
+      cancelAnimationFrame(tgt._nsAnimFrame);
+      tgt._nsAnimFrame = null;
+    }
+
+    // После окончания анимации полностью очищаем эффект
+    timer = setTimeout(
+      () => {
+        stopFx(tgt, currentCv, currentSl);
+        handleNextCycle(tgt);
+      },
+      dur * 1000 + 100,
+    );
+  },
+
   laser(tgt, cv) {
     if (!cv) {
       setLines(tgt);
@@ -2603,6 +2662,10 @@ export function stopFx(tgt, cv, sl) {
   if (tgt._nsSvg) {
     tgt._nsSvg.remove();
     tgt._nsSvg = null;
+  }
+  if (tgt._nsAnimFrame) {
+    cancelAnimationFrame(tgt._nsAnimFrame);
+    tgt._nsAnimFrame = null;
   }
   if (tgt._laserSvg) {
     tgt._laserSvg.remove();

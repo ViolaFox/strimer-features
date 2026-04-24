@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Text Effects PRO</title>
+    <title>TextWriter</title>
     <link rel="shortcut icon" href="icon.png" type="image/png" />
 
     <!-- Google Fonts -->
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <!-- Font Awesome -->
@@ -56,123 +56,185 @@
     <div id="sl"></div>
 
     <div id="cp">
+      <!-- ===== HEADER ===== -->
       <div class="hdr">
-        <i class="fas fa-magic" style="color: var(--accent)"></i>
-        <h1>Text Effects</h1>
-        <span class="badge">OBS</span><span class="hdr-h" id="host-info"></span>
+        <div class="hdr-left">
+          <div class="logo-mark"><i class="fas fa-pen-nib"></i></div>
+          <h1>TextWriter</h1>
+          <span class="badge">OBS</span>
+          <span class="hdr-h" id="host-info"></span>
+        </div>
+        <div class="hdr-actions">
+          <button
+            class="hdr-btn lang-btn"
+            id="blang"
+            data-i18n="btnLang"
+            title="Сменить язык"
+          >
+            RU
+          </button>
+        </div>
       </div>
-      <div class="body">
-        <div class="ctrl">
-          <div class="st">
-            <div class="sub-nav">
-              <button class="sub-nav-btn active" id="tab-btn-font">Font</button>
-              <button class="sub-nav-btn" id="tab-btn-frame">Frame</button>
-            </div>
-          </div>
 
-          <!-- FONT TAB CONTENT -->
-          <div id="tab-font">
-            <!-- PRESETS -->
-            <div class="st">Presets</div>
+      <!-- ===== MAIN BODY ===== -->
+      <div class="body">
+        <!-- LEFT COLUMN -->
+        <div class="col col-left">
+          <div class="col-scroll">
+            <div class="st" id="presets-title" data-i18n="sTextPresets">
+              Пресеты текста
+            </div>
             <div class="cg">
               <div class="cr">
                 <input
                   type="text"
                   id="preset-name"
-                  placeholder="New preset name..."
+                  data-i18n-placeholder="presetName"
+                  placeholder="Имя пресета..."
                   style="flex: 1"
                 />
                 <button class="bsc" id="bsave-preset">
-                  <i class="fas fa-save"></i> Save
+                  <i class="fas fa-save"></i>
                 </button>
               </div>
             </div>
             <div class="cg">
               <div class="cs-wrapper" id="preset-wrapper">
                 <div class="cs-trigger" id="preset-trigger" tabindex="0">
-                  <span id="preset-text">Select a preset...</span>
+                  <span id="preset-text" data-i18n="presetSelect"
+                    >Выбрать пресет...</span
+                  >
                   <i class="fas fa-chevron-down cs-arrow"></i>
                 </div>
                 <div class="cs-options" id="preset-options">
                   <div
                     class="cs-option cs-empty"
+                    data-i18n="presetEmpty"
                     style="
                       pointer-events: none;
                       color: var(--muted);
                       font-style: italic;
                     "
                   >
-                    No saved presets
+                    Нет сохранённых пресетов
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="st">Font Family</div>
-            <div class="cg">
-              <div class="fpv" id="fpv">The quick brown fox</div>
-              <div class="cr">
-                <div class="cs-wrapper" id="fs-wrapper">
-                  <div class="cs-trigger" id="fs-trigger" tabindex="0">
-                    <span id="fs-text">IBM Plex Mono</span>
-                    <i class="fas fa-chevron-down cs-arrow"></i>
+            <!-- FONT SECTION (Hidden in Frame Mode) -->
+            <div id="font-section">
+              <div class="st" data-i18n="sFont">Шрифт</div>
+              <div class="cg">
+                <div class="fpv" id="fpv">The quick brown fox</div>
+                <div class="cr">
+                  <div class="cs-wrapper" id="fs-wrapper">
+                    <div class="cs-trigger" id="fs-trigger" tabindex="0">
+                      <span id="fs-text">IBM Plex Mono</span>
+                      <i class="fas fa-chevron-down cs-arrow"></i>
+                    </div>
+                    <div class="cs-options" id="fs-options"></div>
                   </div>
-                  <div class="cs-options" id="fs-options"></div>
+                  <button class="bsc" id="bscan">
+                    <i class="fas fa-search"></i>
+                  </button>
                 </div>
-                <button class="bsc" id="bscan">
-                  <i class="fas fa-search"></i> Scan
-                </button>
+                <div class="fst" id="fst"></div>
               </div>
-              <div class="fst" id="fst"></div>
             </div>
 
             <!-- TEXT CONTROL CONTAINER (Hidden in Frame Mode) -->
             <div id="text-control-container">
-              <div class="st">Content</div>
+              <div class="st" data-i18n="sContent">Контент</div>
               <div class="cg">
-                <label class="cl">Text (one line per entry)</label>
+                <label class="cl" data-i18n="lText"
+                  >Текст (строка = запись)</label
+                >
                 <textarea id="ti">
 Welcome to the stream
 Today we're doing something special
 Let's get started</textarea
                 >
               </div>
-              <div class="st">Effects</div>
+
+              <div class="st" data-i18n="sAnimation">Анимация</div>
               <div class="cg">
-                <label class="cl">Visual Effect</label>
+                <label class="cl" data-i18n="lVisualEffect"
+                  >Визуальный эффект</label
+                >
                 <div class="sw">
                   <select id="vis">
-                    <option value="none">None (static text)</option>
-                    <option value="typewriter">Typewriter</option>
-                    <option value="neon">Neon Flicker</option>
-                    <option value="glitch">Glitch (RGB Shift)</option>
-                    <option value="smoke">Smoke / Fog</option>
-                    <option value="fire">Fire (Text Flicker)</option>
-                    <option value="ice">Ice (Frozen + Cracks)</option>
-                    <option value="chrome">Gold / Chrome</option>
-                    <option value="wave">Wave</option>
-                    <option value="shake">Shaking (Alert)</option>
-                    <option value="ripple">Ripple</option>
-                    <option value="glowpulse">Glow Pulse</option>
-                    <option value="shadow">Moving Shadow</option>
-                    <option value="pour">Pour (Letters Fall Into Place)</option>
-                    <option value="stamp">Print Stamp</option>
-                    <option value="scanner">Scanner Line</option>
-                    <option value="rainbow">Rainbow</option>
-                    <option value="matrix">Matrix Code</option>
-                    <option value="water">Water Distortion</option>
-                    <option value="particles">Falling Particles</option>
-                    <option value="neonstroke">
-                      Neon Stroke (Flowing Light)
+                    <option value="none" data-i18n="visNone">
+                      Нет (статичный)
                     </option>
-                    <option value="blood">Blood Drip</option>
-                    <option value="laser">Laser Writing</option>
+                    <option value="typewriter" data-i18n="visTypewriter">
+                      Печатная машинка
+                    </option>
+                    <option value="neon" data-i18n="visNeon">
+                      Неон мерцание
+                    </option>
+                    <option value="glitch" data-i18n="visGlitch">
+                      Глитч (RGB сдвиг)
+                    </option>
+                    <option value="smoke" data-i18n="visSmoke">
+                      Дым / Туман
+                    </option>
+                    <option value="fire" data-i18n="visFire">
+                      Огонь (мерцание)
+                    </option>
+                    <option value="ice" data-i18n="visIce">
+                      Лёд (заморозка + трещины)
+                    </option>
+                    <option value="chrome" data-i18n="visChrome">
+                      Золото / Хром
+                    </option>
+                    <option value="wave" data-i18n="visWave">Волна</option>
+                    <option value="shake" data-i18n="visShake">
+                      Тряска (алерт)
+                    </option>
+                    <option value="ripple" data-i18n="visRipple">Рябь</option>
+                    <option value="glowpulse" data-i18n="visGlowpulse">
+                      Пульсация свечения
+                    </option>
+                    <option value="shadow" data-i18n="visShadow">
+                      Движущаяся тень
+                    </option>
+                    <option value="pour" data-i18n="visPour">
+                      Выливание (буквы падают)
+                    </option>
+                    <option value="stamp" data-i18n="visStamp">
+                      Штамп печати
+                    </option>
+                    <option value="scanner" data-i18n="visScanner">
+                      Сканер
+                    </option>
+                    <option value="rainbow" data-i18n="visRainbow">
+                      Радуга
+                    </option>
+                    <option value="matrix" data-i18n="visMatrix">
+                      Матрица
+                    </option>
+                    <option value="water" data-i18n="visWater">
+                      Искажение водой
+                    </option>
+                    <option value="particles" data-i18n="visParticles">
+                      Падающие частицы
+                    </option>
+                    <option value="neonstroke" data-i18n="visNeonstroke">
+                      Неоновый штрих
+                    </option>
+                    <option value="blood" data-i18n="visBlood">Кровь</option>
+                    <option value="laser" data-i18n="visLaser">
+                      Лазерное письмо
+                    </option>
                   </select>
                 </div>
                 <div class="note" id="vis-note"></div>
               </div>
               <div class="cg">
-                <label class="cl">Visual Effect Speed</label>
+                <label class="cl" data-i18n="lVisualSpeed"
+                  >Скорость визуального эффекта</label
+                >
                 <div class="cr">
                   <input type="range" id="sp" min="10" max="200" value="55" />
                   <span class="rv" id="sp-v">1.0x</span>
@@ -180,27 +242,51 @@ Let's get started</textarea
                 <div class="note" id="sp-note"></div>
               </div>
               <div class="cg">
-                <label class="cl">Appearance Effect</label>
+                <label class="cl" data-i18n="lAppearance"
+                  >Эффект появления</label
+                >
                 <div class="sw">
                   <select id="apr">
-                    <option value="none">None</option>
-                    <option value="assemble">Assembling Text</option>
-                    <option value="slide-left">From Left</option>
-                    <option value="slide-right">From Right</option>
-                    <option value="fall-down">Falling from Above</option>
-                    <option value="rise-up">Rising from Below</option>
-                    <option value="rotate-in">Rotate In</option>
-                    <option value="blur-in">Through Blur</option>
-                    <option value="pixel-in">Through Pixels</option>
-                    <option value="fade-in">Fade In</option>
-                    <option value="mask-stripe">Mask Stripe</option>
-                    <option value="zoom-in">Zoom In</option>
+                    <option value="none" data-i18n="aprNone">Нет</option>
+                    <option value="assemble" data-i18n="aprAssemble">
+                      Сборка текста
+                    </option>
+                    <option value="slide-left" data-i18n="aprSlideL">
+                      Слева
+                    </option>
+                    <option value="slide-right" data-i18n="aprSlideR">
+                      Справа
+                    </option>
+                    <option value="fall-down" data-i18n="aprFallDown">
+                      Сверху
+                    </option>
+                    <option value="rise-up" data-i18n="aprRiseUp">Снизу</option>
+                    <option value="rotate-in" data-i18n="aprRotateIn">
+                      Вращение
+                    </option>
+                    <option value="blur-in" data-i18n="aprBlurIn">
+                      Через блюр
+                    </option>
+                    <option value="pixel-in" data-i18n="aprPixelIn">
+                      Через пиксели
+                    </option>
+                    <option value="fade-in" data-i18n="aprFadeIn">
+                      Плавное появление
+                    </option>
+                    <option value="mask-stripe" data-i18n="aprMaskStripe">
+                      Маска-полоса
+                    </option>
+                    <option value="zoom-in" data-i18n="aprZoomIn">
+                      Масштаб
+                    </option>
                   </select>
                 </div>
                 <div class="note" id="apr-note"></div>
               </div>
               <div class="cg" id="asp-opts" style="display: none">
-                <label class="cl">Appearance Effect Speed</label>
+                <label class="cl" data-i18n="lAppearSpeed"
+                  >Скорость появления</label
+                >
                 <div class="cr">
                   <input type="range" id="asp" min="10" max="200" value="55" />
                   <span class="rv" id="asp-v">1.0x</span>
@@ -208,32 +294,62 @@ Let's get started</textarea
               </div>
 
               <div class="cg">
-                <label class="cl">Disappearing Effect</label>
+                <label class="cl" data-i18n="lDisappear"
+                  >Эффект исчезновения</label
+                >
                 <div class="sw">
                   <select id="dis">
-                    <option value="none">None (Instant)</option>
-                    <option value="scatter">Scattering Letters</option>
-                    <option value="slide-left">Slide Left</option>
-                    <option value="slide-right">Slide Right</option>
-                    <option value="fall-down">Fall Down</option>
-                    <option value="rise-up">Rise Up</option>
-                    <option value="rotate-out">Rotate Out</option>
-                    <option value="blur-out">Through Blur</option>
-                    <option value="pixel-out">Through Pixels</option>
-                    <option value="fade-out">Fade Out</option>
-                    <option value="mask-stripe-exit">Mask Stripe</option>
-                    <option value="zoom-out">Zoom Out</option>
-                    <option value="glass-shatter">Breaks like Glass</option>
-                    <option value="shrink-point">Shrinks to a Point</option>
-                    <option value="particle-explode">
-                      Transforms into Particles
+                    <option value="none" data-i18n="disNone">
+                      Нет (мгновенно)
                     </option>
-                    <option value="fire-out">Burn / Fire</option>
+                    <option value="scatter" data-i18n="disScatter">
+                      Рассеивание букв
+                    </option>
+                    <option value="slide-left" data-i18n="disSlideL">
+                      Влево
+                    </option>
+                    <option value="slide-right" data-i18n="disSlideR">
+                      Вправо
+                    </option>
+                    <option value="fall-down" data-i18n="disFallDown">
+                      Вниз
+                    </option>
+                    <option value="rise-up" data-i18n="disRiseUp">Вверх</option>
+                    <option value="rotate-out" data-i18n="disRotateOut">
+                      Вращение
+                    </option>
+                    <option value="blur-out" data-i18n="disBlurOut">
+                      Через блюр
+                    </option>
+                    <option value="pixel-out" data-i18n="disPixelOut">
+                      Через пиксели
+                    </option>
+                    <option value="fade-out" data-i18n="disFadeOut">
+                      Плавное исчезновение
+                    </option>
+                    <option value="mask-stripe-exit" data-i18n="disMaskStripe">
+                      Маска-полоса
+                    </option>
+                    <option value="zoom-out" data-i18n="disZoomOut">
+                      Масштаб
+                    </option>
+                    <option value="glass-shatter" data-i18n="disGlass">
+                      Стекло
+                    </option>
+                    <option value="shrink-point" data-i18n="disShrink">
+                      Сжатие в точку
+                    </option>
+                    <option value="particle-explode" data-i18n="disParticles">
+                      Взрыв частицами
+                    </option>
+                    <option value="fire-out" data-i18n="disFire">Огонь</option>
                   </select>
                 </div>
               </div>
               <div class="cg" id="dsp-opts" style="display: none">
-                <label class="cl">Disappearing Effect Speed</label>
+                <label class="cl" data-i18n="lDisappearSpeed"
+                  >Скорость исчезновения</label
+                >
                 <div class="cr">
                   <input type="range" id="dsp" min="10" max="200" value="55" />
                   <span class="rv" id="dsp-v">1.0x</span>
@@ -242,20 +358,22 @@ Let's get started</textarea
 
               <div id="dp-opts" style="display: none">
                 <div class="cg">
-                  <label class="cl">Particle Color</label>
+                  <label class="cl" data-i18n="lPartColor">Цвет частиц</label>
                   <div class="cr">
                     <input type="color" id="dpc" value="#ffffff" />
                   </div>
                 </div>
                 <div class="cg">
-                  <label class="cl">Particle Size</label>
+                  <label class="cl" data-i18n="lPartSize">Размер частиц</label>
                   <div class="cr">
                     <input type="range" id="dpsz" min="2" max="20" value="6" />
                     <span class="rv" id="dpsz-v">6px</span>
                   </div>
                 </div>
                 <div class="cg">
-                  <label class="cl">Explosion Speed</label>
+                  <label class="cl" data-i18n="lExpSpeed"
+                    >Скорость взрыва</label
+                  >
                   <div class="cr">
                     <input
                       type="range"
@@ -271,7 +389,9 @@ Let's get started</textarea
 
               <div id="gs-opts" style="display: none">
                 <div class="cg">
-                  <label class="cl">Shard Size</label>
+                  <label class="cl" data-i18n="lShardSize"
+                    >Размер осколков</label
+                  >
                   <div class="cr">
                     <input
                       type="range"
@@ -282,18 +402,18 @@ Let's get started</textarea
                     />
                     <span class="rv" id="gsz-v">50</span>
                   </div>
-                  <div class="note">Larger = bigger shards, fewer pieces</div>
                 </div>
                 <div class="cg">
-                  <label class="cl">Edge Thickness</label>
+                  <label class="cl" data-i18n="lEdgeThick">Толщина краёв</label>
                   <div class="cr">
                     <input type="range" id="ged" min="0" max="100" value="50" />
                     <span class="rv" id="ged-v">50</span>
                   </div>
-                  <div class="note">Brightness and width of shard edges</div>
                 </div>
                 <div class="cg">
-                  <label class="cl">Glass Speed</label>
+                  <label class="cl" data-i18n="lGlassSpeed"
+                    >Скорость стекла</label
+                  >
                   <div class="cr">
                     <input
                       type="range"
@@ -308,23 +428,27 @@ Let's get started</textarea
               </div>
 
               <div class="cg" id="pt-opts" style="display: none">
-                <label class="cl">Particle Type</label>
+                <label class="cl" data-i18n="lPartType">Тип частиц</label>
                 <div class="sw">
                   <select id="ptyp">
-                    <option value="snow">Snow</option>
-                    <option value="petals">Petals</option>
-                    <option value="sparks">Sparks</option>
+                    <option value="snow" data-i18n="ptSnow">Снег</option>
+                    <option value="petals" data-i18n="ptPetals">
+                      Лепестки
+                    </option>
+                    <option value="sparks" data-i18n="ptSparks">Искры</option>
                   </select>
                 </div>
               </div>
               <div class="cg" id="pc-opts" style="display: none">
-                <label class="cl">Particle Color</label>
+                <label class="cl" data-i18n="lPartFallColor">Цвет частиц</label>
                 <div class="cr">
                   <input type="color" id="pc" value="#ffffff" />
                 </div>
               </div>
               <div class="cg" id="pspd-opts" style="display: none">
-                <label class="cl">Particle Fall Speed</label>
+                <label class="cl" data-i18n="lPartFallSpeed"
+                  >Скорость падения</label
+                >
                 <div class="cr">
                   <input type="range" id="pspd" min="10" max="200" value="55" />
                   <span class="rv" id="pspd-v">1.0x</span>
@@ -332,7 +456,9 @@ Let's get started</textarea
               </div>
 
               <div class="cg" id="sd-opts" style="display: none">
-                <label class="cl">Smoke Density</label>
+                <label class="cl" data-i18n="lSmokeDensity"
+                  >Плотность дыма</label
+                >
                 <div class="cr">
                   <input type="range" id="sdns" min="10" max="100" value="50" />
                   <span class="rv" id="sdns-v">50%</span>
@@ -340,50 +466,59 @@ Let's get started</textarea
               </div>
 
               <div class="cg" id="bd-opts" style="display: none">
-                <label class="cl">Blood Density</label>
+                <label class="cl" data-i18n="lBloodDensity"
+                  >Плотность крови</label
+                >
                 <div class="cr">
                   <input type="range" id="bdns" min="10" max="100" value="60" />
                   <span class="rv" id="bdns-v">60%</span>
                 </div>
-                <div class="note">Controls drip spawn rate</div>
               </div>
               <div class="cg" id="bdpl-opts" style="display: none">
-                <label class="cl">Drip Length</label>
+                <label class="cl" data-i18n="lDripLength">Длина капель</label>
                 <div class="cr">
                   <input type="range" id="bdpl" min="5" max="150" value="50" />
                   <span class="rv" id="bdpl-v">50</span>
                 </div>
-                <div class="note">Max height blood can drip down</div>
               </div>
 
               <div id="ns-opts" style="display: none">
                 <div class="cg">
-                  <label class="cl">Gradient Colors</label>
+                  <label class="cl" data-i18n="lGradColors"
+                    >Градиентные цвета</label
+                  >
                   <div id="nc-list" class="cr"></div>
                   <button
                     class="ab"
                     id="nc-add"
+                    data-i18n="btnAddColor"
                     style="margin-top: 4px; width: 100%"
                   >
-                    <i class="fas fa-plus"></i> Add Color
+                    Добавить цвет
                   </button>
                 </div>
                 <div class="cg">
-                  <label class="cl">Stroke Width</label>
+                  <label class="cl" data-i18n="lStrokeWidth"
+                    >Толщина штриха</label
+                  >
                   <div class="cr">
                     <input type="range" id="nsw" min="1" max="10" value="3" />
                     <span class="rv" id="nsw-v">3px</span>
                   </div>
                 </div>
                 <div class="cg">
-                  <label class="cl">Glow Intensity</label>
+                  <label class="cl" data-i18n="lGlowInt"
+                    >Интенсивность свечения</label
+                  >
                   <div class="cr">
                     <input type="range" id="ngi" min="0" max="15" value="4" />
                     <span class="rv" id="ngi-v">4</span>
                   </div>
                 </div>
                 <div class="cg">
-                  <label class="cl">Gradient Animation Speed</label>
+                  <label class="cl" data-i18n="lGradSpeed"
+                    >Скорость градиента</label
+                  >
                   <div class="cr">
                     <input
                       type="range"
@@ -394,12 +529,14 @@ Let's get started</textarea
                     />
                     <span class="rv" id="nsgs-v">1.0x</span>
                   </div>
-                  <div class="note">0 = Static Gradient</div>
                 </div>
               </div>
+
               <div id="tw-opts" style="display: none">
                 <div class="cg">
-                  <label class="cl">Pause Between Lines</label>
+                  <label class="cl" data-i18n="lPause"
+                    >Пауза между строками</label
+                  >
                   <div class="cr">
                     <input
                       type="range"
@@ -414,35 +551,47 @@ Let's get started</textarea
                 </div>
                 <div class="cg">
                   <div class="tw">
-                    <label class="cl" style="margin-bottom: 0">Sound</label>
+                    <label
+                      class="cl"
+                      style="margin-bottom: 0"
+                      data-i18n="tSound"
+                      >Звук</label
+                    >
                     <div class="tg" id="tg-sn"></div>
                   </div>
                 </div>
               </div>
+
               <div class="cg">
                 <div class="tw">
-                  <label class="cl" style="margin-bottom: 0">Loop</label>
+                  <label class="cl" style="margin-bottom: 0" data-i18n="tLoop"
+                    >Зациклить</label
+                  >
                   <div class="tg" id="tg-lo"></div>
                 </div>
               </div>
               <div class="cg">
                 <div class="tw">
-                  <label class="cl" style="margin-bottom: 0"
-                    >Auto Trigger</label
+                  <label class="cl" style="margin-bottom: 0" data-i18n="tAuto"
+                    >Автозапуск</label
                   >
                   <div class="tg" id="tg-at"></div>
                 </div>
               </div>
               <div id="at-opts" class="auto-sub" style="display: none">
                 <div class="cg">
-                  <label class="cl" id="atm-label">Activity Time</label>
+                  <label class="cl" id="atm-label" data-i18n="lShowDur"
+                    >Время показа</label
+                  >
                   <div class="cr">
                     <input type="range" id="atm" min="1" max="120" value="10" />
                     <span class="rv" id="atm-v">10s</span>
                   </div>
                 </div>
                 <div class="cg">
-                  <label class="cl">Time Between Activations</label>
+                  <label class="cl" data-i18n="lPauseBetween"
+                    >Пауза между запусками</label
+                  >
                   <div class="cr">
                     <input
                       type="range"
@@ -456,24 +605,125 @@ Let's get started</textarea
                   </div>
                 </div>
                 <div class="auto-status" id="at-status">
-                  <span class="dot"></span><span id="at-label">Idle</span>
+                  <span class="dot"></span
+                  ><span id="at-label" data-i18n="autoIdle">Ожидание</span>
                 </div>
               </div>
-              <div class="st">Style</div>
+            </div>
+            <!-- END TEXT CONTROL CONTAINER -->
+          </div>
+        </div>
+
+        <!-- CENTER COLUMN -->
+        <div class="col col-center">
+          <div class="col-scroll">
+            <div class="sub-nav">
+              <button
+                class="sub-nav-btn active"
+                id="tab-btn-font"
+                data-i18n="navText"
+              >
+                Текст
+              </button>
+              <button
+                class="sub-nav-btn"
+                id="tab-btn-frame"
+                data-i18n="navFrame"
+              >
+                Рамка
+              </button>
+            </div>
+
+            <!-- TEXT TAB CONTENT (Colors, Style, Layout) -->
+            <div id="tab-font">
+              <div class="st" data-i18n="sColors">Цвета</div>
               <div class="cg">
-                <label class="cl">Size</label>
+                <label class="cl" data-i18n="lTextColor">Цвет текста</label>
                 <div class="cr">
-                  <input
-                    type="range"
-                    id="sz"
-                    min="14"
-                    max="128"
-                    value="42"
-                  /><span class="rv" id="sz-v">42px</span>
+                  <input type="color" id="tc" value="#ffffff" />
+                  <span class="color-hex" id="tc-hex">#ffffff</span>
                 </div>
               </div>
               <div class="cg">
-                <label class="cl">Line Height</label>
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0" data-i18n="tGlow"
+                    >Свечение</label
+                  >
+                  <div class="tg" id="tg-gl"></div>
+                </div>
+                <div class="gsg" id="gs-gl" style="display: none">
+                  <div class="cr" style="margin-top: 4px">
+                    <input type="color" id="gc" value="#8b5cf6" />
+                    <input
+                      type="range"
+                      id="gi"
+                      min="2"
+                      max="40"
+                      value="12"
+                      style="flex: 1"
+                    />
+                    <span class="rv" id="gi-v">12px</span>
+                  </div>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0" data-i18n="tStroke"
+                    >Обводка</label
+                  >
+                  <div class="tg" id="tg-st"></div>
+                </div>
+                <div class="gsg" id="gs-st" style="display: none">
+                  <div class="cr" style="margin-top: 4px">
+                    <input type="color" id="sc" value="#000000" />
+                    <input
+                      type="range"
+                      id="sw"
+                      min="1"
+                      max="8"
+                      value="2"
+                      style="flex: 1"
+                    />
+                    <span class="rv" id="sw-v">2px</span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="cursor-opts" style="display: none">
+                <div class="st" data-i18n="sCursor">Курсор</div>
+                <div class="cg">
+                  <label class="cl" data-i18n="lCursorStyle">Стиль</label>
+                  <div class="sw">
+                    <select id="cs">
+                      <option value="block" data-i18n="csBlock">Блок</option>
+                      <option value="line" data-i18n="csLine">Линия</option>
+                      <option value="underscore" data-i18n="csUnder">
+                        Подчёркивание
+                      </option>
+                      <option value="none" data-i18n="csNone">Нет</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl" data-i18n="lCursorColor"
+                    >Цвет курсора</label
+                  >
+                  <div class="cr">
+                    <input type="color" id="cc" value="#8b5cf6" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="st" data-i18n="sStyle">Стиль</div>
+              <div class="cg">
+                <label class="cl" data-i18n="lSize">Размер</label>
+                <div class="cr">
+                  <input type="range" id="sz" min="14" max="128" value="42" />
+                  <span class="rv" id="sz-v">42px</span>
+                </div>
+              </div>
+              <div class="cg">
+                <label class="cl" data-i18n="lLineHeight">Высота строки</label>
                 <div class="cr">
                   <input
                     type="range"
@@ -482,96 +732,38 @@ Let's get started</textarea
                     max="260"
                     value="140"
                     step="5"
-                  /><span class="rv" id="lh-v">1.4</span>
+                  />
+                  <span class="rv" id="lh-v">1.4</span>
                 </div>
               </div>
               <div class="cg">
                 <div class="tw">
-                  <label class="cl" style="margin-bottom: 0">Bold</label>
+                  <label class="cl" style="margin-bottom: 0" data-i18n="tBold"
+                    >Жирный</label
+                  >
                   <div class="tg on" id="tg-b"></div>
                 </div>
               </div>
               <div class="cg">
                 <div class="tw">
-                  <label class="cl" style="margin-bottom: 0">Italic</label>
+                  <label class="cl" style="margin-bottom: 0" data-i18n="tItalic"
+                    >Курсив</label
+                  >
                   <div class="tg" id="tg-i"></div>
                 </div>
               </div>
               <div class="cg">
-                <label class="cl">Color</label>
-                <div class="cr">
-                  <input type="color" id="tc" value="#ffffff" />
-                </div>
-              </div>
-              <div class="cg">
-                <label class="cl">Align</label>
+                <label class="cl" data-i18n="lAlign">Выравнивание</label>
                 <div class="ag">
-                  <button class="ab on" data-a="left">L</button
-                  ><button class="ab" data-a="center">C</button
-                  ><button class="ab" data-a="right">R</button>
-                </div>
-              </div>
-              <div class="cg">
-                <div class="tw">
-                  <label class="cl" style="margin-bottom: 0">Glow</label>
-                  <div class="tg" id="tg-gl"></div>
-                </div>
-                <div class="gsg" id="gs-gl" style="display: none">
-                  <div class="cr" style="margin-top: 4px">
-                    <input type="color" id="gc" value="#d4a054" /><input
-                      type="range"
-                      id="gi"
-                      min="2"
-                      max="40"
-                      value="12"
-                      style="flex: 1"
-                    /><span class="rv" id="gi-v">12px</span>
-                  </div>
-                </div>
-              </div>
-              <div class="cg">
-                <div class="tw">
-                  <label class="cl" style="margin-bottom: 0">Stroke</label>
-                  <div class="tg" id="tg-st"></div>
-                </div>
-                <div class="gsg" id="gs-st" style="display: none">
-                  <div class="cr" style="margin-top: 4px">
-                    <input type="color" id="sc" value="#000000" /><input
-                      type="range"
-                      id="sw"
-                      min="1"
-                      max="8"
-                      value="2"
-                      style="flex: 1"
-                    /><span class="rv" id="sw-v">2px</span>
-                  </div>
+                  <button class="ab on" data-a="left">L</button>
+                  <button class="ab" data-a="center">C</button>
+                  <button class="ab" data-a="right">R</button>
                 </div>
               </div>
 
-              <div id="cursor-opts" style="display: none">
-                <div class="st">Cursor (Typewriter only)</div>
-                <div class="cg">
-                  <label class="cl">Style</label>
-                  <div class="sw">
-                    <select id="cs">
-                      <option value="block">Block</option>
-                      <option value="line">Line</option>
-                      <option value="underscore">Underscore</option>
-                      <option value="none">None</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="cg">
-                  <label class="cl">Color</label>
-                  <div class="cr">
-                    <input type="color" id="cc" value="#d4a054" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="st">Layout</div>
+              <div class="st" data-i18n="sLayout">Расположение</div>
               <div class="cg">
-                <label class="cl">Position</label>
+                <label class="cl" data-i18n="lPosition">Позиция</label>
                 <div class="pg">
                   <div class="pb" data-p="tl"></div>
                   <div class="pb" data-p="tc"></div>
@@ -585,179 +777,214 @@ Let's get started</textarea
                 </div>
               </div>
               <div class="cg">
-                <label class="cl">Margin</label>
+                <label class="cl" data-i18n="lMargin">Отступ</label>
                 <div class="cr">
-                  <input
-                    type="range"
-                    id="mg"
-                    min="8"
-                    max="160"
-                    value="40"
-                  /><span class="rv" id="mg-v">40px</span>
+                  <input type="range" id="mg" min="8" max="160" value="40" />
+                  <span class="rv" id="mg-v">40px</span>
                 </div>
               </div>
             </div>
-            <!-- END TEXT CONTROL CONTAINER -->
-          </div>
+            <!-- END TEXT TAB -->
 
-          <!-- FRAME TAB CONTENT -->
-          <div id="tab-frame" style="display: none">
-            <div class="st">Frame Appearance</div>
-
-            <div class="cg">
-              <label class="cl">Gradient Colors (Max 5)</label>
-              <div id="fc-list" class="cr"></div>
-              <button
-                class="ab"
-                id="fc-add"
-                style="margin-top: 4px; width: 100%"
-              >
-                <i class="fas fa-plus"></i> Add Color
-              </button>
-            </div>
-
-            <hr
-              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
-            />
-
-            <div class="cg">
-              <label class="cl">Gradient Speed</label>
-              <div class="cr">
-                <input type="range" id="fr-speed" min="0" max="200" value="0" />
-                <span class="rv" id="fr-speed-v">Static</span>
+            <!-- FRAME TAB CONTENT -->
+            <div id="tab-frame" style="display: none">
+              <div class="st" data-i18n="sFrameAppearance">Внешний вид</div>
+              <div class="cg">
+                <label class="cl" data-i18n="lFrameGradColors"
+                  >Градиентные цвета (макс. 5)</label
+                >
+                <div id="fc-list" class="cr"></div>
+                <button
+                  class="ab"
+                  id="fc-add"
+                  data-i18n="btnAddColor"
+                  style="margin-top: 4px; width: 100%"
+                >
+                  Добавить цвет
+                </button>
               </div>
-              <div class="note">0 = Static</div>
-            </div>
-
-            <div class="cg">
-              <label class="cl">Gradient Direction</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="fr-angle"
-                  min="0"
-                  max="360"
-                  value="90"
-                />
-                <span class="rv" id="fr-angle-v">90deg</span>
+              <hr style="border-color: var(--border); margin: 10px 0" />
+              <div class="cg">
+                <label class="cl" data-i18n="lFrameGradSpeed"
+                  >Скорость градиента</label
+                >
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="fr-speed"
+                    min="0"
+                    max="200"
+                    value="0"
+                  />
+                  <span class="rv" id="fr-speed-v">Статичный</span>
+                </div>
+                <div class="note" data-i18n="note0Static">0 = Статичный</div>
+              </div>
+              <div class="cg">
+                <label class="cl" data-i18n="lFrameGradDir"
+                  >Направление градиента</label
+                >
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="fr-angle"
+                    min="0"
+                    max="360"
+                    value="90"
+                  />
+                  <span class="rv" id="fr-angle-v">90deg</span>
+                </div>
+              </div>
+              <hr style="border-color: var(--border); margin: 10px 0" />
+              <div class="cg">
+                <label class="cl" data-i18n="lFrameTubeSize"
+                  >Размер трубки (толщина рамки)</label
+                >
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="fr-size"
+                    min="1"
+                    max="50"
+                    value="10"
+                  />
+                  <span class="rv" id="fr-size-v">10px</span>
+                </div>
+              </div>
+              <div class="cg">
+                <label class="cl" data-i18n="lFrameCorner">Радиус углов</label>
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="fr-radius"
+                    min="0"
+                    max="100"
+                    value="0"
+                  />
+                  <span class="rv" id="fr-radius-v">0px</span>
+                </div>
+              </div>
+              <div class="cg">
+                <label class="cl" data-i18n="lFrameGlow"
+                  >Интенсивность свечения</label
+                >
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="fr-glow"
+                    min="0"
+                    max="100"
+                    value="20"
+                  />
+                  <span class="rv" id="fr-glow-v">20px</span>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="tw">
+                  <label
+                    class="cl"
+                    style="margin-bottom: 0"
+                    data-i18n="tFrameGradGlow"
+                    >Градиентное свечение</label
+                  >
+                  <div class="tg" id="fr-glow-gradient"></div>
+                </div>
+                <div class="note" data-i18n="noteSyncGlow">
+                  Синхронизация цвета свечения с градиентом
+                </div>
+              </div>
+              <hr style="border-color: var(--border); margin: 10px 0" />
+              <div class="st" data-i18n="sDimensions">Размеры</div>
+              <div class="cg">
+                <label class="cl" data-i18n="lFrameWidth">Ширина рамки</label>
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="fr-width"
+                    min="100"
+                    max="1920"
+                    value="600"
+                  />
+                  <span class="rv" id="fr-width-v">600px</span>
+                </div>
+              </div>
+              <div class="cg">
+                <label class="cl" data-i18n="lFrameHeight">Высота рамки</label>
+                <div class="cr">
+                  <input
+                    type="range"
+                    id="fr-height"
+                    min="100"
+                    max="1080"
+                    value="400"
+                  />
+                  <span class="rv" id="fr-height-v">400px</span>
+                </div>
               </div>
             </div>
-
-            <hr
-              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
-            />
-
-            <div class="cg">
-              <label class="cl">Tube Size (Border Width)</label>
-              <div class="cr">
-                <input type="range" id="fr-size" min="1" max="50" value="10" />
-                <span class="rv" id="fr-size-v">10px</span>
-              </div>
-            </div>
-
-            <div class="cg">
-              <label class="cl">Corner Radius</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="fr-radius"
-                  min="0"
-                  max="100"
-                  value="0"
-                />
-                <span class="rv" id="fr-radius-v">0px</span>
-              </div>
-            </div>
-
-            <div class="cg">
-              <label class="cl">Glow Intensity</label>
-              <div class="cr">
-                <input type="range" id="fr-glow" min="0" max="100" value="20" />
-                <span class="rv" id="fr-glow-v">20px</span>
-              </div>
-            </div>
-            <div class="cg">
-              <div class="tw">
-                <label class="cl" style="margin-bottom: 0">Gradient Glow</label>
-                <div class="tg" id="fr-glow-gradient"></div>
-              </div>
-              <div class="note">Syncs glow color with gradient movement</div>
-            </div>
-
-            <hr
-              style="border-color: var(--border); opacity: 0.3; margin: 10px 0"
-            />
-
-            <div class="st">Dimensions</div>
-            <div class="cg">
-              <label class="cl">Frame Width</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="fr-width"
-                  min="100"
-                  max="1920"
-                  value="600"
-                />
-                <span class="rv" id="fr-width-v">600px</span>
-              </div>
-            </div>
-
-            <div class="cg">
-              <label class="cl">Frame Height</label>
-              <div class="cr">
-                <input
-                  type="range"
-                  id="fr-height"
-                  min="100"
-                  max="1080"
-                  value="400"
-                />
-                <span class="rv" id="fr-height-v">400px</span>
-              </div>
-            </div>
+            <!-- END FRAME TAB -->
           </div>
         </div>
-        <div class="prv">
-          <span class="prv-lbl">Preview</span>
+
+        <!-- RIGHT COLUMN -->
+        <div class="col col-right">
+          <div class="prv-header">
+            <span class="prv-lbl" data-i18n="sPreview">Предпросмотр</span>
+            <div class="prv-controls">
+              <button
+                class="prv-btn"
+                id="bplay"
+                data-i18n-title="tPlay"
+                title="Воспроизвести"
+              >
+                <i class="fas fa-play"></i>
+              </button>
+              <button
+                class="prv-btn"
+                id="bstop"
+                data-i18n-title="tStop"
+                title="Остановить"
+              >
+                <i class="fas fa-stop"></i>
+              </button>
+              <span class="prv-sep"></span>
+              <button
+                class="prv-btn active"
+                id="bbg-dark"
+                data-i18n-title="tDarkBg"
+                title="Тёмный фон"
+              >
+                <i class="fas fa-moon"></i>
+              </button>
+              <button
+                class="prv-btn"
+                id="bbg-light"
+                data-i18n-title="tLightBg"
+                title="Светлый фон"
+              >
+                <i class="fas fa-sun"></i>
+              </button>
+            </div>
+          </div>
           <div class="prv-stage" id="pstage">
             <canvas id="pcv"></canvas>
             <div id="pt"></div>
             <div id="psl"></div>
           </div>
-          <div class="steps">
-            <div class="step">
-              <div class="step-n">1</div>
-              <div class="step-t">Adjust settings</div>
-            </div>
-            <div class="step">
-              <div class="step-n">2</div>
-              <div class="step-t">See preview</div>
-            </div>
-            <div class="step">
-              <div class="step-n">3</div>
-              <div class="step-t">Copy URL</div>
-            </div>
-            <div class="step">
-              <div class="step-n">4</div>
-              <div class="step-t">Paste in OBS</div>
-            </div>
+
+          <div class="st" style="margin-top: 16px" data-i18n="sObsUrl">
+            OBS Ссылка
           </div>
-          <div class="inst">
-            <strong>Usage:</strong> Adjust settings and preview updates
-            automatically. Frame settings are saved in the OBS URL.
+          <div class="ubox-row">
+            <div class="ubox" id="ubox"></div>
+            <button class="btn btn1" id="bcopy">
+              <i class="fas fa-copy"></i>
+            </button>
+            <button class="btn btn2" id="btest">
+              <i class="fas fa-external-link-alt"></i>
+            </button>
           </div>
         </div>
-      </div>
-      <div class="ftr">
-        <label>OBS URL</label>
-        <div class="ubox" id="ubox"></div>
-        <button class="btn btn2" id="btest">
-          <i class="fas fa-external-link-alt"></i> Test Tab
-        </button>
-        <button class="btn btn1" id="bcopy">
-          <i class="fas fa-copy"></i> Copy URL
-        </button>
       </div>
     </div>
 
