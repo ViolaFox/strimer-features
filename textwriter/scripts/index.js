@@ -1,5 +1,3 @@
-console.log("INDEX STARTED")
-
 import {
   S,
   D,
@@ -1238,5 +1236,3 @@ async function initOv() {
 
 if (IS_CFG) initCfg();
 else initOv();
-console.log("STEP 1")
-console.log("STEP 2")
