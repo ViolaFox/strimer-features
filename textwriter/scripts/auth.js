@@ -163,19 +163,16 @@ async function activateLicense(key) {
 
 // === ЗАПУСК НА СТРАНИЦЕ РЕДАКТОРА ===
 async function bootEditor() {
-  // OBS-режим пропускаем — редактор работает сам
+  // OBS-режим — сразу грузим редактор
   if (isOBSMode) {
     window.__TEP_AUTH__ = { fullAccess: true, obsMode: true };
-    window.dispatchEvent(
-      new CustomEvent("tep:auth", { detail: window.__TEP_AUTH__ }),
-    );
+    loadEditor();
     return;
   }
 
   await initAuth0();
 
   if (!user) {
-    // Не авторизован → на лендинг
     window.location.href = "/landing.html";
     return;
   }
@@ -183,17 +180,30 @@ async function bootEditor() {
   const sess = await fetchSession();
 
   if (sess.ok && sess.fullAccess) {
-    // Полный доступ
+    // Полный доступ — грузим редактор
     window.__TEP_AUTH__ = sess;
-    window.dispatchEvent(new CustomEvent("tep:auth", { detail: sess }));
     document.body.classList.add("tep-full-access");
+    loadEditor();
   } else {
-    // Авторизован, но нет лицензии → показываем оверлей
+    // Авторизован, но нет лицензии — грузим редактор + оверлей
     document.body.classList.add("tep-locked");
     window.__TEP_AUTH__ = sess;
-    window.dispatchEvent(new CustomEvent("tep:auth", { detail: sess }));
+    loadEditor();
     showActivationOverlay();
   }
+}
+
+// Динамическая загрузка index.js
+function loadEditor() {
+  const s = document.createElement("script");
+  s.type = "module";
+  s.src = "scripts/index.js";
+  s.onload = () => {
+    window.dispatchEvent(
+      new CustomEvent("tep:auth", { detail: window.__TEP_AUTH__ }),
+    );
+  };
+  document.body.appendChild(s);
 }
 
 // === ОВЕРЛЕЙ ДЛЯ ВВОДА КЛЮЧА ===
