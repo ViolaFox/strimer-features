@@ -4,8 +4,8 @@
 import { createAuth0Client } from "https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js/+esm";
 
 // === ВСТАВЬ СВОИ ЗНАЧЕНИЯ ===
-const AUTH0_DOMAIN = "text-effects.auth0.com";
-const AUTH0_CLIENT_ID = "auth0|6aabd54e69a3f610cb664946";
+const AUTH0_DOMAIN = "text-effects.us.auth0.com";
+const AUTH0_CLIENT_ID = "qwqzz0iRInWTckmX4MaHKzPI5ZN9u8gZ";
 const AUTH0_AUDIENCE = "https://text-effects-pro-api";
 
 // ===== ЯЗЫКИ =====
