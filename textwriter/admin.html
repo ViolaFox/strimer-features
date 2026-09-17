@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin — Text Effects Pro</title>
+    <link rel="shortcut icon" href="icon.png" type="image/png" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body class="admin">
+    <div class="ad-layout">
+      <!-- SIDEBAR -->
+      <aside class="ad-sidebar">
+        <div class="ad-logo">
+          <div class="ad-logo-mark"><i class="fas fa-shield-halved"></i></div>
+          <div>
+            <div class="ad-logo-title">Admin</div>
+            <div class="ad-logo-sub">Text Effects Pro</div>
+          </div>
+        </div>
+
+        <nav class="ad-nav">
+          <button class="ad-nav-item active" data-tab="dashboard">
+            <i class="fas fa-chart-line"></i>
+            <span data-i18n="navDashboard">Дашборд</span>
+          </button>
+          <button class="ad-nav-item" data-tab="licenses">
+            <i class="fas fa-key"></i>
+            <span data-i18n="navLicenses">Лицензии</span>
+          </button>
+          <button class="ad-nav-item" data-tab="users">
+            <i class="fas fa-users"></i>
+            <span data-i18n="navUsers">Пользователи</span>
+          </button>
+        </nav>
+
+        <div class="ad-sidebar-footer">
+          <div class="ad-user" id="ad-user-info">
+            <div class="ad-user-avatar"><i class="fas fa-user"></i></div>
+            <div class="ad-user-email" id="ad-user-email">…</div>
+          </div>
+          <button class="ad-logout" id="ad-logout">
+            <i class="fas fa-right-from-bracket"></i>
+            <span data-i18n="logout">Выйти</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="ad-main">
+        <div class="ad-header">
+          <h1 id="ad-title" data-i18n="navDashboard">Дашборд</h1>
+          <div class="ad-header-actions">
+            <button class="ad-lang" id="ad-lang">RU</button>
+            <button class="ad-btn ad-btn-primary" id="ad-create-key">
+              <i class="fas fa-plus"></i>
+              <span data-i18n="createKey">Создать ключ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB: DASHBOARD -->
+        <div class="ad-tab active" id="ad-tab-dashboard">
+          <div class="ad-stats">
+            <div class="ad-stat">
+              <div
+                class="ad-stat-icon"
+                style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6"
+              >
+                <i class="fas fa-users"></i>
+              </div>
+              <div>
+                <div class="ad-stat-value" id="stat-users">—</div>
+                <div class="ad-stat-label" data-i18n="statUsers">
+                  Пользователей
+                </div>
+              </div>
+            </div>
+            <div class="ad-stat">
+              <div
+                class="ad-stat-icon"
+                style="background: rgba(74, 222, 128, 0.12); color: #4ade80"
+              >
+                <i class="fas fa-circle-check"></i>
+              </div>
+              <div>
+                <div class="ad-stat-value" id="stat-active">—</div>
+                <div class="ad-stat-label" data-i18n="statActive">
+                  Активных лицензий
+                </div>
+              </div>
+            </div>
+            <div class="ad-stat">
+              <div
+                class="ad-stat-icon"
+                style="background: rgba(58, 232, 200, 0.12); color: #3ae8c8"
+              >
+                <i class="fas fa-key"></i>
+              </div>
+              <div>
+                <div class="ad-stat-value" id="stat-unused">—</div>
+                <div class="ad-stat-label" data-i18n="statUnused">
+                  Свободных ключей
+                </div>
+              </div>
+            </div>
+            <div class="ad-stat">
+              <div
+                class="ad-stat-icon"
+                style="background: rgba(248, 113, 113, 0.12); color: #f87171"
+              >
+                <i class="fas fa-ban"></i>
+              </div>
+              <div>
+                <div class="ad-stat-value" id="stat-blocked">—</div>
+                <div class="ad-stat-label" data-i18n="statBlocked">
+                  Заблокировано
+                </div>
+              </div>
+            </div>
+            <div class="ad-stat">
+              <div
+                class="ad-stat-icon"
+                style="background: rgba(251, 191, 36, 0.12); color: #fbbf24"
+              >
+                <i class="fas fa-bolt"></i>
+              </div>
+              <div>
+                <div class="ad-stat-value" id="stat-today">—</div>
+                <div class="ad-stat-label" data-i18n="statToday">
+                  Активны сегодня
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ad-card">
+            <h2 data-i18n="recentActivity">Последняя активность</h2>
+            <div id="ad-activity" class="ad-activity">
+              <div class="ad-empty" data-i18n="noActivity">
+                Пока нет активности
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: LICENSES -->
+        <div class="ad-tab" id="ad-tab-licenses">
+          <div class="ad-card">
+            <div class="ad-card-head">
+              <h2 data-i18n="allLicenses">Все лицензии</h2>
+              <input
+                type="text"
+                id="ad-search"
+                class="ad-search"
+                placeholder="Поиск по email или ключу..."
+                data-i18n-placeholder="searchPlaceholder"
+              />
+            </div>
+            <div class="ad-table-wrap">
+              <table class="ad-table" id="ad-licenses-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="colKey">Ключ</th>
+                    <th data-i18n="colUser">Пользователь</th>
+                    <th data-i18n="colDevice">Устройство</th>
+                    <th data-i18n="colStatus">Статус</th>
+                    <th data-i18n="colCreated">Создан</th>
+                    <th data-i18n="colActions">Действия</th>
+                  </tr>
+                </thead>
+                <tbody id="ad-licenses-body">
+                  <tr>
+                    <td colspan="6" class="ad-empty" data-i18n="loading">
+                      Загрузка…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: USERS -->
+        <div class="ad-tab" id="ad-tab-users">
+          <div class="ad-card">
+            <h2 data-i18n="allUsers">Все пользователи</h2>
+            <div class="ad-table-wrap">
+              <table class="ad-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="colEmail">Email</th>
+                    <th data-i18n="colRole">Роль</th>
+                    <th data-i18n="colStatus">Статус</th>
+                    <th data-i18n="colCreated">Создан</th>
+                    <th data-i18n="colLastLogin">Последний вход</th>
+                  </tr>
+                </thead>
+                <tbody id="ad-users-body">
+                  <tr>
+                    <td colspan="5" class="ad-empty" data-i18n="loading">
+                      Загрузка…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODAL: NEW KEY -->
+    <div class="ad-modal" id="ad-modal-key">
+      <div class="ad-modal-card">
+        <button class="ad-modal-close" id="ad-modal-close">
+          <i class="fas fa-xmark"></i>
+        </button>
+        <h2 data-i18n="newKeyTitle">Новый лицензионный ключ</h2>
+        <p class="ad-modal-sub" data-i18n="newKeySub">
+          Ключ будет показан только один раз. Скопируйте и передайте
+          пользователю.
+        </p>
+        <div class="ad-key-display" id="ad-key-display"></div>
+        <div class="ad-modal-actions">
+          <button class="ad-btn ad-btn-primary" id="ad-copy-key">
+            <i class="fas fa-copy"></i>
+            <span data-i18n="copyKey">Скопировать</span>
+          </button>
+          <button class="ad-btn ad-btn-ghost" id="ad-close-modal">
+            <span data-i18n="close">Закрыть</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="scripts/admin.js"></script>
+  </body>
+</html>

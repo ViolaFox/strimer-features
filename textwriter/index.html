@@ -17,6 +17,8 @@
       rel="stylesheet"
     />
 
+    <link rel="stylesheet" href="auth.css" />
+
     <!-- Основные стили -->
     <link rel="stylesheet" href="index.css" />
     <!-- Стили для редактора рамок -->
@@ -158,6 +160,8 @@ Let's get started</textarea
               </div>
 
               <div class="st" data-i18n="sAnimation">Анимация</div>
+
+              <!-- ===== ВИЗУАЛЬНЫЙ ЭФФЕКТ + его настройки ===== -->
               <div class="cg">
                 <label class="cl" data-i18n="lVisualEffect"
                   >Визуальный эффект</label
@@ -241,6 +245,148 @@ Let's get started</textarea
                 </div>
                 <div class="note" id="sp-note"></div>
               </div>
+
+              <!-- Настройки Печатной машинки -->
+              <div id="tw-opts" style="display: none">
+                <div class="cg">
+                  <label class="cl" data-i18n="lPause"
+                    >Пауза между строками</label
+                  >
+                  <div class="cr">
+                    <input
+                      type="range"
+                      id="lp"
+                      min="100"
+                      max="4000"
+                      value="700"
+                      step="50"
+                    />
+                    <span class="rv" id="lp-v">0.7s</span>
+                  </div>
+                </div>
+                <div class="cg">
+                  <div class="tw">
+                    <label
+                      class="cl"
+                      style="margin-bottom: 0"
+                      data-i18n="tSound"
+                      >Звук</label
+                    >
+                    <div class="tg" id="tg-sn"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Настройки Падающих частиц -->
+              <div class="cg" id="pt-opts" style="display: none">
+                <label class="cl" data-i18n="lPartType">Тип частиц</label>
+                <div class="sw">
+                  <select id="ptyp">
+                    <option value="snow" data-i18n="ptSnow">Снег</option>
+                    <option value="petals" data-i18n="ptPetals">
+                      Лепестки
+                    </option>
+                    <option value="sparks" data-i18n="ptSparks">Искры</option>
+                  </select>
+                </div>
+              </div>
+              <div class="cg" id="pc-opts" style="display: none">
+                <label class="cl" data-i18n="lPartFallColor">Цвет частиц</label>
+                <div class="cr">
+                  <input type="color" id="pc" value="#ffffff" />
+                </div>
+              </div>
+              <div class="cg" id="pspd-opts" style="display: none">
+                <label class="cl" data-i18n="lPartFallSpeed"
+                  >Скорость падения</label
+                >
+                <div class="cr">
+                  <input type="range" id="pspd" min="10" max="200" value="55" />
+                  <span class="rv" id="pspd-v">1.0x</span>
+                </div>
+              </div>
+
+              <!-- Настройки Дыма -->
+              <div class="cg" id="sd-opts" style="display: none">
+                <label class="cl" data-i18n="lSmokeDensity"
+                  >Плотность дыма</label
+                >
+                <div class="cr">
+                  <input type="range" id="sdns" min="10" max="100" value="50" />
+                  <span class="rv" id="sdns-v">50%</span>
+                </div>
+              </div>
+
+              <!-- Настройки Крови -->
+              <div class="cg" id="bd-opts" style="display: none">
+                <label class="cl" data-i18n="lBloodDensity"
+                  >Плотность крови</label
+                >
+                <div class="cr">
+                  <input type="range" id="bdns" min="10" max="100" value="60" />
+                  <span class="rv" id="bdns-v">60%</span>
+                </div>
+              </div>
+              <div class="cg" id="bdpl-opts" style="display: none">
+                <label class="cl" data-i18n="lDripLength">Длина капель</label>
+                <div class="cr">
+                  <input type="range" id="bdpl" min="5" max="150" value="50" />
+                  <span class="rv" id="bdpl-v">50</span>
+                </div>
+              </div>
+
+              <!-- Настройки Неонового штриха -->
+              <div id="ns-opts" style="display: none">
+                <div class="cg">
+                  <label class="cl" data-i18n="lGradColors"
+                    >Градиентные цвета</label
+                  >
+                  <div id="nc-list" class="cr"></div>
+                  <button
+                    class="ab"
+                    id="nc-add"
+                    data-i18n="btnAddColor"
+                    style="margin-top: 4px; width: 100%"
+                  >
+                    Добавить цвет
+                  </button>
+                </div>
+                <div class="cg">
+                  <label class="cl" data-i18n="lStrokeWidth"
+                    >Толщина штриха</label
+                  >
+                  <div class="cr">
+                    <input type="range" id="nsw" min="1" max="10" value="3" />
+                    <span class="rv" id="nsw-v">3px</span>
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl" data-i18n="lGlowInt"
+                    >Интенсивность свечения</label
+                  >
+                  <div class="cr">
+                    <input type="range" id="ngi" min="0" max="15" value="4" />
+                    <span class="rv" id="ngi-v">4</span>
+                  </div>
+                </div>
+                <div class="cg">
+                  <label class="cl" data-i18n="lGradSpeed"
+                    >Скорость градиента</label
+                  >
+                  <div class="cr">
+                    <input
+                      type="range"
+                      id="nsgs"
+                      min="0"
+                      max="200"
+                      value="55"
+                    />
+                    <span class="rv" id="nsgs-v">1.0x</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ===== ЭФФЕКТ ПОЯВЛЕНИЯ + его настройки ===== -->
               <div class="cg">
                 <label class="cl" data-i18n="lAppearance"
                   >Эффект появления</label
@@ -293,6 +439,7 @@ Let's get started</textarea
                 </div>
               </div>
 
+              <!-- ===== ЭФФЕКТ ИСЧЕЗНОВЕНИЯ + его настройки ===== -->
               <div class="cg">
                 <label class="cl" data-i18n="lDisappear"
                   >Эффект исчезновения</label
@@ -356,6 +503,7 @@ Let's get started</textarea
                 </div>
               </div>
 
+              <!-- Настройки Взрыва частицами (исчезновение) -->
               <div id="dp-opts" style="display: none">
                 <div class="cg">
                   <label class="cl" data-i18n="lPartColor">Цвет частиц</label>
@@ -387,6 +535,7 @@ Let's get started</textarea
                 </div>
               </div>
 
+              <!-- Настройки Стекла (исчезновение) -->
               <div id="gs-opts" style="display: none">
                 <div class="cg">
                   <label class="cl" data-i18n="lShardSize"
@@ -427,141 +576,7 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <div class="cg" id="pt-opts" style="display: none">
-                <label class="cl" data-i18n="lPartType">Тип частиц</label>
-                <div class="sw">
-                  <select id="ptyp">
-                    <option value="snow" data-i18n="ptSnow">Снег</option>
-                    <option value="petals" data-i18n="ptPetals">
-                      Лепестки
-                    </option>
-                    <option value="sparks" data-i18n="ptSparks">Искры</option>
-                  </select>
-                </div>
-              </div>
-              <div class="cg" id="pc-opts" style="display: none">
-                <label class="cl" data-i18n="lPartFallColor">Цвет частиц</label>
-                <div class="cr">
-                  <input type="color" id="pc" value="#ffffff" />
-                </div>
-              </div>
-              <div class="cg" id="pspd-opts" style="display: none">
-                <label class="cl" data-i18n="lPartFallSpeed"
-                  >Скорость падения</label
-                >
-                <div class="cr">
-                  <input type="range" id="pspd" min="10" max="200" value="55" />
-                  <span class="rv" id="pspd-v">1.0x</span>
-                </div>
-              </div>
-
-              <div class="cg" id="sd-opts" style="display: none">
-                <label class="cl" data-i18n="lSmokeDensity"
-                  >Плотность дыма</label
-                >
-                <div class="cr">
-                  <input type="range" id="sdns" min="10" max="100" value="50" />
-                  <span class="rv" id="sdns-v">50%</span>
-                </div>
-              </div>
-
-              <div class="cg" id="bd-opts" style="display: none">
-                <label class="cl" data-i18n="lBloodDensity"
-                  >Плотность крови</label
-                >
-                <div class="cr">
-                  <input type="range" id="bdns" min="10" max="100" value="60" />
-                  <span class="rv" id="bdns-v">60%</span>
-                </div>
-              </div>
-              <div class="cg" id="bdpl-opts" style="display: none">
-                <label class="cl" data-i18n="lDripLength">Длина капель</label>
-                <div class="cr">
-                  <input type="range" id="bdpl" min="5" max="150" value="50" />
-                  <span class="rv" id="bdpl-v">50</span>
-                </div>
-              </div>
-
-              <div id="ns-opts" style="display: none">
-                <div class="cg">
-                  <label class="cl" data-i18n="lGradColors"
-                    >Градиентные цвета</label
-                  >
-                  <div id="nc-list" class="cr"></div>
-                  <button
-                    class="ab"
-                    id="nc-add"
-                    data-i18n="btnAddColor"
-                    style="margin-top: 4px; width: 100%"
-                  >
-                    Добавить цвет
-                  </button>
-                </div>
-                <div class="cg">
-                  <label class="cl" data-i18n="lStrokeWidth"
-                    >Толщина штриха</label
-                  >
-                  <div class="cr">
-                    <input type="range" id="nsw" min="1" max="10" value="3" />
-                    <span class="rv" id="nsw-v">3px</span>
-                  </div>
-                </div>
-                <div class="cg">
-                  <label class="cl" data-i18n="lGlowInt"
-                    >Интенсивность свечения</label
-                  >
-                  <div class="cr">
-                    <input type="range" id="ngi" min="0" max="15" value="4" />
-                    <span class="rv" id="ngi-v">4</span>
-                  </div>
-                </div>
-                <div class="cg">
-                  <label class="cl" data-i18n="lGradSpeed"
-                    >Скорость градиента</label
-                  >
-                  <div class="cr">
-                    <input
-                      type="range"
-                      id="nsgs"
-                      min="0"
-                      max="200"
-                      value="55"
-                    />
-                    <span class="rv" id="nsgs-v">1.0x</span>
-                  </div>
-                </div>
-              </div>
-
-              <div id="tw-opts" style="display: none">
-                <div class="cg">
-                  <label class="cl" data-i18n="lPause"
-                    >Пауза между строками</label
-                  >
-                  <div class="cr">
-                    <input
-                      type="range"
-                      id="lp"
-                      min="100"
-                      max="4000"
-                      value="700"
-                      step="50"
-                    />
-                    <span class="rv" id="lp-v">0.7s</span>
-                  </div>
-                </div>
-                <div class="cg">
-                  <div class="tw">
-                    <label
-                      class="cl"
-                      style="margin-bottom: 0"
-                      data-i18n="tSound"
-                      >Звук</label
-                    >
-                    <div class="tg" id="tg-sn"></div>
-                  </div>
-                </div>
-              </div>
-
+              <!-- ===== ОБЩИЕ НАСТРОЙКИ ===== -->
               <div class="cg">
                 <div class="tw">
                   <label class="cl" style="margin-bottom: 0" data-i18n="tLoop"
@@ -988,6 +1003,7 @@ Let's get started</textarea
       </div>
     </div>
 
+    <script type="module" src="scripts/auth.js"></script>
     <script type="module" src="scripts/index.js"></script>
     <script type="module" src="scripts/frame.js"></script>
   </body>

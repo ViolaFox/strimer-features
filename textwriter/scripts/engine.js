@@ -128,7 +128,7 @@ const EXIT_DUR = {
   "mask-stripe-exit": 1000,
   "shrink-point": 600,
   "glass-shatter": 1800,
-  "particle-explode": 1000,
+  "particle-explode": 1200,
   scatter: 1400,
   "fire-out": 2500,
 };
@@ -1374,7 +1374,6 @@ const FX = {
     const stopElements = [];
 
     if (colors.length === 1) {
-      // Статичный один цвет
       const s1 = svgEl("stop");
       s1.setAttribute("offset", "0%");
       s1.setAttribute("stop-color", colors[0]);
@@ -1384,7 +1383,6 @@ const FX = {
       s2.setAttribute("stop-color", colors[0]);
       grad.appendChild(s2);
     } else if (gradSpeed === 0) {
-      // Статичный градиент
       colors.forEach((col, i) => {
         const stop = svgEl("stop");
         stop.setAttribute("offset", (i / (colors.length - 1)) * 100 + "%");
@@ -1392,12 +1390,11 @@ const FX = {
         grad.appendChild(stop);
       });
     } else {
-      // Плавный анимированный градиент (точно как в рамке)
       const allColors = [...colors, ...colors, colors[0]];
       const n = colors.length;
       allColors.forEach((col) => {
         const stop = svgEl("stop");
-        stop.setAttribute("offset", "0%"); // Будет обновляться в JS
+        stop.setAttribute("offset", "0%");
         stop.setAttribute("stop-color", col);
         grad.appendChild(stop);
         stopElements.push(stop);
@@ -1407,9 +1404,9 @@ const FX = {
       function animNsGrad(ts) {
         if (!playing) return;
         const gSm = vm(gradSpeed);
-        const duration = (4 / gSm) * 1000; // мс на один цикл
+        const duration = (4 / gSm) * 1000;
         const elapsed = ts - nsStartTime;
-        const progress = (elapsed % duration) / duration; // от 0 до 1
+        const progress = (elapsed % duration) / duration;
 
         for (let i = 0; i < stopElements.length; i++) {
           const pos = (i / n - progress) * 100;
@@ -1485,28 +1482,23 @@ const FX = {
     if (!tgt._nsSvg || !tgt._nsUid) return;
     const uid = tgt._nsUid;
     const dashLen = tgt._nsDashLen || 5000;
-    // Используем скорость исчезновения, если она задана, иначе скорость эффекта
     const sm = vm(S.dspeed !== 55 ? S.dspeed : S.speed);
     const dur = Math.max(0.4, 3 / sm).toFixed(2);
 
-    // Анимация втягивания штриха (стирание с конца к началу)
     injCSS(
       `@keyframes nsDRev${uid}{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-${dashLen}}}.nsARev${uid}{animation:nsDRev${uid} ${dur}s linear forwards;}`,
     );
 
-    // Заменяем класс анимации на всех текстовых элементах SVG
     tgt._nsSvg.querySelectorAll(".nsA" + uid).forEach((el) => {
       el.classList.remove("nsA" + uid);
       el.classList.add("nsARev" + uid);
     });
 
-    // Останавливаем анимацию градиента, если она была
     if (tgt._nsAnimFrame) {
       cancelAnimationFrame(tgt._nsAnimFrame);
       tgt._nsAnimFrame = null;
     }
 
-    // После окончания анимации полностью очищаем эффект
     timer = setTimeout(
       () => {
         stopFx(tgt, currentCv, currentSl);
@@ -1532,7 +1524,7 @@ const FX = {
     playing = true;
 
     setLines(tgt);
-    tgt.style.opacity = "0"; // Скрываем HTML-текст
+    tgt.style.opacity = "0";
 
     const stage = cv.parentElement || document.body;
     const { W, H, lines } = getSVGTextMetrics(stage, S);
@@ -1542,13 +1534,11 @@ const FX = {
     const fontStr = `${S.italic ? "italic " : ""}${S.bold ? "900 " : "400 "}${S.size}px "${S.font}", sans-serif`;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // ---- Холст для постоянного следа ----
     const permCv = document.createElement("canvas");
     permCv.width = cv.width;
     permCv.height = cv.height;
     const permCtx = permCv.getContext("2d");
 
-    // ---- Character positions ----
     const measureCv = document.createElement("canvas");
     const measureCtx = measureCv.getContext("2d");
     measureCtx.font = fontStr;
@@ -1572,7 +1562,6 @@ const FX = {
       }
     });
 
-    // ---- Contour extraction ----
     const STEP_PX = Math.max(2, Math.round(S.size / 30));
 
     function getContourPts(ch, charX, charY) {
@@ -1682,7 +1671,6 @@ const FX = {
       return sorted;
     }
 
-    // ---- Build path from contour points ----
     const allPts = [];
     const segs = [];
     let prevEndIdx = -1;
@@ -1760,7 +1748,6 @@ const FX = {
       return;
     }
 
-    // ---- Animation state ----
     const SPEED = 350 * sm;
     let curSeg = 0,
       curProg = 0;
@@ -1952,13 +1939,11 @@ const FX = {
       }
     }
 
-    // ---- Main Animation Loop ----
     function draw(t) {
       if (!playing) return;
       const dt = Math.min(t - prevT, 50);
       prevT = t;
 
-      // Update progress
       if (!animDone) {
         let segsToMove = (SPEED * dt) / 1000;
         while (segsToMove > 0 && curSeg < segs.length) {
@@ -1988,20 +1973,16 @@ const FX = {
 
       const bp = beamPos();
 
-      // Spawn particles only while drawing
       if (!animDone && curSeg < segs.length && !segs[curSeg].jump) {
         if (Math.random() < 0.5) spawnP(bp.x, bp.y, 1, 0.8);
         if (Math.random() < 0.12) spawnP(bp.x, bp.y, 3, 1.3);
       }
 
-      // Рисуем постоянный след на отдельном холсте (ОНИ НЕ ИСЧЕЗНУТ)
       if (!animDone && lastPos) {
         const dx = bp.x - lastPos.x,
           dy = bp.y - lastPos.y;
         const dist = dx * dx + dy * dy;
-        // Рисуем линию, только если это не прыжок (расстояние < 30px)
         if (dist < 900 && dist > 0.01) {
-          // Layer 1: wide glow
           permCtx.save();
           permCtx.lineCap = "round";
           permCtx.lineJoin = "round";
@@ -2014,7 +1995,6 @@ const FX = {
           permCtx.lineTo(bp.x, bp.y);
           permCtx.stroke();
           permCtx.restore();
-          // Layer 2: medium
           permCtx.save();
           permCtx.lineCap = "round";
           permCtx.lineJoin = "round";
@@ -2027,7 +2007,6 @@ const FX = {
           permCtx.lineTo(bp.x, bp.y);
           permCtx.stroke();
           permCtx.restore();
-          // Layer 3: core
           permCtx.save();
           permCtx.lineCap = "round";
           permCtx.lineJoin = "round";
@@ -2049,7 +2028,6 @@ const FX = {
       }
       lastPos = bp;
 
-      // Update particles
       for (let i = parts.length - 1; i >= 0; i--) {
         const p = parts[i];
         p.x += p.vx;
@@ -2061,16 +2039,10 @@ const FX = {
       }
       if (parts.length > 500) parts.splice(0, parts.length - 500);
 
-      // Draw
       ctx.clearRect(0, 0, cv.width, cv.height);
-
-      // 1. Выводим накопленный постоянный след
       ctx.drawImage(permCv, 0, 0);
-
-      // 2. Свечение уже нарисованных символов
       drawBurnedChars(t);
 
-      // 3. Рисуем активный лазер и искры
       const srcPt = { x: srcX, y: srcY + 6 };
 
       if (!animDone) {
@@ -2086,7 +2058,6 @@ const FX = {
         }
       }
 
-      // Draw sparks/particles
       for (const p of parts) {
         const a = p.life;
         ctx.save();
@@ -2099,24 +2070,23 @@ const FX = {
         ctx.restore();
       }
 
-      // Handle completion
       if (animDone && !cycleHandled) {
         const elapsed = (t - animEndTime) / 1000;
         if (elapsed > 0.5 && parts.length === 0) {
           cycleHandled = true;
-          if (S.autoTrigger) {
-            timer = setTimeout(
-              () => triggerCycleEnd(tgt),
-              S.activityTime * 1000,
-            );
-          } else if (S.loop) {
-            timer = setTimeout(() => triggerCycleEnd(tgt), 3000);
+          const stayDuration = S.autoTrigger
+            ? S.activityTime * 1000
+            : S.loop
+              ? 3000
+              : S.disappear !== "none"
+                ? (S.activityTime || 5) * 1000
+                : 0;
+          if (stayDuration > 0) {
+            timer = setTimeout(() => triggerCycleEnd(tgt), stayDuration);
           }
-          // Если auto trigger и loop выключены — таймер не ставится, светящийся текст остаётся навсегда!
         }
       }
 
-      // Продолжаем цикл, пока рисуем или есть искры
       if (
         playing &&
         (!animDone ||
@@ -2124,8 +2094,6 @@ const FX = {
           (animDone && (t - animEndTime) / 1000 < 0.5))
       ) {
         animFrame = requestAnimationFrame(draw);
-      } else if (playing) {
-        // Останавливаем цикл для экономии ресурсов, но НЕ очищаем экран. Текст останется.
       }
     }
 
@@ -2263,17 +2231,9 @@ const FX = {
     }
     draw();
   },
-  exitShatter: function (tgt, cv) {
-    let effTgt = tgt;
-    if (
-      effTgt.firstElementChild &&
-      effTgt.firstElementChild.classList.contains("ld-wrapper")
-    ) {
-      effTgt = effTgt.firstElementChild;
-      const txt = effTgt.querySelector("div");
-      if (txt) effTgt = txt;
-    }
-    const rect = effTgt.getBoundingClientRect();
+
+  exitParticles: function (tgt, cv) {
+    const rect = tgt.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
       tgt.style.opacity = "0";
       timer = setTimeout(() => {
@@ -2289,7 +2249,140 @@ const FX = {
     }
     sizeCV(cv);
     const ctx = cv.getContext("2d");
-    effTgt.style.opacity = "0";
+
+    tgt.style.opacity = "0"; // Скрываем оригинальный текст
+
+    const W = rect.width,
+      H = rect.height;
+    const fontSize = S.size;
+    const lineH = (fontSize * S.lh) / 100;
+
+    // Рисуем текст на оффскрин холсте для получения пикселей
+    const offscreen = document.createElement("canvas");
+    offscreen.width = W;
+    offscreen.height = H;
+    const offCtx = offscreen.getContext("2d");
+    offCtx.font = `${S.italic ? "italic " : ""}${S.bold ? "900 " : "400 "}${fontSize}px "${S.font}", sans-serif`;
+    offCtx.textAlign = S.align;
+    offCtx.textBaseline = "top";
+    offCtx.fillStyle = "#ffffff";
+    const lines = S.text.split("\n").filter((l) => l.trim());
+    lines.forEach((line, i) => {
+      let x = S.align === "center" ? W / 2 : S.align === "right" ? W : 0;
+      offCtx.fillText(line, x, i * lineH);
+    });
+
+    const imgData = offCtx.getImageData(0, 0, W, H);
+    const pixels = imgData.data;
+
+    const cvRect = cv.getBoundingClientRect();
+    const offsetX = rect.left - cvRect.left;
+    const offsetY = rect.top - cvRect.top;
+    const centerX = offsetX + W / 2;
+    const centerY = offsetY + H / 2;
+
+    const pColor = hexToRGB(S.dpc || "#ffffff");
+    const pSize = S.dpsz || 6;
+    const speedMul = vm(S.dpspd || 100);
+
+    const parts = [];
+    const step = Math.max(2, Math.floor(pSize / 1.5)); // Плотность частиц
+
+    // Создаем частицы на основе пикселей текста
+    for (let y = 0; y < H; y += step) {
+      for (let x = 0; x < W; x += step) {
+        const idx = (y * W + x) * 4;
+        if (pixels[idx + 3] > 30) {
+          const angle = Math.atan2(
+            y + offsetY - centerY,
+            x + offsetX - centerX,
+          );
+          const speed = (1 + Math.random() * 4) * speedMul;
+          parts.push({
+            x: x + offsetX,
+            y: y + offsetY,
+            vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 2 * speedMul,
+            vy: Math.sin(angle) * speed + (Math.random() - 0.5) * 2 * speedMul,
+            size: pSize * (0.4 + Math.random() * 0.6),
+            life: 1.0,
+            decay: 0.008 + Math.random() * 0.015 * speedMul,
+            r: pColor.r,
+            g: pColor.g,
+            b: pColor.b,
+          });
+        }
+      }
+    }
+
+    if (parts.length === 0) {
+      tgt.style.opacity = "0";
+      timer = setTimeout(() => {
+        stopFx(tgt, cv, currentSl);
+        handleNextCycle(tgt);
+      }, 100);
+      return;
+    }
+
+    const startTime = Date.now();
+    const baseDur = 1200;
+    const dur = Math.max(300, baseDur / speedMul);
+
+    function animate() {
+      if (!playing) return;
+      const elapsed = Date.now() - startTime;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+
+      let alive = 0;
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i];
+        if (p.life <= 0) continue;
+        alive++;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.04 * speedMul; // Гравитация
+        p.vx *= 0.995;
+        p.life -= p.decay;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = `rgba(${p.r},${p.g},${p.b},1)`;
+        ctx.shadowColor = `rgba(${p.r},${p.g},${p.b},0.5)`;
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(0.5, p.size * p.life), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (elapsed < dur + 500 && alive > 0) {
+        animFrame = requestAnimationFrame(animate);
+      } else {
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        stopFx(tgt, cv, currentSl);
+        handleNextCycle(tgt);
+      }
+    }
+    animate();
+  },
+
+  exitShatter: function (tgt, cv) {
+    const rect = tgt.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      tgt.style.opacity = "0";
+      timer = setTimeout(() => {
+        stopFx(tgt, cv, currentSl);
+        handleNextCycle(tgt);
+      }, 100);
+      return;
+    }
+    if (!cv) cv = currentCv;
+    if (!cv) {
+      tgt.style.opacity = "0";
+      return;
+    }
+    sizeCV(cv);
+    const ctx = cv.getContext("2d");
+    tgt.style.opacity = "0";
     const W = rect.width,
       H = rect.height;
     const fontSize = S.size;
@@ -2566,17 +2659,16 @@ const FX = {
 function triggerCycleEnd(tgt) {
   if (!playing) return;
 
-  // КРИТИЧЕСКИ ВАЖНО: Принудительно обрываем Canvas-анимации и начисто стираем холст
   if (S.visual === "laser" || S.visual === "smoke") {
     if (animFrame) {
       cancelAnimationFrame(animFrame);
       animFrame = null;
-    } // Останавливаем цикл
+    }
     if (currentCv) {
       const ctx = currentCv.getContext("2d");
       ctx.clearRect(0, 0, currentCv.width, currentCv.height);
     }
-    if (tgt) tgt.style.opacity = "1"; // Убеждаемся, что HTML текст виден для анимации исчезновения
+    if (tgt) tgt.style.opacity = "1";
   }
 
   if (S.visual === "neonstroke") {

@@ -324,7 +324,7 @@ select:focus {
 
 textarea {
   resize: vertical;
-  min-height: 64px;
+  min-height: 50px;
   line-height: 1.5;
 }
 
@@ -555,7 +555,7 @@ input[type="color"]::-webkit-color-swatch {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 16px;
+  font-size: 14px;
   color: var(--fg);
   white-space: nowrap;
   overflow: hidden;
@@ -818,7 +818,6 @@ input[type="color"]::-webkit-color-swatch {
   color: var(--muted);
   font-style: italic;
   margin-top: 3px;
-  min-height: 13px;
   opacity: 0.8;
 }
 

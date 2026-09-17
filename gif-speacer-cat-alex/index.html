@@ -21,6 +21,7 @@
         flex-direction: column;
         align-items: center;
       }
+
       .cat {
         margin-top: 30px;
         width: 200px;
@@ -30,14 +31,17 @@
         align-items: flex-end;
         transition: width 0.3s ease;
       }
+
       .cat.walking {
         width: 355px;
       }
+
       .cat img {
         width: auto;
         max-height: 100%;
         object-fit: contain;
       }
+
       .speech {
         margin-top: -10px;
         color: white;
@@ -64,51 +68,109 @@
 
     <script>
       const AXELCHAT_WS = "ws://127.0.0.1:8356";
+
       const ANIMATION_DURATION = 14000;
       const TYPE_SPEED = 90;
+      const DELAY_BETWEEN_MESSAGES = 0; // пауза между сообщениями
 
       const catDiv = document.getElementById("cat");
       const speechDiv = document.getElementById("speech");
       const catImage = document.getElementById("catImage");
 
-      let messageTimeout = null;
       let typingTimeout = null;
       let ws;
 
+      // ====== ОЧЕРЕДЬ ======
+      const messageQueue = [];
+      let isProcessing = false;
+
       function typeText(el, text) {
         if (typingTimeout) clearTimeout(typingTimeout);
+
         el.textContent = "";
         const chars = Array.from(text);
         let i = 0;
-        function next() {
-          if (i < chars.length) {
-            el.textContent += chars[i++];
-            typingTimeout = setTimeout(next, TYPE_SPEED);
+
+        return new Promise((resolve) => {
+          function next() {
+            if (i < chars.length) {
+              el.textContent += chars[i++];
+              typingTimeout = setTimeout(next, TYPE_SPEED);
+            } else {
+              resolve();
+            }
           }
-        }
-        next();
+          next();
+        });
       }
 
-      function showCatMessage(user, text) {
-        const combined = `${user}: ${text}`;
-        typeText(speechDiv, combined);
+      function getDisplayDuration(text) {
+        const BASE = 1000;
+        const PER_CHAR = 40;
+        const MAX = 12000;
 
+        const typingTime = text.length * TYPE_SPEED;
+        const readingTime = BASE + text.length * PER_CHAR;
+
+        return Math.min(typingTime + readingTime, MAX);
+      }
+
+      function setCatWalking() {
         if (!catDiv.classList.contains("walking")) {
           catDiv.classList.add("walking");
           catImage.src = "cat-walk.gif";
         }
+      }
 
-        if (messageTimeout) clearTimeout(messageTimeout);
-        messageTimeout = setTimeout(() => {
-          typeText(speechDiv, "Жду сообщений...");
-          catImage.src = "cat-sit.gif";
-          catDiv.classList.remove("walking");
-        }, ANIMATION_DURATION);
+      function setCatIdle() {
+        catDiv.classList.remove("walking");
+        catImage.src = "cat-sit.gif";
+      }
+
+      async function showCatMessage(user, text) {
+        const combined = `${user}: ${text}`;
+
+        await typeText(speechDiv, combined);
+
+        const displayTime = getDisplayDuration(combined);
+
+        await new Promise((res) => setTimeout(res, displayTime));
+      }
+
+      async function processQueue() {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        // ✅ старт очереди — кот начинает идти ОДИН РАЗ
+        setCatWalking();
+
+        while (messageQueue.length > 0) {
+          const msg = messageQueue.shift();
+
+          await showCatMessage(msg.user, msg.text);
+
+          if (messageQueue.length > 0) {
+            await new Promise((res) => setTimeout(res, DELAY_BETWEEN_MESSAGES));
+          }
+        }
+
+        // ✅ очередь закончилась — кот садится
+        setCatIdle();
+
+        await typeText(speechDiv, "Жду сообщений...");
+
+        isProcessing = false;
+      }
+
+      function enqueueMessage(user, text) {
+        messageQueue.push({ user, text });
+        processQueue();
       }
 
       function parseAxelChatMessage(data) {
         if (!data || !data.data || !Array.isArray(data.data.messages))
           return null;
+
         const msg = data.data.messages[0];
         if (!msg) return null;
 
@@ -118,6 +180,7 @@
             textParts.push(part.data.text);
           }
         }
+
         const text = textParts.join(" ").trim();
         const user = msg.author?.name || "Гость";
 
@@ -144,6 +207,7 @@
               },
             },
           };
+
           ws.send(JSON.stringify(hello));
         };
 
@@ -163,9 +227,12 @@
           } catch {
             return;
           }
+
           if (msg.type === "NEW_MESSAGES_RECEIVED") {
             const parsed = parseAxelChatMessage(msg);
-            if (parsed) showCatMessage(parsed.user, parsed.text);
+            if (parsed) {
+              enqueueMessage(parsed.user, parsed.text);
+            }
           }
         };
       }

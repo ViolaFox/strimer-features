@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text Effects Pro — Кинематографичные эффекты для стримов</title>
+    <link rel="shortcut icon" href="icon.png" type="image/png" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="landing.css" />
+  </head>
+  <body class="landing">
+    <!-- ===== HEADER ===== -->
+    <header class="ld-header">
+      <div class="ld-container ld-header-inner">
+        <a href="/" class="ld-logo">
+          <div class="ld-logo-mark"><i class="fas fa-pen-nib"></i></div>
+          <span>Text Effects Pro</span>
+        </a>
+
+        <nav class="ld-nav">
+          <a href="#visual" data-i18n="navVisual">Визуальные</a>
+          <a href="#appear" data-i18n="navAppear">Появление</a>
+          <a href="#disappear" data-i18n="navDisappear">Исчезновение</a>
+          <a href="#pricing" data-i18n="navPricing">Цены</a>
+        </nav>
+
+        <div class="ld-header-actions">
+          <button class="ld-lang" id="ld-lang" title="Сменить язык">RU</button>
+          <button class="ld-btn ld-btn-ghost" id="ld-login" data-i18n="login">
+            Войти
+          </button>
+          <button
+            class="ld-btn ld-btn-primary"
+            id="ld-signup"
+            data-i18n="signup"
+          >
+            Начать бесплатно
+          </button>
+        </div>
+
+        <button class="ld-burger" id="ld-burger" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="ld-hero">
+      <div class="ld-container">
+        <div class="ld-hero-badge" data-i18n="heroBadge">
+          <span class="ld-dot"></span>
+          Работает с OBS Browser Source
+        </div>
+
+        <h1 class="ld-hero-title">
+          <span data-i18n="heroTitle1">Кинематографичные</span>
+          <span class="ld-gradient" data-i18n="heroTitle2">эффекты текста</span>
+          <span data-i18n="heroTitle3">для твоих стримов</span>
+        </h1>
+
+        <p class="ld-hero-sub" data-i18n="heroSub">
+          Создавай глитч, неон, огонь, дым и ещё 30+ эффектов за секунды.
+          Настраивай прямо в браузере — подключай к OBS одной ссылкой.
+        </p>
+
+        <div class="ld-hero-cta">
+          <button
+            class="ld-btn ld-btn-primary ld-btn-lg"
+            id="ld-hero-cta"
+            data-i18n="heroCta"
+          >
+            <i class="fas fa-rocket"></i>
+            Начать бесплатно
+          </button>
+          <a
+            href="#visual"
+            class="ld-btn ld-btn-ghost ld-btn-lg"
+            data-i18n="heroDemo"
+          >
+            <i class="fas fa-play"></i>
+            Смотреть эффекты
+          </a>
+        </div>
+
+        <div class="ld-hero-stats">
+          <div><b>30+</b><span data-i18n="statEffects">эффектов</span></div>
+          <div>
+            <b>0 ms</b><span data-i18n="statLatency">задержка в OBS</span>
+          </div>
+          <div>
+            <b>1</b><span data-i18n="statClick">клик для подключения</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== СЛАЙДЕР 1 — ВИЗУАЛЬНЫЕ ЭФФЕКТЫ ===== -->
+    <section class="ld-section" id="visual">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-section-tag" data-i18n="slider1Tag">01 — VISUAL</span>
+          <h2 data-i18n="slider1Title">Визуальные эффекты</h2>
+          <p data-i18n="slider1Sub">
+            Глитч, неон, огонь, дым, хром, матрица и другие — применяются к
+            тексту и работают постоянно
+          </p>
+        </div>
+
+        <div class="ld-slider" data-slider>
+          <div class="ld-slider-track" data-track>
+            <div class="ld-slide">
+              <video
+                src="videos/visual-glitch.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="visGlitchLabel">
+                Глитч (RGB сдвиг)
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/visual-neon.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="visNeonLabel">
+                Неон мерцание
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/visual-fire.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="visFireLabel">Огонь</div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/visual-smoke.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="visSmokeLabel">
+                Дым / Туман
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/visual-matrix.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="visMatrixLabel">
+                Матрица
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/visual-chrome.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="visChromeLabel">
+                Золото / Хром
+              </div>
+            </div>
+          </div>
+          <button
+            class="ld-slider-btn ld-slider-prev"
+            data-prev
+            aria-label="Prev"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button
+            class="ld-slider-btn ld-slider-next"
+            data-next
+            aria-label="Next"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <div class="ld-slider-dots" data-dots></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== СЛАЙДЕР 2 — ЭФФЕКТЫ ПОЯВЛЕНИЯ ===== -->
+    <section class="ld-section ld-section-alt" id="appear">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-section-tag" data-i18n="slider2Tag"
+            >02 — APPEARANCE</span
+          >
+          <h2 data-i18n="slider2Title">Эффекты появления</h2>
+          <p data-i18n="slider2Sub">
+            Текст въезжает, собирается, проявляется через блюр или пиксели — 12
+            готовых анимаций
+          </p>
+        </div>
+
+        <div class="ld-slider" data-slider>
+          <div class="ld-slider-track" data-track>
+            <div class="ld-slide">
+              <video
+                src="videos/appear-assemble.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="aprAssembleLabel">
+                Сборка текста
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/appear-slide.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="aprSlideLabel">
+                Выезд сбоку
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/appear-blur.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="aprBlurLabel">
+                Через блюр
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/appear-pixel.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="aprPixelLabel">
+                Через пиксели
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/appear-zoom.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="aprZoomLabel">Масштаб</div>
+            </div>
+          </div>
+          <button
+            class="ld-slider-btn ld-slider-prev"
+            data-prev
+            aria-label="Prev"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button
+            class="ld-slider-btn ld-slider-next"
+            data-next
+            aria-label="Next"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <div class="ld-slider-dots" data-dots></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== СЛАЙДЕР 3 — ЭФФЕКТЫ ИСЧЕЗНОВЕНИЯ ===== -->
+    <section class="ld-section" id="disappear">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-section-tag" data-i18n="slider3Tag"
+            >03 — DISAPPEARANCE</span
+          >
+          <h2 data-i18n="slider3Title">Эффекты исчезновения</h2>
+          <p data-i18n="slider3Sub">
+            Стекло разбивается, буквы разлетаются частицами, текст сгорает — и
+            ещё 15 способов уйти красиво
+          </p>
+        </div>
+
+        <div class="ld-slider" data-slider>
+          <div class="ld-slider-track" data-track>
+            <div class="ld-slide">
+              <video
+                src="videos/disappear-glass.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="disGlassLabel">Стекло</div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/disappear-scatter.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="disScatterLabel">
+                Рассеивание букв
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/disappear-fire.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="disFireLabel">
+                Сгорание
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/disappear-particles.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="disParticlesLabel">
+                Взрыв частицами
+              </div>
+            </div>
+            <div class="ld-slide">
+              <video
+                src="videos/disappear-blur.mp4"
+                muted
+                loop
+                playsinline
+                preload="metadata"
+              ></video>
+              <div class="ld-slide-label" data-i18n="disBlurLabel">
+                Через блюр
+              </div>
+            </div>
+          </div>
+          <button
+            class="ld-slider-btn ld-slider-prev"
+            data-prev
+            aria-label="Prev"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button
+            class="ld-slider-btn ld-slider-next"
+            data-next
+            aria-label="Next"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <div class="ld-slider-dots" data-dots></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="ld-section ld-section-alt">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-section-tag" data-i18n="featTag">FEATURES</span>
+          <h2 data-i18n="featTitle">Всё, что нужно стримеру</h2>
+        </div>
+
+        <div class="ld-features">
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="fas fa-bolt"></i></div>
+            <h3 data-i18n="feat1Title">Мгновенный отклик</h3>
+            <p data-i18n="feat1Sub">
+              Ноль задержек — эффекты появляются в OBS сразу после запуска
+            </p>
+          </div>
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="fas fa-palette"></i></div>
+            <h3 data-i18n="feat2Title">60+ шрифтов</h3>
+            <p data-i18n="feat2Sub">
+              От неона до рукописных — все подключены и готовы к работе
+            </p>
+          </div>
+          <div class="ld-feature">
+            <div class="ld-feature-icon">
+              <i class="fas fa-layer-group"></i>
+            </div>
+            <h3 data-i18n="feat3Title">Рамки с градиентом</h3>
+            <p data-i18n="feat3Sub">
+              Неоновые рамки с анимированными градиентами и свечением
+            </p>
+          </div>
+          <div class="ld-feature">
+            <div class="ld-feature-icon"><i class="fas fa-save"></i></div>
+            <h3 data-i18n="feat4Title">Пресеты</h3>
+            <p data-i18n="feat4Sub">
+              Сохраняй настройки и переключайся между ними в один клик
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PRICING ===== -->
+    <section class="ld-section" id="pricing">
+      <div class="ld-container">
+        <div class="ld-section-head">
+          <span class="ld-section-tag" data-i18n="pricingTag">PRICING</span>
+          <h2 data-i18n="pricingTitle">Один платёж — навсегда</h2>
+          <p data-i18n="pricingSub">
+            Никаких подписок. Купил один раз — используешь сколько хочешь
+          </p>
+        </div>
+
+        <div class="ld-pricing">
+          <div class="ld-price-card">
+            <h3 data-i18n="price1Name">Старт</h3>
+            <div class="ld-price"><span>$</span>0</div>
+            <ul>
+              <li data-i18n="price1f1">Просмотр всех эффектов</li>
+              <li data-i18n="price1f2">Демо-превью</li>
+              <li data-i18n="price1f3">Без экспорта в OBS</li>
+            </ul>
+            <button
+              class="ld-btn ld-btn-ghost"
+              id="ld-price-free"
+              data-i18n="price1Btn"
+            >
+              Попробовать
+            </button>
+          </div>
+
+          <div class="ld-price-card ld-price-featured">
+            <div class="ld-price-badge" data-i18n="priceBadge">Популярный</div>
+            <h3 data-i18n="price2Name">Pro</h3>
+            <div class="ld-price"><span>$</span>19</div>
+            <ul>
+              <li data-i18n="price2f1">Все 30+ эффектов</li>
+              <li data-i18n="price2f2">OBS Browser Source ссылка</li>
+              <li data-i18n="price2f3">Пресеты и рамки</li>
+              <li data-i18n="price2f4">Привязка к 1 устройству</li>
+              <li data-i18n="price2f5">Пожизненный доступ</li>
+            </ul>
+            <button
+              class="ld-btn ld-btn-primary"
+              id="ld-price-pro"
+              data-i18n="price2Btn"
+            >
+              Купить Pro
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CTA ===== -->
+    <section class="ld-cta">
+      <div class="ld-container">
+        <h2 data-i18n="ctaTitle">Готов добавить магии в свой стрим?</h2>
+        <p data-i18n="ctaSub">
+          Регистрация занимает 10 секунд. Первые эффекты — сразу
+        </p>
+        <button
+          class="ld-btn ld-btn-primary ld-btn-lg"
+          id="ld-cta-bottom"
+          data-i18n="ctaBtn"
+        >
+          <i class="fas fa-rocket"></i>
+          Начать бесплатно
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="ld-footer">
+      <div class="ld-container ld-footer-inner">
+        <div class="ld-footer-logo">
+          <div class="ld-logo-mark"><i class="fas fa-pen-nib"></i></div>
+          <span>Text Effects Pro</span>
+        </div>
+        <div class="ld-footer-copy" data-i18n="footerCopy">
+          © 2025 Text Effects Pro. Все права защищены.
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="scripts/landing.js"></script>
+  </body>
+</html>
