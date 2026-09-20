@@ -94,27 +94,46 @@ async function getDeviceId() {
 
 // === ИНИЦИАЛИЗАЦИЯ AUTH0 ===
 async function initAuth0() {
+  console.log("[TEP Auth] initAuth0 — creating client");
+
   auth0 = await createAuth0Client({
     domain: AUTH0_DOMAIN,
     clientId: AUTH0_CLIENT_ID,
     authorizationParams: {
-      redirect_uri: window.location.origin + "/index.html", // ← ВОТ ТАК
+      redirect_uri: window.location.origin + "/index.html",
       audience: AUTH0_AUDIENCE,
     },
     cacheLocation: "localstorage",
     useRefreshTokens: true,
   });
 
-  // ❌ НЕ вызываем handleRedirectCallback вручную
-  // createAuth0Client уже обрабатывает ?code=... автоматически
+  console.log("[TEP Auth] client created");
 
-  // Просто чистим URL от ?code=...&state=...
-  if (window.location.search.includes("code=")) {
-    window.history.replaceState({}, document.title, window.location.pathname);
+  // Если в URL есть code/state — вручную обрабатываем callback
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("code") && params.has("state")) {
+    console.log("[TEP Auth] handling redirect callback...");
+    try {
+      await auth0.handleRedirectCallback();
+      console.log("[TEP Auth] callback handled OK");
+
+      // Чистим URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (e) {
+      console.error("[TEP Auth] handleRedirectCallback failed:", e);
+      // Может быть "no code" — значит уже обработано
+    }
   }
 
-  if (await auth0.isAuthenticated()) {
-    user = await auth0.getUser();
+  try {
+    const authed = await auth0.isAuthenticated();
+    console.log("[TEP Auth] isAuthenticated:", authed);
+    if (authed) {
+      user = await auth0.getUser();
+      console.log("[TEP Auth] got user:", user);
+    }
+  } catch (e) {
+    console.error("[TEP Auth] isAuthenticated/getUser failed:", e);
   }
 }
 
