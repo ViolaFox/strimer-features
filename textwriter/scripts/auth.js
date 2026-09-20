@@ -163,29 +163,40 @@ async function activateLicense(key) {
 
 // === ЗАПУСК НА СТРАНИЦЕ РЕДАКТОРА ===
 async function bootEditor() {
-  // OBS-режим — сразу грузим редактор
+  console.log("[TEP Auth] bootEditor started, url =", location.href);
+
   if (isOBSMode) {
+    console.log("[TEP Auth] OBS mode — skip auth");
     window.__TEP_AUTH__ = { fullAccess: true, obsMode: true };
     loadEditor();
     return;
   }
 
-  await initAuth0();
+  try {
+    await initAuth0();
+    console.log("[TEP Auth] after initAuth0, user =", user);
+  } catch (e) {
+    console.error("[TEP Auth] initAuth0 failed", e);
+    return;
+  }
 
   if (!user) {
+    console.warn("[TEP Auth] no user — redirecting to landing");
     window.location.href = "/landing.html";
     return;
   }
 
+  console.log("[TEP Auth] user OK, fetching session...");
   const sess = await fetchSession();
+  console.log("[TEP Auth] session =", sess);
 
   if (sess.ok && sess.fullAccess) {
-    // Полный доступ — грузим редактор
+    console.log("[TEP Auth] FULL ACCESS");
     window.__TEP_AUTH__ = sess;
     document.body.classList.add("tep-full-access");
     loadEditor();
   } else {
-    // Авторизован, но нет лицензии — грузим редактор + оверлей
+    console.log("[TEP Auth] LOCKED (no license)");
     document.body.classList.add("tep-locked");
     window.__TEP_AUTH__ = sess;
     loadEditor();
