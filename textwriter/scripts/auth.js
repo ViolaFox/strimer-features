@@ -163,7 +163,9 @@ async function activateLicense(key) {
 
 // === ЗАПУСК НА СТРАНИЦЕ РЕДАКТОРА ===
 async function bootEditor() {
-  console.log("[TEP Auth] bootEditor started, url =", location.href);
+  console.log("[TEP Auth] bootEditor started");
+  console.log("[TEP Auth] url:", location.href);
+  console.log("[TEP Auth] isOBSMode:", isOBSMode);
 
   if (isOBSMode) {
     console.log("[TEP Auth] OBS mode — skip auth");
@@ -173,22 +175,33 @@ async function bootEditor() {
   }
 
   try {
+    console.log("[TEP Auth] creating auth0 client...");
     await initAuth0();
-    console.log("[TEP Auth] after initAuth0, user =", user);
+    console.log("[TEP Auth] initAuth0 done, user =", user);
   } catch (e) {
-    console.error("[TEP Auth] initAuth0 failed", e);
+    console.error("[TEP Auth] initAuth0 FAILED", e);
+    showDebugError("initAuth0 failed: " + (e.message || e));
     return;
   }
 
   if (!user) {
-    console.warn("[TEP Auth] no user — redirecting to landing");
-    window.location.href = "/landing.html";
+    console.warn("[TEP Auth] no user — NOT redirecting, showing debug");
+    showDebugError("Not authenticated. URL search: " + location.search);
     return;
   }
 
-  console.log("[TEP Auth] user OK, fetching session...");
-  const sess = await fetchSession();
-  console.log("[TEP Auth] session =", sess);
+  console.log("[TEP Auth] user OK:", user.email || user.sub);
+
+  let sess;
+  try {
+    console.log("[TEP Auth] fetching session...");
+    sess = await fetchSession();
+    console.log("[TEP Auth] session =", sess);
+  } catch (e) {
+    console.error("[TEP Auth] fetchSession FAILED", e);
+    showDebugError("fetchSession failed: " + (e.message || e));
+    return;
+  }
 
   if (sess.ok && sess.fullAccess) {
     console.log("[TEP Auth] FULL ACCESS");
@@ -202,6 +215,33 @@ async function bootEditor() {
     loadEditor();
     showActivationOverlay();
   }
+}
+
+// === ОТЛАДОЧНЫЙ ЭКРАН ===
+function showDebugError(msg) {
+  const el = document.createElement("div");
+  el.style.cssText = `
+    position: fixed; inset: 0; z-index: 99999;
+    background: #09090c; color: #f87171;
+    font-family: monospace; font-size: 14px;
+    padding: 40px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px; text-align: center;
+  `;
+  el.innerHTML = `
+    <div style="font-size:24px;color:#fff">⚠ TEP Auth Debug</div>
+    <div style="max-width:600px;line-height:1.6">${msg}</div>
+    <div style="color:#8b5cf6;font-size:12px">URL: ${location.href}</div>
+    <button onclick="location.href='/landing.html'" style="
+      padding:10px 20px;background:#8b5cf6;color:#fff;border:none;
+      border-radius:6px;cursor:pointer;font-size:14px;margin-top:20px;
+    ">← На лендинг</button>
+    <button onclick="localStorage.clear();sessionStorage.clear();location.reload()" style="
+      padding:10px 20px;background:transparent;color:#8b5cf6;
+      border:1px solid #8b5cf6;border-radius:6px;cursor:pointer;font-size:14px;
+    ">Очистить токены и перезагрузить</button>
+  `;
+  document.body.appendChild(el);
 }
 
 // Динамическая загрузка index.js
