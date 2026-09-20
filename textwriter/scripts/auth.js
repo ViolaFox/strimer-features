@@ -102,6 +102,7 @@ async function initAuth0() {
     authorizationParams: {
       redirect_uri: window.location.origin + "/index.html",
       audience: AUTH0_AUDIENCE,
+      scope: "openid profile email offline_access", // ← ВАЖНО
     },
     cacheLocation: "localstorage",
     useRefreshTokens: true,
@@ -109,19 +110,15 @@ async function initAuth0() {
 
   console.log("[TEP Auth] client created");
 
-  // Если в URL есть code/state — вручную обрабатываем callback
   const params = new URLSearchParams(window.location.search);
   if (params.has("code") && params.has("state")) {
     console.log("[TEP Auth] handling redirect callback...");
     try {
       await auth0.handleRedirectCallback();
       console.log("[TEP Auth] callback handled OK");
-
-      // Чистим URL
       window.history.replaceState({}, document.title, window.location.pathname);
     } catch (e) {
       console.error("[TEP Auth] handleRedirectCallback failed:", e);
-      // Может быть "no code" — значит уже обработано
     }
   }
 
