@@ -98,18 +98,18 @@ async function initAuth0() {
     domain: AUTH0_DOMAIN,
     clientId: AUTH0_CLIENT_ID,
     authorizationParams: {
-      redirect_uri: window.location.origin,
+      redirect_uri: window.location.origin + "/index.html", // ← ВОТ ТАК
       audience: AUTH0_AUDIENCE,
     },
     cacheLocation: "localstorage",
+    useRefreshTokens: true,
   });
 
-  // Обработка возврата после логина
-  if (
-    window.location.search.includes("code=") &&
-    window.location.search.includes("state=")
-  ) {
-    await auth0.handleRedirectCallback();
+  // ❌ НЕ вызываем handleRedirectCallback вручную
+  // createAuth0Client уже обрабатывает ?code=... автоматически
+
+  // Просто чистим URL от ?code=...&state=...
+  if (window.location.search.includes("code=")) {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
