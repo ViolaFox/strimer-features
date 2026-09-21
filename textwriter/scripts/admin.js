@@ -499,3 +499,17 @@ function escapeHtml(s) {
     `;
   }
 })();
+
+// В конце admin.js (после boot)
+const guard = new MutationObserver(() => {
+  const sb = document.querySelector(".ad-sidebar");
+  const mn = document.querySelector(".ad-main");
+  if (sb && sb.style.display === "none") sb.style.removeProperty("display");
+  if (mn && mn.style.display === "none") mn.style.removeProperty("display");
+});
+setTimeout(() => {
+  const sb = document.querySelector(".ad-sidebar");
+  const mn = document.querySelector(".ad-main");
+  if (sb) guard.observe(sb, { attributes: true, attributeFilter: ["style"] });
+  if (mn) guard.observe(mn, { attributes: true, attributeFilter: ["style"] });
+}, 200);
