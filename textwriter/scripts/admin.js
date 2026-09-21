@@ -92,58 +92,97 @@ function applyLang(lang) {
   if (btn) btn.textContent = lang.toUpperCase();
 }
 
-// ===== AUTH0 =====
+// ===== СОСТОЯНИЕ =====
 let auth0 = null;
 let user = null;
 let licenses = [];
 let usersList = [];
 
-async function initAuth() {
+// ===== AUTH0 INIT (правильное имя — совпадает с boot) =====
+async function initAuth0() {
+  console.log("[Admin] initAuth0 creating client");
+
   auth0 = await createAuth0Client({
     domain: AUTH0_DOMAIN,
     clientId: AUTH0_CLIENT_ID,
     authorizationParams: {
       redirect_uri: window.location.origin + "/admin.html",
       audience: AUTH0_AUDIENCE,
+      scope: "openid profile email offline_access",
     },
     cacheLocation: "localstorage",
+    useRefreshTokens: true,
   });
 
-  if (
-    window.location.search.includes("code=") &&
-    window.location.search.includes("state=")
-  ) {
-    await auth0.handleRedirectCallback();
-    window.history.replaceState({}, document.title, "/admin.html");
+  console.log("[Admin] auth0 client created");
+
+  // Обработка callback
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("code") && params.has("state")) {
+    console.log("[Admin] handling redirect callback");
+    try {
+      await auth0.handleRedirectCallback();
+      window.history.replaceState({}, document.title, "/admin.html");
+      console.log("[Admin] callback handled");
+    } catch (e) {
+      console.error("[Admin] handleRedirectCallback failed:", e);
+    }
   }
 
-  if (!(await auth0.isAuthenticated())) {
-    await auth0.loginWithRedirect();
+  // Проверка авторизации
+  const authed = await auth0.isAuthenticated();
+  console.log("[Admin] isAuthenticated:", authed);
+
+  if (!authed) {
+    console.log("[Admin] not authenticated, redirecting to login");
+    await auth0.loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: window.location.origin + "/admin.html",
+        audience: AUTH0_AUDIENCE,
+        scope: "openid profile email offline_access",
+      },
+    });
     return;
   }
 
   user = await auth0.getUser();
-  document.getElementById("ad-user-email").textContent =
-    user.email || user.name || "—";
+  console.log("[Admin] user:", user);
+
+  // Обновляем email в сайдбаре
+  const emailEl = document.getElementById("ad-user-email");
+  if (emailEl) emailEl.textContent = user.email || user.name || "—";
 }
 
+// ===== TOKEN =====
 async function getToken() {
-  return auth0.getTokenSilently({
-    authorizationParams: { audience: AUTH0_AUDIENCE },
-  });
+  if (!auth0 || !user) return null;
+  try {
+    return await auth0.getTokenSilently({
+      authorizationParams: { audience: AUTH0_AUDIENCE },
+    });
+  } catch (e) {
+    console.error("[Admin] getTokenSilently failed:", e);
+    return null;
+  }
 }
 
+// ===== API CALL =====
 async function api(path, options = {}) {
   const token = await getToken();
-  const res = await fetch(path, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
-    },
-  });
-  return res.json();
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+  const res = await fetch(path, { ...options, headers });
+  const text = await res.text();
+
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("[Admin] API returned non-JSON:", text.slice(0, 200));
+    return { ok: false, error: "non_json_response", status: res.status };
+  }
 }
 
 // ===== TABS =====
@@ -385,7 +424,6 @@ function escapeHtml(s) {
 }
 
 // ===== BOOT =====
-// ===== BOOT =====
 (async () => {
   console.log("[Admin] boot started");
   console.log("[Admin] url:", location.href);
@@ -402,7 +440,7 @@ function escapeHtml(s) {
     console.log("[Admin] initAuth0 done, user =", user);
 
     if (!user) {
-      console.warn("[Admin] no user — redirecting to Auth0 login");
+      console.warn("[Admin] no user — waiting for Auth0 redirect");
       return;
     }
 
