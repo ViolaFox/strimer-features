@@ -385,45 +385,79 @@ function escapeHtml(s) {
 }
 
 // ===== BOOT =====
+// ===== BOOT =====
 (async () => {
-  applyLang(currentLang);
-  setupTabs();
+  console.log("[Admin] boot started");
+  console.log("[Admin] url:", location.href);
 
   try {
-    await initAuth();
+    applyLang(currentLang);
+    console.log("[Admin] lang applied");
+
+    setupTabs();
+    console.log("[Admin] tabs setup");
+
+    console.log("[Admin] initAuth0...");
+    await initAuth0();
+    console.log("[Admin] initAuth0 done, user =", user);
+
+    if (!user) {
+      console.warn("[Admin] no user — redirecting to Auth0 login");
+      return;
+    }
+
+    console.log("[Admin] loading data...");
+    await Promise.all([
+      loadStats(),
+      loadLicenses(),
+      loadUsers(),
+      loadActivity(),
+    ]);
+    console.log("[Admin] data loaded");
+
+    document
+      .getElementById("ad-create-key")
+      .addEventListener("click", createKey);
+    document.getElementById("ad-lang").addEventListener("click", () => {
+      applyLang(currentLang === "ru" ? "en" : "ru");
+    });
+    document.getElementById("ad-logout").addEventListener("click", () => {
+      auth0.logout({
+        logoutParams: { returnTo: window.location.origin + "/landing.html" },
+      });
+    });
+    document.getElementById("ad-modal-close").addEventListener("click", () => {
+      document.getElementById("ad-modal-key").classList.remove("open");
+    });
+    document.getElementById("ad-close-modal").addEventListener("click", () => {
+      document.getElementById("ad-modal-key").classList.remove("open");
+    });
+    document.getElementById("ad-copy-key").addEventListener("click", () => {
+      const key = document.getElementById("ad-key-display").textContent;
+      navigator.clipboard.writeText(key).then(() => {
+        const btn = document.getElementById("ad-copy-key");
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> OK';
+        setTimeout(() => (btn.innerHTML = orig), 1500);
+      });
+    });
+    document.getElementById("ad-search").addEventListener("input", (e) => {
+      renderLicenses(e.target.value);
+    });
+
+    console.log("[Admin] boot complete");
   } catch (e) {
-    console.error("Auth0 init failed", e);
-    return;
+    console.error("[Admin] BOOT FAILED:", e);
+    document.body.innerHTML += `
+      <div style="position:fixed;inset:0;background:#09090c;color:#f87171;
+        font-family:monospace;padding:40px;z-index:99999;overflow:auto">
+        <h2 style="color:#fff">Admin boot failed</h2>
+        <pre>${e.message}\n\n${e.stack || ""}</pre>
+        <button onclick="localStorage.clear();location.reload()"
+          style="margin-top:20px;padding:10px 20px;background:#8b5cf6;color:#fff;border:none;border-radius:6px;cursor:pointer">
+          Очистить и перезагрузить
+        </button>
+      </div>
+    `;
   }
-
-  await Promise.all([loadStats(), loadLicenses(), loadUsers(), loadActivity()]);
-
-  // Кнопки
-  document.getElementById("ad-create-key").addEventListener("click", createKey);
-  document.getElementById("ad-lang").addEventListener("click", () => {
-    applyLang(currentLang === "ru" ? "en" : "ru");
-  });
-  document.getElementById("ad-logout").addEventListener("click", () => {
-    auth0.logout({
-      logoutParams: { returnTo: window.location.origin + "/landing.html" },
-    });
-  });
-  document.getElementById("ad-modal-close").addEventListener("click", () => {
-    document.getElementById("ad-modal-key").classList.remove("open");
-  });
-  document.getElementById("ad-close-modal").addEventListener("click", () => {
-    document.getElementById("ad-modal-key").classList.remove("open");
-  });
-  document.getElementById("ad-copy-key").addEventListener("click", () => {
-    const key = document.getElementById("ad-key-display").textContent;
-    navigator.clipboard.writeText(key).then(() => {
-      const btn = document.getElementById("ad-copy-key");
-      const orig = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-check"></i> OK';
-      setTimeout(() => (btn.innerHTML = orig), 1500);
-    });
-  });
-  document.getElementById("ad-search").addEventListener("input", (e) => {
-    renderLicenses(e.target.value);
-  });
 })();
