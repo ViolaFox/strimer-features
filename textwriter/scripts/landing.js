@@ -195,8 +195,10 @@ async function initAuth() {
     authorizationParams: {
       redirect_uri: window.location.origin + "/index.html",
       audience: AUTH0_AUDIENCE,
+      scope: "openid profile email offline_access", // ← ОБЯЗАТЕЛЬНО
     },
     cacheLocation: "localstorage",
+    useRefreshTokens: true, // ← ОБЯЗАТЕЛЬНО
   });
 
   // Если уже залогинен — сразу в редактор
@@ -211,6 +213,8 @@ async function login() {
   await auth0.loginWithRedirect({
     authorizationParams: {
       redirect_uri: window.location.origin + "/index.html",
+      audience: AUTH0_AUDIENCE,
+      scope: "openid profile email offline_access", // ← ОБЯЗАТЕЛЬНО
     },
   });
 }
