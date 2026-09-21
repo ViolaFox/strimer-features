@@ -261,7 +261,13 @@ function showDebugError(msg) {
 }
 
 // Динамическая загрузка index.js
+// Динамическая загрузка index.js — в режиме РЕДАКТОРА (#config)
 function loadEditor() {
+  // Ставим #config ТОЛЬКО если это не OBS-режим
+  if (!isOBSMode && !isConfig) {
+    history.replaceState(null, "", location.pathname + "#config");
+  }
+
   const s = document.createElement("script");
   s.type = "module";
   s.src = "scripts/index.js";

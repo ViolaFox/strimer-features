@@ -195,26 +195,36 @@ async function initAuth() {
     authorizationParams: {
       redirect_uri: window.location.origin + "/index.html",
       audience: AUTH0_AUDIENCE,
-      scope: "openid profile email offline_access", // ← ОБЯЗАТЕЛЬНО
+      scope: "openid profile email offline_access",
     },
     cacheLocation: "localstorage",
-    useRefreshTokens: true, // ← ОБЯЗАТЕЛЬНО
+    useRefreshTokens: true,
   });
 
-  // Если уже залогинен — сразу в редактор
+  // ❌ УБИРАЕМ авторедирект на /index.html для авторизованных.
+  // Пусть landing открывается всегда — там есть кнопки "Войти",
+  // которые и так отработают (если уже залогинен — просто перекинет).
+
+  // Если уже авторизован — можно поменять текст кнопки на "Открыть редактор"
   if (await auth0.isAuthenticated()) {
     user = await auth0.getUser();
-    window.location.href = "/index.html";
-    return;
+    console.log("[Landing] already authenticated:", user.email);
+    // Ничего не делаем — пользователь остаётся на landing
   }
 }
 
 async function login() {
+  // Если уже авторизован — сразу в редактор
+  if (auth0 && (await auth0.isAuthenticated())) {
+    window.location.href = "/index.html";
+    return;
+  }
+  // Иначе — стандартный Auth0 login
   await auth0.loginWithRedirect({
     authorizationParams: {
       redirect_uri: window.location.origin + "/index.html",
       audience: AUTH0_AUDIENCE,
-      scope: "openid profile email offline_access", // ← ОБЯЗАТЕЛЬНО
+      scope: "openid profile email offline_access",
     },
   });
 }
