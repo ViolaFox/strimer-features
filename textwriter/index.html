@@ -6,26 +6,19 @@
     <title>Text Effects Pro</title>
     <link rel="shortcut icon" href="icon.png" type="image/png" />
 
-    <!-- Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Font Awesome -->
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
     />
 
     <link rel="stylesheet" href="auth.css" />
-
-    <!-- Основные стили -->
     <link rel="stylesheet" href="index.css" />
-    <!-- Стили для редактора рамок -->
     <link rel="stylesheet" href="frame.css" />
     <link rel="stylesheet" href="lego.css" />
-
-    <!-- Локальные шрифты -->
     <link rel="stylesheet" href="fonts/fonts.css" />
 
     <script type="importmap">
@@ -68,7 +61,6 @@
     <div id="sl"></div>
 
     <div id="cp">
-      <!-- ===== HEADER ===== -->
       <div class="hdr">
         <div class="hdr-left">
           <div class="logo-mark"><i class="fas fa-pen-nib"></i></div>
@@ -88,9 +80,8 @@
         </div>
       </div>
 
-      <!-- ===== MAIN BODY ===== -->
       <div class="body">
-        <!-- LEFT COLUMN -->
+        <!-- LEFT -->
         <div class="col col-left">
           <div class="col-scroll">
             <div class="st" id="presets-title" data-i18n="sTextPresets">
@@ -118,23 +109,10 @@
                   >
                   <i class="fas fa-chevron-down cs-arrow"></i>
                 </div>
-                <div class="cs-options" id="preset-options">
-                  <div
-                    class="cs-option cs-empty"
-                    data-i18n="presetEmpty"
-                    style="
-                      pointer-events: none;
-                      color: var(--muted);
-                      font-style: italic;
-                    "
-                  >
-                    Нет сохранённых пресетов
-                  </div>
-                </div>
+                <div class="cs-options" id="preset-options"></div>
               </div>
             </div>
 
-            <!-- FONT SECTION (Hidden in Frame Mode) -->
             <div id="font-section">
               <div class="st" data-i18n="sFont">Шрифт</div>
               <div class="cg">
@@ -155,7 +133,6 @@
               </div>
             </div>
 
-            <!-- TEXT CONTROL CONTAINER (Hidden in Frame Mode) -->
             <div id="text-control-container">
               <div class="st" data-i18n="sContent">Контент</div>
               <div class="cg">
@@ -171,7 +148,6 @@ Let's get started</textarea
 
               <div class="st" data-i18n="sAnimation">Анимация</div>
 
-              <!-- ===== ВИЗУАЛЬНЫЙ ЭФФЕКТ + его настройки ===== -->
               <div class="cg">
                 <label class="cl" data-i18n="lVisualEffect"
                   >Визуальный эффект</label
@@ -196,29 +172,19 @@ Let's get started</textarea
                     <option value="fire" data-i18n="visFire">
                       Огонь (мерцание)
                     </option>
-                    <option value="ice" data-i18n="visIce">
-                      Лёд (заморозка + трещины)
-                    </option>
+                    <option value="ice" data-i18n="visIce">Лёд</option>
                     <option value="chrome" data-i18n="visChrome">
                       Золото / Хром
                     </option>
                     <option value="wave" data-i18n="visWave">Волна</option>
-                    <option value="shake" data-i18n="visShake">
-                      Тряска (алерт)
-                    </option>
+                    <option value="shake" data-i18n="visShake">Тряска</option>
                     <option value="ripple" data-i18n="visRipple">Рябь</option>
                     <option value="glowpulse" data-i18n="visGlowpulse">
-                      Пульсация свечения
+                      Пульсация
                     </option>
-                    <option value="shadow" data-i18n="visShadow">
-                      Движущаяся тень
-                    </option>
-                    <option value="pour" data-i18n="visPour">
-                      Выливание (буквы падают)
-                    </option>
-                    <option value="stamp" data-i18n="visStamp">
-                      Штамп печати
-                    </option>
+                    <option value="shadow" data-i18n="visShadow">Тень</option>
+                    <option value="pour" data-i18n="visPour">Выливание</option>
+                    <option value="stamp" data-i18n="visStamp">Штамп</option>
                     <option value="scanner" data-i18n="visScanner">
                       Сканер
                     </option>
@@ -228,19 +194,15 @@ Let's get started</textarea
                     <option value="matrix" data-i18n="visMatrix">
                       Матрица
                     </option>
-                    <option value="water" data-i18n="visWater">
-                      Искажение водой
-                    </option>
+                    <option value="water" data-i18n="visWater">Вода</option>
                     <option value="particles" data-i18n="visParticles">
-                      Падающие частицы
+                      Частицы
                     </option>
                     <option value="neonstroke" data-i18n="visNeonstroke">
                       Неоновый штрих
                     </option>
                     <option value="blood" data-i18n="visBlood">Кровь</option>
-                    <option value="laser" data-i18n="visLaser">
-                      Лазерное письмо
-                    </option>
+                    <option value="laser" data-i18n="visLaser">Лазер</option>
                   </select>
                 </div>
                 <div class="note" id="vis-note"></div>
@@ -256,7 +218,6 @@ Let's get started</textarea
                 <div class="note" id="sp-note"></div>
               </div>
 
-              <!-- Настройки Печатной машинки -->
               <div id="tw-opts" style="display: none">
                 <div class="cg">
                   <label class="cl" data-i18n="lPause"
@@ -287,7 +248,6 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- Настройки Падающих частиц -->
               <div class="cg" id="pt-opts" style="display: none">
                 <label class="cl" data-i18n="lPartType">Тип частиц</label>
                 <div class="sw">
@@ -316,7 +276,6 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- Настройки Дыма -->
               <div class="cg" id="sd-opts" style="display: none">
                 <label class="cl" data-i18n="lSmokeDensity"
                   >Плотность дыма</label
@@ -327,7 +286,6 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- Настройки Крови -->
               <div class="cg" id="bd-opts" style="display: none">
                 <label class="cl" data-i18n="lBloodDensity"
                   >Плотность крови</label
@@ -345,7 +303,6 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- Настройки Неонового штриха -->
               <div id="ns-opts" style="display: none">
                 <div class="cg">
                   <label class="cl" data-i18n="lGradColors"
@@ -396,7 +353,6 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- ===== ЭФФЕКТ ПОЯВЛЕНИЯ + его настройки ===== -->
               <div class="cg">
                 <label class="cl" data-i18n="lAppearance"
                   >Эффект появления</label
@@ -405,7 +361,7 @@ Let's get started</textarea
                   <select id="apr">
                     <option value="none" data-i18n="aprNone">Нет</option>
                     <option value="assemble" data-i18n="aprAssemble">
-                      Сборка текста
+                      Сборка
                     </option>
                     <option value="slide-left" data-i18n="aprSlideL">
                       Слева
@@ -427,10 +383,10 @@ Let's get started</textarea
                       Через пиксели
                     </option>
                     <option value="fade-in" data-i18n="aprFadeIn">
-                      Плавное появление
+                      Плавное
                     </option>
                     <option value="mask-stripe" data-i18n="aprMaskStripe">
-                      Маска-полоса
+                      Маска
                     </option>
                     <option value="zoom-in" data-i18n="aprZoomIn">
                       Масштаб
@@ -449,18 +405,15 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- ===== ЭФФЕКТ ИСЧЕЗНОВЕНИЯ + его настройки ===== -->
               <div class="cg">
                 <label class="cl" data-i18n="lDisappear"
                   >Эффект исчезновения</label
                 >
                 <div class="sw">
                   <select id="dis">
-                    <option value="none" data-i18n="disNone">
-                      Нет (мгновенно)
-                    </option>
+                    <option value="none" data-i18n="disNone">Нет</option>
                     <option value="scatter" data-i18n="disScatter">
-                      Рассеивание букв
+                      Рассеивание
                     </option>
                     <option value="slide-left" data-i18n="disSlideL">
                       Влево
@@ -476,16 +429,16 @@ Let's get started</textarea
                       Вращение
                     </option>
                     <option value="blur-out" data-i18n="disBlurOut">
-                      Через блюр
+                      Блюр
                     </option>
                     <option value="pixel-out" data-i18n="disPixelOut">
-                      Через пиксели
+                      Пиксели
                     </option>
                     <option value="fade-out" data-i18n="disFadeOut">
-                      Плавное исчезновение
+                      Плавное
                     </option>
                     <option value="mask-stripe-exit" data-i18n="disMaskStripe">
-                      Маска-полоса
+                      Маска
                     </option>
                     <option value="zoom-out" data-i18n="disZoomOut">
                       Масштаб
@@ -494,10 +447,10 @@ Let's get started</textarea
                       Стекло
                     </option>
                     <option value="shrink-point" data-i18n="disShrink">
-                      Сжатие в точку
+                      Сжатие
                     </option>
                     <option value="particle-explode" data-i18n="disParticles">
-                      Взрыв частицами
+                      Взрыв
                     </option>
                     <option value="fire-out" data-i18n="disFire">Огонь</option>
                   </select>
@@ -513,7 +466,6 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- Настройки Взрыва частицами (исчезновение) -->
               <div id="dp-opts" style="display: none">
                 <div class="cg">
                   <label class="cl" data-i18n="lPartColor">Цвет частиц</label>
@@ -545,7 +497,6 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- Настройки Стекла (исчезновение) -->
               <div id="gs-opts" style="display: none">
                 <div class="cg">
                   <label class="cl" data-i18n="lShardSize"
@@ -586,7 +537,6 @@ Let's get started</textarea
                 </div>
               </div>
 
-              <!-- ===== ОБЩИЕ НАСТРОЙКИ ===== -->
               <div class="cg">
                 <div class="tw">
                   <label class="cl" style="margin-bottom: 0" data-i18n="tLoop"
@@ -635,11 +585,10 @@ Let's get started</textarea
                 </div>
               </div>
             </div>
-            <!-- END TEXT CONTROL CONTAINER -->
           </div>
         </div>
 
-        <!-- CENTER COLUMN -->
+        <!-- CENTER -->
         <div class="col col-center">
           <div class="col-scroll">
             <div class="sub-nav">
@@ -662,7 +611,6 @@ Let's get started</textarea
               </button>
             </div>
 
-            <!-- TEXT TAB CONTENT (Colors, Style, Layout) -->
             <div id="tab-font">
               <div class="st" data-i18n="sColors">Цвета</div>
               <div class="cg">
@@ -812,9 +760,7 @@ Let's get started</textarea
                 </div>
               </div>
             </div>
-            <!-- END TEXT TAB -->
 
-            <!-- FRAME TAB CONTENT -->
             <div id="tab-frame" style="display: none">
               <div class="st" data-i18n="sFrameAppearance">Внешний вид</div>
               <div class="cg">
@@ -950,34 +896,9 @@ Let's get started</textarea
                 </div>
               </div>
             </div>
-            <!-- END FRAME TAB -->
-            <!-- LEGO TAB CONTENT -->
-            <!-- LEGO TAB CONTENT -->
-            <div id="tab-lego" style="display: none">
-              <div class="st" data-i18n="sTextPresets">Пресеты LEGO</div>
-              <div class="cg">
-                <div class="cr">
-                  <input
-                    type="text"
-                    id="legoPresetName"
-                    placeholder="Имя пресета..."
-                    style="flex: 1"
-                  />
-                  <button class="bsc" id="legoPresetSave">
-                    <i class="fas fa-save"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="cg">
-                <div class="cs-wrapper" id="legoPresetWrapper">
-                  <div class="cs-trigger" id="legoPresetTrigger" tabindex="0">
-                    <span id="legoPresetText">Выбрать пресет...</span>
-                    <i class="fas fa-chevron-down cs-arrow"></i>
-                  </div>
-                  <div class="cs-options" id="legoPresetOptions"></div>
-                </div>
-              </div>
 
+            <!-- LEGO TAB -->
+            <div id="tab-lego" style="display: none">
               <div class="st">LEGO Текст</div>
               <div class="lego-panel-section">
                 <label class="lego-panel-label">Текст</label>
@@ -1015,7 +936,7 @@ Let's get started</textarea
               <div class="lego-panel-section">
                 <label class="lego-panel-label">
                   Глубина (слои)
-                  <span class="lego-panel-value" id="legoDepthVal">3</span>
+                  <span class="lego-panel-value" id="legoDepthVal">1</span>
                 </label>
                 <div class="lego-slider-row">
                   <input
@@ -1023,7 +944,7 @@ Let's get started</textarea
                     id="legoDepthSlider"
                     min="1"
                     max="8"
-                    value="3"
+                    value="1"
                     step="1"
                   />
                 </div>
@@ -1032,7 +953,7 @@ Let's get started</textarea
               <div class="lego-panel-section">
                 <label class="lego-panel-label">
                   Макс. размер кирпича
-                  <span class="lego-panel-value" id="legoSizeVal">1x1</span>
+                  <span class="lego-panel-value" id="legoSizeVal">2x2</span>
                 </label>
                 <div class="lego-slider-row">
                   <input
@@ -1040,7 +961,7 @@ Let's get started</textarea
                     id="legoSizeSlider"
                     min="1"
                     max="6"
-                    value="1"
+                    value="2"
                     step="1"
                   />
                 </div>
@@ -1151,12 +1072,10 @@ Let's get started</textarea
                 Кирпичей: <span>0</span>
               </div>
             </div>
-            <!-- END LEGO TAB -->
-            <!-- END LEGO TAB -->
           </div>
         </div>
 
-        <!-- RIGHT COLUMN -->
+        <!-- RIGHT -->
         <div class="col col-right">
           <div class="prv-header">
             <span class="prv-lbl" data-i18n="sPreview">Предпросмотр</span>

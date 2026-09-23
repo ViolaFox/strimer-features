@@ -374,7 +374,7 @@ window.TEPAuth = {
   getState: () => ({ user, session, deviceFingerprint }),
 };
 
-// === АВТОЗАПУСК ===
-if ((isEditorPage || isLegoPage) && !isConfig) {
+if (isEditorPage && !isConfig) {
   bootEditor();
 }
+// lego.html работает автономно, без проверки авторизации

@@ -1,19 +1,11 @@
 /* lego.css — стили LEGO 3D эффекта */
 
 :root {
-  --lego-bg: #0d0d18;
-  --lego-panel: rgba(22, 22, 42, 0.92);
-  --lego-card: #1e1e38;
-  --lego-border: #33335a;
-  --lego-fg: #eaeaf4;
-  --lego-muted: #7e7ea8;
   --lego-accent: #ffb800;
   --lego-accent-glow: rgba(255, 184, 0, 0.25);
-  --lego-radius: 10px;
-  --lego-radius-sm: 6px;
 }
 
-/* ===== OBS-режим (полный экран, без UI) ===== */
+/* ===== OBS-режим ===== */
 body.lego-obs {
   margin: 0;
   padding: 0;
@@ -23,38 +15,39 @@ body.lego-obs {
   height: 100vh;
 }
 
-#legoCanvas {
+body.lego-obs #legoCanvas {
   display: block;
   width: 100vw;
   height: 100vh;
   background: transparent;
-  outline: none;
 }
 
+/* ===== Toast ===== */
 .lego-toast {
   position: fixed;
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%) translateY(100px);
-  background: var(--lego-card);
+  background: var(--surface, #1e1e38);
   border: 1px solid var(--lego-accent);
-  color: var(--lego-fg);
+  color: var(--fg, #eaeaf4);
   padding: 12px 24px;
   border-radius: 12px;
-  font-family: "Nunito", sans-serif;
+  font-family: "Nunito", "Inter", sans-serif;
   font-weight: 700;
   font-size: 14px;
-  z-index: 100;
+  z-index: 10000;
   transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  max-width: 90vw;
 }
 
 .lego-toast.show {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ===== Стили для LEGO-панели в редакторе ===== */
+/* ===== LEGO-панель в редакторе ===== */
 .lego-panel-section {
   margin-bottom: 16px;
 }
@@ -69,14 +62,13 @@ body.lego-obs {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-ui);
 }
 
 .lego-panel-value {
   font-size: 13px;
   color: var(--accent);
   font-weight: 700;
-  letter-spacing: 0;
   text-transform: none;
   font-family: var(--font-mono);
 }
@@ -155,19 +147,6 @@ body.lego-obs {
   flex: 1;
 }
 
-.lego-toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0 2px;
-}
-
-.lego-toggle-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
 .lego-size-preview {
   display: flex;
   gap: 5px;
@@ -179,15 +158,14 @@ body.lego-obs {
 .lego-size-brick {
   border-radius: 3px;
   border: 1.5px solid var(--border);
-  background: var(--card);
+  background: var(--surface2);
   transition: all 0.25s;
-  position: relative;
 }
 
 .lego-size-brick.active {
   border-color: var(--accent);
   background: rgba(255, 184, 0, 0.12);
-  box-shadow: 0 0 8px var(--accent-glow);
+  box-shadow: 0 0 8px var(--lego-accent-glow);
 }
 
 .lego-btn-generate {
@@ -231,27 +209,7 @@ body.lego-obs {
   font-weight: 800;
 }
 
-.lego-hint {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: rgba(22, 22, 42, 0.8);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 11px;
-  color: var(--muted);
-  z-index: 10;
-  pointer-events: none;
-  backdrop-filter: blur(8px);
-}
-
-.lego-hint i {
-  color: var(--accent);
-  margin-right: 4px;
-}
-
-/* ===== LEGO hint в preview ===== */
+/* ===== Hint в preview ===== */
 .lego-hint {
   position: absolute;
   bottom: 12px;
@@ -273,14 +231,7 @@ body.lego-obs {
   margin-right: 4px;
 }
 
-/* ===== Toggle для LEGO (использует общий .tg из index.css) ===== */
-/* Убеждаемся, что .tg внутри #tab-lego работает как в редакторе */
-#tab-lego .tg {
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-/* ===== Канвас LEGO в preview ===== */
+/* ===== Canvas LEGO в preview редактора ===== */
 #legoCanvas {
   position: absolute;
   top: 0;
@@ -289,4 +240,9 @@ body.lego-obs {
   height: 100%;
   z-index: 5;
   touch-action: none;
+  display: none;
+}
+
+#pstage.lego-active #legoCanvas {
+  display: block;
 }
