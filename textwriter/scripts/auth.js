@@ -16,6 +16,7 @@ let deviceFingerprint = null;
 
 // === ОПРЕДЕЛЯЕМ РЕЖИМ ===
 const isOBSMode = location.hash.includes("mode=");
+const isLegoPage = location.pathname.includes("lego.html");
 const isConfig =
   location.hash === "#config" || location.search.includes("config");
 const isEditorPage =
@@ -182,6 +183,12 @@ async function bootEditor() {
   console.log("[TEP Auth] bootEditor started");
   console.log("[TEP Auth] url:", location.href);
   console.log("[TEP Auth] isOBSMode:", isOBSMode);
+
+  // LEGO-страница: пропускаем проверку, работает автономно
+  if (isLegoPage) {
+    console.log("[TEP Auth] LEGO page — skip auth");
+    return;
+  }
 
   if (isOBSMode) {
     console.log("[TEP Auth] OBS mode — skip auth");
@@ -368,6 +375,6 @@ window.TEPAuth = {
 };
 
 // === АВТОЗАПУСК ===
-if (isEditorPage && !isConfig) {
+if ((isEditorPage || isLegoPage) && !isConfig) {
   bootEditor();
 }

@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="index.css" />
     <!-- Стили для редактора рамок -->
     <link rel="stylesheet" href="frame.css" />
+    <link rel="stylesheet" href="lego.css" />
 
     <!-- Локальные шрифты -->
     <link rel="stylesheet" href="fonts/fonts.css" />
@@ -647,6 +648,9 @@ Let's get started</textarea
               >
                 Рамка
               </button>
+              <button class="sub-nav-btn" id="tab-btn-lego" data-i18n="navLego">
+                LEGO 3D
+              </button>
             </div>
 
             <!-- TEXT TAB CONTENT (Colors, Style, Layout) -->
@@ -938,6 +942,163 @@ Let's get started</textarea
               </div>
             </div>
             <!-- END FRAME TAB -->
+            <!-- LEGO TAB CONTENT -->
+            <div id="tab-lego" style="display: none">
+              <div class="st" data-i18n="sLegoText">LEGO Текст</div>
+              <div class="lego-panel-section">
+                <label class="lego-panel-label">Текст</label>
+                <input
+                  type="text"
+                  class="lego-text-input"
+                  id="legoTextInput"
+                  value="LEGO"
+                  maxlength="10"
+                  placeholder="LEGO"
+                />
+              </div>
+
+              <div class="lego-panel-section">
+                <label class="lego-panel-label">Палитра кубиков</label>
+                <div class="lego-colors-grid" id="legoColorsGrid">
+                  <div class="lego-color-swatch">
+                    <input type="color" value="#E3000B" />
+                  </div>
+                  <div class="lego-color-swatch">
+                    <input type="color" value="#0057A8" />
+                  </div>
+                  <div class="lego-color-swatch">
+                    <input type="color" value="#FFD500" />
+                  </div>
+                  <div class="lego-color-swatch">
+                    <input type="color" value="#00852B" />
+                  </div>
+                  <div class="lego-color-swatch">
+                    <input type="color" value="#FF7E14" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="lego-panel-section">
+                <label class="lego-panel-label">
+                  Глубина (слои)
+                  <span class="lego-panel-value" id="legoDepthVal">3</span>
+                </label>
+                <div class="lego-slider-row">
+                  <input
+                    type="range"
+                    id="legoDepthSlider"
+                    min="1"
+                    max="8"
+                    value="3"
+                    step="1"
+                  />
+                </div>
+              </div>
+
+              <div class="lego-panel-section">
+                <label class="lego-panel-label">
+                  Макс. размер кирпича
+                  <span class="lego-panel-value" id="legoSizeVal">1x1</span>
+                </label>
+                <div class="lego-slider-row">
+                  <input
+                    type="range"
+                    id="legoSizeSlider"
+                    min="1"
+                    max="6"
+                    value="1"
+                    step="1"
+                  />
+                </div>
+                <div class="lego-size-preview" id="legoSizePreview"></div>
+                <div class="lego-toggle-row" style="margin-top: 10px">
+                  <span class="lego-toggle-label">
+                    <i
+                      class="fas fa-shuffle"
+                      style="margin-right: 5px; color: var(--accent)"
+                    ></i>
+                    Рандомные размеры
+                  </span>
+                  <div class="tg" id="legoRandomToggle"></div>
+                </div>
+              </div>
+
+              <div class="lego-panel-section">
+                <label class="lego-panel-label">
+                  <i
+                    class="fas fa-gauge-high"
+                    style="margin-right: 5px; color: var(--accent)"
+                  ></i>
+                  Скорость сборки
+                  <span class="lego-panel-value" id="legoSpeedVal">x1.0</span>
+                </label>
+                <div class="lego-slider-row">
+                  <input
+                    type="range"
+                    id="legoSpeedSlider"
+                    min="1"
+                    max="10"
+                    value="5"
+                    step="1"
+                  />
+                </div>
+              </div>
+
+              <div class="lego-panel-divider"></div>
+
+              <div class="st">Проекция</div>
+
+              <div class="lego-panel-section">
+                <label class="lego-panel-label">
+                  Вращение
+                  <span class="lego-panel-value" id="legoRotVal">0°</span>
+                </label>
+                <div class="lego-slider-row">
+                  <input
+                    type="range"
+                    id="legoRotSlider"
+                    min="0"
+                    max="360"
+                    value="0"
+                    step="1"
+                  />
+                </div>
+              </div>
+
+              <div class="lego-panel-section">
+                <label class="lego-panel-label">
+                  Наклон
+                  <span class="lego-panel-value" id="legoTiltVal">0°</span>
+                </label>
+                <div class="lego-slider-row">
+                  <input
+                    type="range"
+                    id="legoTiltSlider"
+                    min="-80"
+                    max="80"
+                    value="0"
+                    step="1"
+                  />
+                </div>
+              </div>
+
+              <div class="lego-panel-section">
+                <div class="lego-toggle-row">
+                  <span class="lego-toggle-label">Автовращение</span>
+                  <div class="tg" id="legoAutoRotateToggle"></div>
+                </div>
+              </div>
+
+              <div class="lego-panel-divider"></div>
+
+              <button class="lego-btn-generate" id="legoGenerateBtn">
+                <i class="fas fa-play" style="margin-right: 8px"></i>Собрать
+              </button>
+              <div class="lego-brick-count" id="legoBrickCount">
+                Кирпичей: <span>0</span>
+              </div>
+            </div>
+            <!-- END LEGO TAB -->
           </div>
         </div>
 
@@ -985,6 +1146,11 @@ Let's get started</textarea
             <canvas id="pcv"></canvas>
             <div id="pt"></div>
             <div id="psl"></div>
+            <canvas id="legoCanvas" style="display: none"></canvas>
+            <div class="lego-hint" id="legoHint" style="display: none">
+              <i class="fas fa-mouse-pointer"></i>Мышь — вращение, колёсико —
+              зум
+            </div>
           </div>
 
           <div class="st" style="margin-top: 16px" data-i18n="sObsUrl">

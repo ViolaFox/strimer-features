@@ -17,6 +17,14 @@ import {
   destroyFrameOBS,
 } from "./frame.js";
 
+// LEGO 3D — загружается динамически, чтобы не тормозить старт
+let Lego = null;
+async function ensureLego() {
+  if (Lego) return Lego;
+  Lego = await import("./lego.js");
+  return Lego;
+}
+
 const IS_CFG =
   location.hash === "#config" || location.search.includes("config");
 const $ = (id) => document.getElementById(id);
@@ -250,6 +258,7 @@ const LANG = {
     lFrameHeight: "Высота рамки",
     navText: "Текст",
     navFrame: "Рамка",
+    navLego: "LEGO 3D",
     sColors: "Цвета",
     lTextColor: "Цвет текста",
     tGlow: "Свечение",
@@ -387,6 +396,7 @@ const LANG = {
     lFrameHeight: "Frame Height",
     navText: "Font",
     navFrame: "Frame",
+    navLego: "LEGO 3D",
     sColors: "Colors",
     lTextColor: "Color",
     tGlow: "Glow",
@@ -949,8 +959,46 @@ function fmtTimeUI(sec) {
 }
 function updURL() {
   const isFrameActive = $("tab-btn-frame")?.classList.contains("active");
-  if (isFrameActive) $("ubox").textContent = fullFrameURL();
-  else $("ubox").textContent = fullURL();
+  const isLegoActive = $("tab-btn-lego")?.classList.contains("active");
+  if (isLegoActive) {
+    // LEGO URL строится через lego.js
+    const textInput = $("legoTextInput");
+    const depthSlider = $("legoDepthSlider");
+    const sizeSlider = $("legoSizeSlider");
+    const speedSlider = $("legoSpeedSlider");
+    const rotSlider = $("legoRotSlider");
+    const tiltSlider = $("legoTiltSlider");
+    const randomToggle = $("legoRandomToggle");
+    const autoRotateToggle = $("legoAutoRotateToggle");
+    const colors = Array.from(
+      document.querySelectorAll("#legoColorsGrid input[type='color']"),
+    ).map((i) => i.value);
+    const params =
+      "#mode=lego" +
+      "&t=" +
+      encodeURIComponent(textInput?.value || "LEGO") +
+      "&c=" +
+      colors.map(encodeURIComponent).join(",") +
+      "&d=" +
+      (depthSlider?.value || 3) +
+      "&sz=" +
+      (sizeSlider?.value || 1) +
+      "&rs=" +
+      (randomToggle?.classList.contains("on") ? 1 : 0) +
+      "&sp=" +
+      (speedSlider?.value || 5) +
+      "&rot=" +
+      (rotSlider?.value || 0) +
+      "&tilt=" +
+      (tiltSlider?.value || 0) +
+      "&ar=" +
+      (autoRotateToggle?.classList.contains("on") ? 1 : 0);
+    $("ubox").textContent = location.href.split("#")[0].split("?")[0] + params;
+  } else if (isFrameActive) {
+    $("ubox").textContent = fullFrameURL();
+  } else {
+    $("ubox").textContent = fullURL();
+  }
 }
 
 let previewTimeout = null;
@@ -985,56 +1033,123 @@ function initCfg() {
   renderPresets();
   loadFonts();
 
-  // ===== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК =====
   const btnFont = $("tab-btn-font");
   const btnFrame = $("tab-btn-frame");
+  const btnLego = $("tab-btn-lego");
+
+  function showTextTab() {
+    btnFont.classList.add("active");
+    btnFrame.classList.remove("active");
+    btnLego?.classList.remove("active");
+    $("tab-font").style.display = "block";
+    $("tab-frame").style.display = "none";
+    $("tab-lego").style.display = "none";
+    $("font-section").style.display = "block";
+    $("text-control-container").style.display = "block";
+    $("presets-title").textContent = LANG[currentLang].sTextPresets;
+    renderPresets();
+    $("preset-text").textContent = LANG[currentLang].presetSelect;
+    const pt = $("pt");
+    const pcv = $("pcv");
+    if (pt) pt.style.display = "";
+    if (pcv) pcv.style.display = "";
+    // Скрываем LEGO canvas
+    const lc = $("legoCanvas");
+    if (lc) lc.style.display = "none";
+    const lh = $("legoHint");
+    if (lh) lh.style.display = "none";
+    destroyFrameEditor();
+    if (Lego) Lego.destroyLegoScene();
+    onChange();
+  }
+
+  function showFrameTab() {
+    btnFrame.classList.add("active");
+    btnFont.classList.remove("active");
+    btnLego?.classList.remove("active");
+    $("tab-font").style.display = "none";
+    $("tab-frame").style.display = "block";
+    $("tab-lego").style.display = "none";
+    $("font-section").style.display = "none";
+    $("text-control-container").style.display = "none";
+
+    stopFx($("pt"), $("pcv"), $("psl"));
+    stopAutoTrigger();
+
+    $("presets-title").textContent = LANG[currentLang].sFramePresets;
+    renderPresets();
+    $("preset-text").textContent = LANG[currentLang].presetSelect;
+    const pt = $("pt");
+    const pcv = $("pcv");
+    if (pt) pt.style.display = "none";
+    if (pcv) pcv.style.display = "none";
+    const c = $("pcv");
+    if (c) {
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+    }
+    const lc = $("legoCanvas");
+    if (lc) lc.style.display = "none";
+    const lh = $("legoHint");
+    if (lh) lh.style.display = "none";
+    if (Lego) Lego.destroyLegoScene();
+    initFrameEditor();
+    updURL();
+  }
+
+  async function showLegoTab() {
+    btnLego.classList.add("active");
+    btnFont.classList.remove("active");
+    btnFrame.classList.remove("active");
+    $("tab-font").style.display = "none";
+    $("tab-frame").style.display = "none";
+    $("tab-lego").style.display = "block";
+    $("font-section").style.display = "none";
+    $("text-control-container").style.display = "none";
+
+    // Скрываем обычный preview
+    stopFx($("pt"), $("pcv"), $("psl"));
+    stopAutoTrigger();
+    const pt = $("pt");
+    const pcv = $("pcv");
+    if (pt) pt.style.display = "none";
+    if (pcv) pcv.style.display = "none";
+    const c = $("pcv");
+    if (c) {
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+    }
+    destroyFrameEditor();
+
+    // Показываем LEGO canvas
+    const lc = $("legoCanvas");
+    if (lc) {
+      lc.style.display = "block";
+      lc.width = lc.parentElement.clientWidth;
+      lc.height = lc.parentElement.clientHeight;
+    }
+    const lh = $("legoHint");
+    if (lh) lh.style.display = "block";
+
+    // Загружаем LEGO модуль
+    const L = await ensureLego();
+    // Небольшая задержка, чтобы canvas получил размеры
+    setTimeout(() => {
+      L.initLegoScene(lc);
+      syncLegoFromUI();
+    }, 50);
+
+    updURL();
+  }
 
   if (btnFont && btnFrame) {
-    btnFont.addEventListener("click", () => {
-      btnFont.classList.add("active");
-      btnFrame.classList.remove("active");
-      $("tab-font").style.display = "block";
-      $("tab-frame").style.display = "none";
-      $("font-section").style.display = "block";
-      $("text-control-container").style.display = "block";
-      $("presets-title").textContent = LANG[currentLang].sTextPresets;
-      renderPresets();
-      $("preset-text").textContent = LANG[currentLang].presetSelect;
-      const pt = $("pt");
-      const pcv = $("pcv");
-      if (pt) pt.style.display = "";
-      if (pcv) pcv.style.display = "";
-      destroyFrameEditor();
-      onChange();
-    });
-    btnFrame.addEventListener("click", () => {
-      btnFrame.classList.add("active");
-      btnFont.classList.remove("active");
-      $("tab-font").style.display = "none";
-      $("tab-frame").style.display = "block";
-      $("font-section").style.display = "none";
-      $("text-control-container").style.display = "none";
-
-      // Баг-фикс: полностью останавливаем эффекты превью, чтобы SVG и Canvas очищались
-      stopFx($("pt"), $("pcv"), $("psl"));
-      stopAutoTrigger();
-
-      $("presets-title").textContent = LANG[currentLang].sFramePresets;
-      renderPresets();
-      $("preset-text").textContent = LANG[currentLang].presetSelect;
-      const pt = $("pt");
-      const pcv = $("pcv");
-      if (pt) pt.style.display = "none";
-      if (pcv) pcv.style.display = "none";
-      const c = $("pcv");
-      if (c) {
-        const ctx = c.getContext("2d");
-        ctx.clearRect(0, 0, c.width, c.height);
-      }
-      initFrameEditor();
-      updURL();
-    });
+    btnFont.addEventListener("click", showTextTab);
+    btnFrame.addEventListener("click", showFrameTab);
+    if (btnLego) btnLego.addEventListener("click", showLegoTab);
   }
+
+  // ===== LEGO UI =====
+  setupLegoUI();
 
   document.querySelectorAll(".tg").forEach((tg) => {
     tg.addEventListener("click", () => {
@@ -1218,6 +1333,10 @@ async function initOv() {
   if (mode === "frame") {
     parseFrameHash();
     renderFrameOBS();
+  } else if (mode === "lego") {
+    // LEGO-режим обрабатывается в lego.js при загрузке страницы
+    // Здесь ничего не делаем — index.js не должен рендерить эффекты
+    return;
   } else {
     parseHash();
     await waitForFont(S.font);
@@ -1232,6 +1351,157 @@ async function initOv() {
       cv.height = window.innerHeight;
     });
   }
+}
+
+// ===== LEGO UI =====
+function setupLegoUI() {
+  const textInput = $("legoTextInput");
+  const depthSlider = $("legoDepthSlider");
+  const sizeSlider = $("legoSizeSlider");
+  const speedSlider = $("legoSpeedSlider");
+  const rotSlider = $("legoRotSlider");
+  const tiltSlider = $("legoTiltSlider");
+  const randomToggle = $("legoRandomToggle");
+  const autoRotateToggle = $("legoAutoRotateToggle");
+  const generateBtn = $("legoGenerateBtn");
+  const sizePreview = $("legoSizePreview");
+
+  if (!textInput) return;
+
+  // Превью размеров
+  function updateSizePreview(maxS) {
+    sizePreview.innerHTML = "";
+    const examples = [
+      [1, 1],
+      [2, 1],
+      [2, 2],
+      [3, 1],
+      [3, 2],
+      [4, 1],
+      [4, 2],
+      [3, 3],
+    ];
+    const shown = examples.filter(([w, h]) => w <= maxS && h <= maxS);
+    shown.forEach(([w, h], i) => {
+      const el = document.createElement("div");
+      el.className = "lego-size-brick" + (i === 0 ? " active" : "");
+      el.style.width = w * 8 + "px";
+      el.style.height = h * 8 + "px";
+      el.title = `${w}x${h}`;
+      sizePreview.appendChild(el);
+    });
+    $("legoSizeVal").textContent = `${maxS}x${maxS}`;
+  }
+
+  updateSizePreview(1);
+
+  // Обновление LEGO через UI
+  function update() {
+    if (!Lego) return;
+    const colors = Array.from(
+      document.querySelectorAll("#legoColorsGrid input[type='color']"),
+    ).map((i) => i.value);
+    Lego.updateLegoSettings({
+      text: textInput.value.trim() || "LEGO",
+      colors,
+      depth: +depthSlider.value,
+      maxSize: +sizeSlider.value,
+      randomSize: randomToggle.classList.contains("on"),
+      speed: +speedSlider.value,
+      rotate: +rotSlider.value,
+      tilt: +tiltSlider.value,
+      autoRotate: autoRotateToggle.classList.contains("on"),
+    });
+  }
+
+  // Слушатели
+  textInput.addEventListener("input", () => {
+    update();
+    if (Lego) Lego.generateLEGO();
+  });
+
+  depthSlider.addEventListener("input", () => {
+    $("legoDepthVal").textContent = depthSlider.value;
+    update();
+    if (Lego) Lego.generateLEGO();
+  });
+
+  sizeSlider.addEventListener("input", () => {
+    updateSizePreview(+sizeSlider.value);
+    update();
+    if (Lego) Lego.generateLEGO();
+  });
+
+  speedSlider.addEventListener("input", () => {
+    const v = +speedSlider.value;
+    const mult = 0.3 + (v - 1) * 0.3;
+    $("legoSpeedVal").textContent = `x${mult.toFixed(1)}`;
+    update();
+  });
+
+  rotSlider.addEventListener("input", () => {
+    $("legoRotVal").textContent = `${rotSlider.value}°`;
+    update();
+  });
+
+  tiltSlider.addEventListener("input", () => {
+    $("legoTiltVal").textContent = `${tiltSlider.value}°`;
+    update();
+  });
+
+  randomToggle.addEventListener("click", () => {
+    randomToggle.classList.toggle("on");
+    update();
+    if (Lego) Lego.generateLEGO();
+  });
+
+  autoRotateToggle.addEventListener("click", () => {
+    autoRotateToggle.classList.toggle("on");
+    update();
+  });
+
+  document
+    .querySelectorAll("#legoColorsGrid input[type='color']")
+    .forEach((inp) => {
+      inp.addEventListener("input", () => {
+        update();
+        if (Lego) Lego.generateLEGO();
+      });
+    });
+
+  generateBtn.addEventListener("click", () => {
+    update();
+    if (Lego) Lego.generateLEGO();
+  });
+}
+
+function syncLegoFromUI() {
+  if (!Lego) return;
+  const textInput = $("legoTextInput");
+  const depthSlider = $("legoDepthSlider");
+  const sizeSlider = $("legoSizeSlider");
+  const speedSlider = $("legoSpeedSlider");
+  const rotSlider = $("legoRotSlider");
+  const tiltSlider = $("legoTiltSlider");
+  const randomToggle = $("legoRandomToggle");
+  const autoRotateToggle = $("legoAutoRotateToggle");
+
+  if (!textInput) return;
+  const colors = Array.from(
+    document.querySelectorAll("#legoColorsGrid input[type='color']"),
+  ).map((i) => i.value);
+
+  Lego.updateLegoSettings({
+    text: textInput.value.trim() || "LEGO",
+    colors,
+    depth: +depthSlider.value,
+    maxSize: +sizeSlider.value,
+    randomSize: randomToggle.classList.contains("on"),
+    speed: +speedSlider.value,
+    rotate: +rotSlider.value,
+    tilt: +tiltSlider.value,
+    autoRotate: autoRotateToggle.classList.contains("on"),
+  });
 }
 
 if (IS_CFG) initCfg();

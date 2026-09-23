@@ -1,0 +1,252 @@
+/* lego.css — стили LEGO 3D эффекта */
+
+:root {
+  --lego-bg: #0d0d18;
+  --lego-panel: rgba(22, 22, 42, 0.92);
+  --lego-card: #1e1e38;
+  --lego-border: #33335a;
+  --lego-fg: #eaeaf4;
+  --lego-muted: #7e7ea8;
+  --lego-accent: #ffb800;
+  --lego-accent-glow: rgba(255, 184, 0, 0.25);
+  --lego-radius: 10px;
+  --lego-radius-sm: 6px;
+}
+
+/* ===== OBS-режим (полный экран, без UI) ===== */
+body.lego-obs {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  width: 100vw;
+  height: 100vh;
+}
+
+#legoCanvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  outline: none;
+}
+
+.lego-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--lego-card);
+  border: 1px solid var(--lego-accent);
+  color: var(--lego-fg);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  z-index: 100;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.lego-toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== Стили для LEGO-панели в редакторе ===== */
+.lego-panel-section {
+  margin-bottom: 16px;
+}
+
+.lego-panel-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "Inter", sans-serif;
+}
+
+.lego-panel-value {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  font-family: var(--font-mono);
+}
+
+.lego-panel-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+.lego-text-input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 17px;
+  font-weight: 700;
+  outline: none;
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+
+.lego-text-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.lego-colors-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lego-color-swatch {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  border: 2.5px solid var(--border);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.lego-color-swatch:hover {
+  transform: scale(1.12);
+  border-color: var(--accent);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+}
+
+.lego-color-swatch input[type="color"] {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 72px;
+  height: 72px;
+  border: none;
+  cursor: pointer;
+  background: none;
+}
+
+.lego-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lego-slider-row input[type="range"] {
+  flex: 1;
+}
+
+.lego-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 2px;
+}
+
+.lego-toggle-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.lego-size-preview {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.lego-size-brick {
+  border-radius: 3px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  transition: all 0.25s;
+  position: relative;
+}
+
+.lego-size-brick.active {
+  border-color: var(--accent);
+  background: rgba(255, 184, 0, 0.12);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.lego-btn-generate {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #ffb800, #ff8c00);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  box-shadow: 0 4px 20px var(--lego-accent-glow);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.lego-btn-generate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(255, 184, 0, 0.4);
+}
+
+.lego-btn-generate:active {
+  transform: translateY(0);
+}
+
+.lego-brick-count {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+}
+
+.lego-brick-count span {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.lego-hint {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(22, 22, 42, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  z-index: 10;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.lego-hint i {
+  color: var(--accent);
+  margin-right: 4px;
+}
