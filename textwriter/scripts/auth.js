@@ -16,13 +16,13 @@ let deviceFingerprint = null;
 
 // === ОПРЕДЕЛЯЕМ РЕЖИМ ===
 const isOBSMode = location.hash.includes("mode=");
-const isLegoPage = location.pathname.includes("lego.html");
 const isConfig =
   location.hash === "#config" || location.search.includes("config");
 const isEditorPage =
   location.pathname === "/" || location.pathname === "/index.html";
 const isLandingPage = location.pathname.includes("landing");
 const isAdminPage = location.pathname.includes("admin");
+const isLegoPage = location.pathname.includes("lego.html");
 
 // === FINGERPRINT УСТРОЙСТВА ===
 async function computeFingerprint() {

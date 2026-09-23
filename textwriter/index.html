@@ -27,6 +27,7 @@
 
     <!-- Локальные шрифты -->
     <link rel="stylesheet" href="fonts/fonts.css" />
+
     <script type="importmap">
       {
         "imports": {
@@ -951,8 +952,33 @@ Let's get started</textarea
             </div>
             <!-- END FRAME TAB -->
             <!-- LEGO TAB CONTENT -->
+            <!-- LEGO TAB CONTENT -->
             <div id="tab-lego" style="display: none">
-              <div class="st" data-i18n="sLegoText">LEGO Текст</div>
+              <div class="st" data-i18n="sTextPresets">Пресеты LEGO</div>
+              <div class="cg">
+                <div class="cr">
+                  <input
+                    type="text"
+                    id="legoPresetName"
+                    placeholder="Имя пресета..."
+                    style="flex: 1"
+                  />
+                  <button class="bsc" id="legoPresetSave">
+                    <i class="fas fa-save"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="cg">
+                <div class="cs-wrapper" id="legoPresetWrapper">
+                  <div class="cs-trigger" id="legoPresetTrigger" tabindex="0">
+                    <span id="legoPresetText">Выбрать пресет...</span>
+                    <i class="fas fa-chevron-down cs-arrow"></i>
+                  </div>
+                  <div class="cs-options" id="legoPresetOptions"></div>
+                </div>
+              </div>
+
+              <div class="st">LEGO Текст</div>
               <div class="lego-panel-section">
                 <label class="lego-panel-label">Текст</label>
                 <input
@@ -1019,14 +1045,14 @@ Let's get started</textarea
                   />
                 </div>
                 <div class="lego-size-preview" id="legoSizePreview"></div>
-                <div class="lego-toggle-row" style="margin-top: 10px">
-                  <span class="lego-toggle-label">
+                <div class="tw" style="margin-top: 10px">
+                  <label class="cl" style="margin-bottom: 0">
                     <i
                       class="fas fa-shuffle"
                       style="margin-right: 5px; color: var(--accent)"
                     ></i>
                     Рандомные размеры
-                  </span>
+                  </label>
                   <div class="tg" id="legoRandomToggle"></div>
                 </div>
               </div>
@@ -1091,8 +1117,27 @@ Let's get started</textarea
               </div>
 
               <div class="lego-panel-section">
-                <div class="lego-toggle-row">
-                  <span class="lego-toggle-label">Автовращение</span>
+                <label class="lego-panel-label">
+                  Зум
+                  <span class="lego-panel-value" id="legoZoomVal">1.0x</span>
+                </label>
+                <div class="lego-slider-row">
+                  <input
+                    type="range"
+                    id="legoZoomSlider"
+                    min="20"
+                    max="200"
+                    value="100"
+                    step="5"
+                  />
+                </div>
+              </div>
+
+              <div class="lego-panel-section">
+                <div class="tw">
+                  <label class="cl" style="margin-bottom: 0"
+                    >Автовращение</label
+                  >
                   <div class="tg" id="legoAutoRotateToggle"></div>
                 </div>
               </div>
@@ -1106,6 +1151,7 @@ Let's get started</textarea
                 Кирпичей: <span>0</span>
               </div>
             </div>
+            <!-- END LEGO TAB -->
             <!-- END LEGO TAB -->
           </div>
         </div>

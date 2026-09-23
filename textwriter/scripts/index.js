@@ -961,7 +961,6 @@ function updURL() {
   const isFrameActive = $("tab-btn-frame")?.classList.contains("active");
   const isLegoActive = $("tab-btn-lego")?.classList.contains("active");
   if (isLegoActive) {
-    // LEGO URL строится через lego.js
     const textInput = $("legoTextInput");
     const depthSlider = $("legoDepthSlider");
     const sizeSlider = $("legoSizeSlider");
@@ -993,7 +992,8 @@ function updURL() {
       (tiltSlider?.value || 0) +
       "&ar=" +
       (autoRotateToggle?.classList.contains("on") ? 1 : 0);
-    $("ubox").textContent = location.href.split("#")[0].split("?")[0] + params;
+    // Копируем ссылку на lego.html — она легче для OBS
+    $("ubox").textContent = location.origin + "/lego.html" + params;
   } else if (isFrameActive) {
     $("ubox").textContent = fullFrameURL();
   } else {
@@ -1123,20 +1123,24 @@ function initCfg() {
 
     // Показываем LEGO canvas
     const lc = $("legoCanvas");
+    const lh = $("legoHint");
     if (lc) {
       lc.style.display = "block";
-      lc.width = lc.parentElement.clientWidth;
-      lc.height = lc.parentElement.clientHeight;
+      const stage = $("pstage");
+      lc.width = stage.clientWidth;
+      lc.height = stage.clientHeight;
+      lc.style.width = "100%";
+      lc.style.height = "100%";
     }
-    const lh = $("legoHint");
     if (lh) lh.style.display = "block";
 
     // Загружаем LEGO модуль
     const L = await ensureLego();
-    // Небольшая задержка, чтобы canvas получил размеры
+    // Даём время, чтобы canvas получил размеры
     setTimeout(() => {
       L.initLegoScene(lc);
       syncLegoFromUI();
+      if (window.__legoRenderPresets) window.__legoRenderPresets();
     }, 50);
 
     updURL();
@@ -1334,8 +1338,23 @@ async function initOv() {
     parseFrameHash();
     renderFrameOBS();
   } else if (mode === "lego") {
-    // LEGO-режим обрабатывается в lego.js при загрузке страницы
-    // Здесь ничего не делаем — index.js не должен рендерить эффекты
+    // LEGO-режим: загружаем lego.js и запускаем сцену
+    const legoCanvas = document.getElementById("legoCanvas");
+    if (legoCanvas) {
+      legoCanvas.style.display = "block";
+      legoCanvas.width = window.innerWidth;
+      legoCanvas.height = window.innerHeight;
+      const L = await ensureLego();
+      // Небольшая задержка, чтобы canvas получил размеры
+      setTimeout(() => {
+        L.initLegoScene(legoCanvas);
+      }, 100);
+      window.addEventListener("resize", () => {
+        legoCanvas.width = window.innerWidth;
+        legoCanvas.height = window.innerHeight;
+        if (L.resizeLegoCanvas) L.resizeLegoCanvas();
+      });
+    }
     return;
   } else {
     parseHash();
@@ -1366,9 +1385,16 @@ function setupLegoUI() {
   const generateBtn = $("legoGenerateBtn");
   const sizePreview = $("legoSizePreview");
 
+  // Пресеты LEGO
+  const presetNameInput = $("legoPresetName");
+  const presetSaveBtn = $("legoPresetSave");
+  const presetTrigger = $("legoPresetTrigger");
+  const presetWrapper = $("legoPresetWrapper");
+  const presetText = $("legoPresetText");
+  const presetOptions = $("legoPresetOptions");
+
   if (!textInput) return;
 
-  // Превью размеров
   function updateSizePreview(maxS) {
     sizePreview.innerHTML = "";
     const examples = [
@@ -1393,10 +1419,9 @@ function setupLegoUI() {
     $("legoSizeVal").textContent = `${maxS}x${maxS}`;
   }
 
-  updateSizePreview(1);
+  updateSizePreview(+sizeSlider.value || 1);
 
-  // Обновление LEGO через UI
-  function update() {
+  function pushSettings() {
     if (!Lego) return;
     const colors = Array.from(
       document.querySelectorAll("#legoColorsGrid input[type='color']"),
@@ -1414,65 +1439,201 @@ function setupLegoUI() {
     });
   }
 
-  // Слушатели
+  // Синхронизация ползунков после ручного перетаскивания
+  window.__legoUIUpdateSliders = (rotate, tilt) => {
+    rotSlider.value = rotate;
+    tiltSlider.value = tilt;
+    $("legoRotVal").textContent = `${Math.round(rotate)}°`;
+    $("legoTiltVal").textContent = `${Math.round(tilt)}°`;
+  };
+
+  // Text
   textInput.addEventListener("input", () => {
-    update();
+    pushSettings();
     if (Lego) Lego.generateLEGO();
   });
 
+  // Depth
   depthSlider.addEventListener("input", () => {
     $("legoDepthVal").textContent = depthSlider.value;
-    update();
+    pushSettings();
     if (Lego) Lego.generateLEGO();
   });
 
+  // Size
   sizeSlider.addEventListener("input", () => {
     updateSizePreview(+sizeSlider.value);
-    update();
+    pushSettings();
     if (Lego) Lego.generateLEGO();
   });
 
+  // Speed
   speedSlider.addEventListener("input", () => {
     const v = +speedSlider.value;
     const mult = 0.3 + (v - 1) * 0.3;
     $("legoSpeedVal").textContent = `x${mult.toFixed(1)}`;
-    update();
+    pushSettings();
   });
 
+  // Rotate — двигаем камеру сразу
   rotSlider.addEventListener("input", () => {
     $("legoRotVal").textContent = `${rotSlider.value}°`;
-    update();
+    pushSettings();
+    if (Lego) Lego.applyCameraFromSettings();
   });
 
+  // Tilt — двигаем камеру сразу
   tiltSlider.addEventListener("input", () => {
     $("legoTiltVal").textContent = `${tiltSlider.value}°`;
-    update();
+    pushSettings();
+    if (Lego) Lego.applyCameraFromSettings();
   });
 
+  // Zoom slider
+  const zoomSlider = $("legoZoomSlider");
+  if (zoomSlider) {
+    zoomSlider.addEventListener("input", () => {
+      const v = +zoomSlider.value / 100;
+      $("legoZoomVal").textContent = v.toFixed(1) + "x";
+      if (Lego && Lego.setLegoZoom) {
+        Lego.setLegoZoom(v);
+      }
+    });
+  }
+
+  // Random toggle — используем .on класс как у .tg
   randomToggle.addEventListener("click", () => {
     randomToggle.classList.toggle("on");
-    update();
+    pushSettings();
     if (Lego) Lego.generateLEGO();
   });
 
+  // Auto-rotate toggle
   autoRotateToggle.addEventListener("click", () => {
     autoRotateToggle.classList.toggle("on");
-    update();
+    pushSettings();
   });
 
+  // Colors
   document
     .querySelectorAll("#legoColorsGrid input[type='color']")
     .forEach((inp) => {
       inp.addEventListener("input", () => {
-        update();
+        pushSettings();
         if (Lego) Lego.generateLEGO();
       });
     });
 
+  // Generate button
   generateBtn.addEventListener("click", () => {
-    update();
+    pushSettings();
     if (Lego) Lego.generateLEGO();
   });
+
+  // ===== ПРЕСЕТЫ LEGO =====
+  function renderLegoPresets() {
+    if (!presetOptions) return;
+    const names = Lego ? Lego.getLegoPresetNames() : [];
+    presetOptions.innerHTML = "";
+    if (!names.length) {
+      const empty = document.createElement("div");
+      empty.className = "cs-option cs-empty";
+      empty.style.cssText =
+        "pointer-events:none;color:var(--muted);font-style:italic;";
+      empty.textContent = LANG[currentLang].presetEmpty;
+      presetOptions.appendChild(empty);
+      return;
+    }
+    names.forEach((name) => {
+      const opt = document.createElement("div");
+      opt.className = "cs-option preset-option-item";
+      const span = document.createElement("span");
+      span.textContent = name;
+      span.style.flex = "1";
+      const del = document.createElement("i");
+      del.className = "fas fa-trash-alt preset-del-btn";
+      del.title = "Delete";
+      del.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (Lego) Lego.deleteLegoPreset(name);
+        renderLegoPresets();
+        if (presetText.textContent === name) {
+          presetText.textContent = LANG[currentLang].presetSelect;
+        }
+      });
+      opt.appendChild(span);
+      opt.appendChild(del);
+      opt.addEventListener("click", () => {
+        if (Lego && Lego.loadLegoPreset(name)) {
+          // Обновляем UI из S
+          const s = Lego.getLegoSettings();
+          textInput.value = s.text;
+          depthSlider.value = s.depth;
+          $("legoDepthVal").textContent = s.depth;
+          sizeSlider.value = s.maxSize;
+          updateSizePreview(s.maxSize);
+          speedSlider.value = s.speed;
+          $("legoSpeedVal").textContent =
+            "x" + (0.3 + (s.speed - 1) * 0.3).toFixed(1);
+          rotSlider.value = s.rotate;
+          $("legoRotVal").textContent = `${s.rotate}°`;
+          tiltSlider.value = s.tilt;
+          $("legoTiltVal").textContent = `${s.tilt}°`;
+          randomToggle.classList.toggle("on", s.randomSize);
+          autoRotateToggle.classList.toggle("on", s.autoRotate);
+          const colorInputs = document.querySelectorAll(
+            "#legoColorsGrid input[type='color']",
+          );
+          colorInputs.forEach((inp, i) => {
+            if (s.colors[i]) inp.value = s.colors[i];
+          });
+          presetText.textContent = name;
+          if (Lego) {
+            Lego.applyCameraFromSettings();
+            Lego.generateLEGO();
+          }
+        }
+        if (presetWrapper) presetWrapper.classList.remove("open");
+      });
+      presetOptions.appendChild(opt);
+    });
+  }
+
+  if (presetSaveBtn) {
+    presetSaveBtn.addEventListener("click", () => {
+      const name = presetNameInput.value.trim();
+      if (!name) return;
+      pushSettings();
+      if (Lego) Lego.saveLegoPreset(name);
+      presetNameInput.value = "";
+      renderLegoPresets();
+      presetText.textContent = name;
+    });
+  }
+
+  if (presetNameInput) {
+    presetNameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") presetSaveBtn.click();
+    });
+  }
+
+  if (presetTrigger) {
+    presetTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      presetWrapper.classList.toggle("open");
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (presetWrapper && !presetWrapper.contains(e.target)) {
+      presetWrapper.classList.remove("open");
+    }
+  });
+
+  renderLegoPresets();
+
+  // Публикуем для синхронизации
+  window.__legoRenderPresets = renderLegoPresets;
 }
 
 function syncLegoFromUI() {

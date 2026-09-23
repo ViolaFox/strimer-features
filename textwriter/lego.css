@@ -250,3 +250,43 @@ body.lego-obs {
   color: var(--accent);
   margin-right: 4px;
 }
+
+/* ===== LEGO hint в preview ===== */
+.lego-hint {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(22, 22, 42, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  z-index: 10;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  font-family: var(--font-ui);
+}
+
+.lego-hint i {
+  color: var(--accent);
+  margin-right: 4px;
+}
+
+/* ===== Toggle для LEGO (использует общий .tg из index.css) ===== */
+/* Убеждаемся, что .tg внутри #tab-lego работает как в редакторе */
+#tab-lego .tg {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* ===== Канвас LEGO в preview ===== */
+#legoCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  touch-action: none;
+}

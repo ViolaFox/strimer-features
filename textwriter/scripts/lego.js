@@ -14,6 +14,7 @@ let textGroup = null;
 let currentMeshes = [];
 let anim = null;
 let animLoopId = null;
+let isInitialized = false;
 
 const S = {
   text: "LEGO",
@@ -25,8 +26,53 @@ const S = {
   rotate: 0,
   tilt: 0,
   autoRotate: false,
-  radius: 0.315, // ← добавлено для настроек, если захочешь расширить
 };
+
+// ===== ПРЕСЕТЫ LEGO =====
+const LEGO_PRESETS_KEY = "obsLegoPresets";
+
+function getLegoPresets() {
+  try {
+    return JSON.parse(localStorage.getItem(LEGO_PRESETS_KEY) || "{}");
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveLegoPreset(name) {
+  if (!name) return;
+  const presets = getLegoPresets();
+  presets[name] = { ...S, colors: [...S.colors] };
+  localStorage.setItem(LEGO_PRESETS_KEY, JSON.stringify(presets));
+}
+
+function loadLegoPreset(name) {
+  const presets = getLegoPresets();
+  if (!presets[name]) return false;
+  const p = presets[name];
+  S.text = p.text ?? S.text;
+  S.colors = p.colors ?? S.colors;
+  S.depth = p.depth ?? S.depth;
+  S.maxSize = p.maxSize ?? S.maxSize;
+  S.randomSize = p.randomSize ?? S.randomSize;
+  S.speed = p.speed ?? S.speed;
+  S.rotate = p.rotate ?? S.rotate;
+  S.tilt = p.tilt ?? S.tilt;
+  S.autoRotate = p.autoRotate ?? S.autoRotate;
+  return true;
+}
+
+function deleteLegoPreset(name) {
+  const presets = getLegoPresets();
+  delete presets[name];
+  localStorage.setItem(LEGO_PRESETS_KEY, JSON.stringify(presets));
+}
+
+export function getLegoPresetNames() {
+  return Object.keys(getLegoPresets());
+}
+
+export { saveLegoPreset, loadLegoPreset, deleteLegoPreset };
 
 // ===== КОНСТАНТЫ КИРПИЧЕЙ =====
 const UNIT = 1.0;
@@ -107,30 +153,6 @@ function parseHash() {
   if (g("rot")) S.rotate = +g("rot");
   if (g("tilt")) S.tilt = +g("tilt");
   if (g("ar")) S.autoRotate = g("ar") === "1";
-}
-
-// ===== ГЕНЕРАЦИЯ ХЭША =====
-export function toLegoHash() {
-  return (
-    "#mode=lego&t=" +
-    encodeURIComponent(S.text) +
-    "&c=" +
-    S.colors.map(encodeURIComponent).join(",") +
-    "&d=" +
-    S.depth +
-    "&sz=" +
-    S.maxSize +
-    "&rs=" +
-    (S.randomSize ? 1 : 0) +
-    "&sp=" +
-    S.speed +
-    "&rot=" +
-    S.rotate +
-    "&tilt=" +
-    S.tilt +
-    "&ar=" +
-    (S.autoRotate ? 1 : 0)
-  );
 }
 
 // ===== РАСТЕРИЗАЦИЯ ТЕКСТА =====
@@ -224,7 +246,7 @@ function packBricks(grid, gw, gh, maxS, randomMode) {
   return bricks;
 }
 
-// ===== АНИМАЦИЯ =====
+// ===== АНИМАЦИЯ СБОРКИ =====
 function getSpeedMult() {
   return 0.3 + (S.speed - 1) * 0.3;
 }
@@ -322,7 +344,7 @@ function updateAssembly(now) {
 function clearMeshes() {
   anim = null;
   currentMeshes.forEach((m) => {
-    textGroup.remove(m);
+    if (textGroup) textGroup.remove(m);
     if (m.geometry) m.geometry.dispose();
   });
   currentMeshes = [];
@@ -345,7 +367,6 @@ export function generateLEGO() {
     return;
   }
 
-  // Лимит кирпичей (проверяем по количеству боксов)
   const boxCount = bricks.length * depth;
   if (boxCount > MAX_BRICKS) {
     showToast(
@@ -360,8 +381,6 @@ export function generateLEGO() {
     studCount += b.w * b.h;
     tubeCount += b.w * b.h * (depth > 1 ? depth - 1 : 0);
   }
-
-  const total = boxCount + studCount + tubeCount;
 
   clearMeshes();
 
@@ -395,6 +414,7 @@ export function generateLEGO() {
     maxGX = Math.max(maxGX, b.x + b.w);
   }
   const rangeX = Math.max(maxGX - minGX, 1);
+  const centerX = (minGX + maxGX) / 2;
 
   let bi = 0,
     si = 0,
@@ -411,7 +431,8 @@ export function generateLEGO() {
 
       tmpColor.set(colors[Math.floor(Math.random() * colors.length)]);
 
-      const cx = (bx + w / 2) * UNIT - halfW;
+      // ФИКС: центрируем относительно середины текста, а не угла
+      const cx = (bx + w / 2 - centerX) * UNIT;
       const cy = -((by + h / 2) * UNIT - halfH);
 
       const i3 = bi * 3;
@@ -458,7 +479,7 @@ export function generateLEGO() {
         const pDel = bxDel[bi - 1];
         for (let dy = 0; dy < h; dy++) {
           for (let dx = 0; dx < w; dx++) {
-            const sx = (bx + dx + 0.5) * UNIT - halfW;
+            const sx = (bx + dx + 0.5 - centerX) * UNIT;
             const sy = -((by + dy + 0.5) * UNIT - halfH);
             const sz = zp + BRICK_H / 2;
 
@@ -481,7 +502,7 @@ export function generateLEGO() {
         const pDel = bxDel[bi - 1];
         for (let dy = 0; dy < h; dy++) {
           for (let dx = 0; dx < w; dx++) {
-            const sx = (bx + dx + 0.5) * UNIT - halfW;
+            const sx = (bx + dx + 0.5 - centerX) * UNIT;
             const sy = -((by + dy + 0.5) * UNIT - halfH);
             const tz = zp - BRICK_H / 2;
 
@@ -546,8 +567,8 @@ export function generateLEGO() {
 let camDist = 35;
 let targetCamPos = new THREE.Vector3(0, 0, 35);
 let isLerping = false;
-let initialRot = S.rotate;
-let initialTilt = S.tilt;
+let userInteracting = false;
+let lastUserActionTime = 0;
 
 function calcCamPos(rotDeg, tiltDeg, dist) {
   const r = THREE.MathUtils.degToRad(rotDeg);
@@ -559,23 +580,35 @@ function calcCamPos(rotDeg, tiltDeg, dist) {
   );
 }
 
-function applyInitialCamera() {
-  camDist = 35;
-  targetCamPos = calcCamPos(initialRot, initialTilt, camDist);
-  camera.position.copy(targetCamPos);
-  controls.target.set(0, 0, 0);
-  controls.update();
-  isLerping = false;
-}
-
 function fitCamera() {
   if (!currentMeshes.length) return;
   const box = new THREE.Box3().setFromObject(textGroup);
   const size = new THREE.Vector3();
   box.getSize(size);
   camDist = Math.max(Math.max(size.x, size.y, size.z) * 1.6, 12);
-  targetCamPos = calcCamPos(initialRot, initialTilt, camDist);
+  targetCamPos = calcCamPos(S.rotate, S.tilt, camDist);
   isLerping = true;
+}
+
+// Применяем позицию камеры из настроек (ползунки)
+export function applyCameraFromSettings() {
+  if (!camera || !controls) return;
+  targetCamPos = calcCamPos(S.rotate, S.tilt, camDist);
+  isLerping = true;
+}
+
+// Синхронизируем ползунки с текущей позицией камеры (после ручного перетаскивания)
+export function syncSlidersFromCamera() {
+  if (!camera) return { rotate: S.rotate, tilt: S.tilt };
+  const p = camera.position;
+  let az = THREE.MathUtils.radToDeg(Math.atan2(p.x, p.z));
+  if (az < 0) az += 360;
+  const hd = Math.sqrt(p.x * p.x + p.z * p.z);
+  let el = THREE.MathUtils.radToDeg(Math.atan2(p.y, Math.max(hd, 0.001)));
+  el = THREE.MathUtils.clamp(el, -80, 80);
+  S.rotate = Math.round(az);
+  S.tilt = Math.round(el);
+  return { rotate: S.rotate, tilt: S.tilt };
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ СЦЕНЫ =====
@@ -586,7 +619,12 @@ export function initLegoScene(canvasEl) {
     return;
   }
 
-  // Renderer
+  // Если уже инициализировано — просто обновляем размеры
+  if (isInitialized) {
+    resize();
+    return;
+  }
+
   renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
@@ -594,27 +632,20 @@ export function initLegoScene(canvasEl) {
     premultipliedAlpha: false,
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight, false);
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
   renderer.setClearColor(0x000000, 0);
 
-  // Scene
   scene = new THREE.Scene();
   scene.environment = createEnvMap();
 
-  // Camera
-  camera = new THREE.PerspectiveCamera(
-    45,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    200,
-  );
+  const aspect = canvas.clientWidth / canvas.clientHeight || 1;
+  camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 200);
   camera.position.set(0, 0, 35);
 
-  // Controls
   controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
@@ -622,8 +653,26 @@ export function initLegoScene(canvasEl) {
   controls.maxDistance = 120;
   controls.autoRotate = S.autoRotate;
   controls.autoRotateSpeed = 2.0;
+  controls.enableZoom = true;
+  controls.enablePan = false;
 
-  // Lights
+  // Отключаем возврат камеры, как только пользователь начал взаимодействовать
+  controls.addEventListener("start", () => {
+    userInteracting = true;
+    isLerping = false;
+  });
+
+  controls.addEventListener("end", () => {
+    userInteracting = false;
+    lastUserActionTime = performance.now();
+    // Синхронизируем ползунки с текущим положением камеры
+    const sync = syncSlidersFromCamera();
+    // Обновляем UI ползунков, если есть
+    if (window.__legoUIUpdateSliders) {
+      window.__legoUIUpdateSliders(sync.rotate, sync.tilt);
+    }
+  });
+
   scene.add(new THREE.AmbientLight(0x404060, 0.5));
   scene.add(new THREE.HemisphereLight(0xffeedd, 0x0a0a20, 0.7));
 
@@ -648,30 +697,36 @@ export function initLegoScene(canvasEl) {
   rim.position.set(-2, -6, -10);
   scene.add(rim);
 
-  // Text group
   textGroup = new THREE.Group();
   scene.add(textGroup);
 
-  // Resize
   window.addEventListener("resize", onResize);
 
-  // Generate
-  applyInitialCamera();
+  // Стартовая камера
+  targetCamPos = calcCamPos(S.rotate, S.tilt, camDist);
+  camera.position.copy(targetCamPos);
+  controls.target.set(0, 0, 0);
+  controls.update();
+  isLerping = false;
+
   generateLEGO();
 
-  // Animation loop
+  isInitialized = true;
+
   function loop(now) {
     animLoopId = requestAnimationFrame(loop);
     updateAssembly(now);
-    if (isLerping) {
+
+    // Lerp камеры ТОЛЬКО если пользователь не взаимодействует и не прошло 2 сек после его действия
+    const timeSinceUser = now - lastUserActionTime;
+    if (isLerping && !userInteracting && timeSinceUser > 2000) {
       camera.position.lerp(targetCamPos, 0.07);
-      controls.target.lerp(new THREE.Vector3(0, 0, 0), 0.07);
       if (camera.position.distanceTo(targetCamPos) < 0.05) {
         camera.position.copy(targetCamPos);
-        controls.target.set(0, 0, 0);
         isLerping = false;
       }
     }
+
     controls.update();
     renderer.render(scene, camera);
   }
@@ -692,31 +747,46 @@ export function destroyLegoScene() {
   renderer = null;
   textGroup = null;
   canvas = null;
+  isInitialized = false;
 }
 
 function onResize() {
-  if (!camera || !renderer) return;
-  camera.aspect = window.innerWidth / window.innerHeight;
+  resize();
+}
+
+function resize() {
+  if (!camera || !renderer || !canvas) return;
+  const w = canvas.clientWidth || canvas.parentElement.clientWidth;
+  const h = canvas.clientHeight || canvas.parentElement.clientHeight;
+  if (w === 0 || h === 0) return;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight, false);
+  renderer.setSize(w, h, false);
 }
 
 // ===== ПУБЛИЧНОЕ API =====
 export function updateLegoSettings(newSettings) {
+  const oldAutoRotate = S.autoRotate;
   Object.assign(S, newSettings);
-  if (newSettings.autoRotate !== undefined && controls) {
-    controls.autoRotate = newSettings.autoRotate;
+
+  if (controls) {
+    controls.autoRotate = S.autoRotate;
   }
+
+  // Если изменились rotate/tilt — двигаем камеру
   if (newSettings.rotate !== undefined || newSettings.tilt !== undefined) {
-    initialRot = S.rotate;
-    initialTilt = S.tilt;
-    targetCamPos = calcCamPos(initialRot, initialTilt, camDist);
+    targetCamPos = calcCamPos(S.rotate, S.tilt, camDist);
     isLerping = true;
+    lastUserActionTime = 0; // разрешаем lerp сразу
   }
 }
 
 export function getLegoSettings() {
   return { ...S };
+}
+
+export function resizeLegoCanvas() {
+  resize();
 }
 
 // ===== UI-ФУНКЦИИ =====
@@ -740,13 +810,26 @@ function showToast(msg) {
   showToast._to = setTimeout(() => t.classList.remove("show"), 2800);
 }
 
+// В конце lego.js
+export function setLegoZoom(zoomFactor) {
+  if (!camera || !controls) return;
+  const baseDist = camDist || 35;
+  const targetDist = baseDist / zoomFactor;
+  const dir = camera.position.clone().normalize();
+  camera.position.copy(dir.multiplyScalar(targetDist));
+  controls.update();
+}
+
 // ===== АВТОЗАПУСК В OBS-РЕЖИМЕ =====
-if (isOBSMode()) {
+// ВАЖНО: запускаем ТОЛЬКО если реально в OBS-режиме И мы на lego.html
+if (isOBSMode() && location.pathname.includes("lego")) {
   parseHash();
-  document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => initLegoScene(), 100);
-  });
-  if (document.readyState !== "loading") {
-    setTimeout(() => initLegoScene(), 100);
-  }
+  const start = () => {
+    setTimeout(() => {
+      const c = document.getElementById("legoCanvas");
+      if (c) initLegoScene(c);
+    }, 100);
+  };
+  if (document.readyState !== "loading") start();
+  else document.addEventListener("DOMContentLoaded", start);
 }

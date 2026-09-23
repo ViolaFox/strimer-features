@@ -15,6 +15,8 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="lego.css" />
+
+    <!-- Importmap для LEGO 3D (three.js) -->
     <script type="importmap">
       {
         "imports": {
@@ -25,10 +27,7 @@
     </script>
   </head>
   <body class="lego-obs">
-    <!-- 3D Canvas на весь экран -->
     <canvas id="legoCanvas"></canvas>
-
-    <!-- Скрытый контейнер для тостов (на случай ошибок в OBS) -->
     <div class="lego-toast" id="legoToast"></div>
 
     <script type="module" src="scripts/lego.js"></script>
